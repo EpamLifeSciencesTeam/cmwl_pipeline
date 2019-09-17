@@ -13,6 +13,11 @@ First, install Java 8 JDK, Scala 2.12, the Scala build tool, and Docker on your 
 
 To install Docker and docker-compose CLI, run the **scripts/install-docker.sh** script.
 
+Install `git-hooks`, execute the following command:
+```bash
+bash hooks/install.sh
+```
+
 ## Compiling
 To compile from the command line, use the command below:
 ```
