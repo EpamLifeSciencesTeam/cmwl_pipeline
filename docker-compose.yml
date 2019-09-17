@@ -1,0 +1,14 @@
+version: "3"
+services:
+  #  Create a service named db.
+  db:
+    image: "postgres:12-alpine"
+    container_name: "pipeline_db"
+    #   Setup the username, password, and database name
+    environment:
+      - POSTGRES_USER=pipeline
+      - POSTGRES_PASSWORD=pipeline
+      - POSTGRES_DB=pipeline
+    #   Map port 6432 (localhost) to port 5432 on the container
+    ports:
+      - "6432:5432"
