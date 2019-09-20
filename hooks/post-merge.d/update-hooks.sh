@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
-rm -rf "${GIT_DIR}"/hooks/*
+git_dir=$(git rev-parse --git-dir)
 
-"${GIT_DIR}"/../hooks/install.sh "${@}"
+rm -rf "${git_dir}"/hooks/*
+
+"${git_dir}"/../hooks/install.sh "${@}"
