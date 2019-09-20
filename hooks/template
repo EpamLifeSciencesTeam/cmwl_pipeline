@@ -10,11 +10,9 @@ if [[ -d ${hook_dir} ]]; then
     "${hook}" "${@}"
     exit_code=${?}
 
-    if [ ${exit_code} != 0 ]; then
-      error=$(tput setaf 1)
-      normal=$(tput sgr0)
+    if [[ ${exit_code} != 0 ]]; then
       script_name=$(basename "${hook}")
-      echo "${error}Hook ${hook_name} : ${script_name} failed!${normal}"
+      echo "Hook ${hook_name} : ${script_name} failed!"
       exit ${exit_code}
     fi
   done
