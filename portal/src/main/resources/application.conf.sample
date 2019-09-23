@@ -1,0 +1,23 @@
+database {
+  postgres_dc {
+    profile = "slick.jdbc.PostgresProfile$"
+    db {
+      //use HikariCP for our connection pool
+      connectionPool = "HikariCP",
+      //Simple datasource with no connection pooling. The connection pool has already been specified with HikariCP.
+      dataSourceClass = "org.postgresql.ds.PGSimpleDataSource",
+      properties {
+        serverName = "<database_host>"
+        portNumber = "<database_port>"
+        databaseName = "<database_name>"
+        user = "<user>"
+        password = "<password>"
+      }
+      numThreads = <number_of_threads>
+    }
+  }
+
+  liquibase {
+    changeLogResourcePath = "<path_to_the_change_log_master>"
+  }
+}

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+    <include file="../properties.xml" relativeToChangelogFile="true"/>
+
+    <changeSet id="create_user_table" author="alitkovetc">
+        <createTable tableName="user">
+            <column name="user_id" type="${uuid.type}"/>
+            <column name="email" type="${64_length_text.type}"/>
+            <column name="password_hash" type="${32_length_text.type}"/>
+            <column name="password_salt" type="${32_length_text.type}"/>
+            <column name="first_name" type="${64_length_text.type}"/>
+            <column name="last_name" type="${64_length_text.type}"/>
+            <column name="profile_picture" type="${binary_data.type}"/>
+        </createTable>
+        <addPrimaryKey constraintName="user_pk" tableName="user" columnNames="user_id"/>
+        <addUniqueConstraint constraintName="user_email_unq" tableName="user" columnNames="email"/>
+        <addNotNullConstraint constraintName="user_email_nn" tableName="user" columnName="email"/>
+        <addNotNullConstraint constraintName="user_first_name_nn" tableName="user" columnName="first_name"/>
+        <addNotNullConstraint constraintName="user_last_name_nn" tableName="user" columnName="last_name"/>
+    </changeSet>
+
+</databaseChangeLog>
