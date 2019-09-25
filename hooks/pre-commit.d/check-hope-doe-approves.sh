@@ -19,56 +19,58 @@ for source_file in $(find -type f -wholename */main/**/*.scala); do
   done
 done
 
-cat << EOF
---------------------------------------------------------------------------------
--██--██--██--██---████---█████---█████---█████----████---██--██--██████--█████--
--██--██--██--██--██--██--██--██--██--██--██--██--██--██--██--██--██------██--██-
--██--██--███-██--██--██--██--██--██--██--██--██--██--██--██--██--██------██--██-
--██--██--██-███--██████--█████---█████---█████---██--██---█--█---██████--██--██-
--██████--██--██--██--██--██------██------██-██---██--██---████---██------██--██-
---████---██--██--██--██--██------██------██--██---████-----██----██████--█████--
---------------------------------------------------------------------------------
-------------------------------------:::::::::-----------------------------------
----------------------------::::::/++soyhys//::/o--------------------------------
---------------------------:y/:/oyhhhhyhhddhhyyss/-------------------------------
--------------------------:/sydddhhhdmdmNNmmdddddy:------------------------------
--------------------------:ydmmmddddmmmmdhhdddddddo:-----------------------------
----------------------::::/hmmmmdhyyssoso++osyhmmmds:----------------------------
-----------------:::::::::odmmdhso+////////++ooyhdmdo:---------------------------
---------------::::::::::/hmmhsoo+++//+++++++oooshddh/::-------------------------
-----------:::::::::::::/sdmdsooo+++++++++++++oosyddds:::::----------------------
------:::::::::::::::::/+hdmdsooo++++++++++oosssssdmdh/::::-:--------------------
--:---:::::::::::::::::/sdmmhossyhhhysooosyhhyyyssdmmds:::::::-------------------
----:::::::::::::::::::+hNmmyosydddhhhs+oyhhhmddyosmmmh+::::::::-----------------
-:::::::::::::::::::::/smmddsooshyyssoo++ooosyysooohmNds::::::::::---------------
-:::::::::::::::::::://ydmmhs++++++++oo++oo+/+++++ohNNdh/:::::::::---------------
-::::::::::::::::::://+hmmNhyoo+++++ossooss+++++ooshNmdho::::::::::---:::--------
-::::::::::::::::::://odmmmmysooooo++shyyhy+++oosohmNmdhs::::::::::--::::--------
-::::::::::::::::::://ohdmmNmdssssoooooooooooossssNNNdhho:::::::::::::::::-------
-::::::::::::::::::///+hddmNmNyssssyyhhhhhhyyyssshNNmddh+::::::::::::::::::-:----
-:::::::::::::::::::///oddmmmNNsssssssyhhyysssssyNNmmmho/::::::::::::::::::::----
-:::::::::::::::::::////ohmmdmNmyssssoooooosssydNNNNmhs///:::::::::::::::::::----
-::::::::::::::::::://///odmmdNmyyyysyyyhyyyyyhNNNmmho+////:::::::::::::::::::---
-::::::::::::::::::://////+hmdmNyyyyyhhhhhhhysdNNmho+++////:::::::::::::::::::::-
-:::::::::::::::::::///////+shmhyyyyyyhhhhyyssdmmdh++++/////:::::::::::::::::::::
-::::::::::::::::::///////++ooyyssyyyyyyyyssssyyo++++++/////::::::::::::::::::::-
-:::::::::::::::::://////oo+osssssssyyyyysssssssoo++++++/////::::::::::::::::::::
-:::::::::::::::://///oyddo++oooooosssyyysssssooooomhs++++///::::::::::::::::::::
-::::::::::::::://yddmNNNmy+++oooooo+oosssssoooooohmNNNdysoo/::::::::::::::::::::
-:::::::::::://+++mNNNNNNmmyo+oo+++++++++++ooooosdmNNNNNNNNms//::::::::::::::::::
-::::::::::/++++//dNNNNNNNNNmhsso+//++++oossyyddmNNNNNNNNNNd+++//::::::::::::::::
-:::::::::/++++///dNNNNNNNNNNNNNNNNmmmmNNNNNNNNNNNNNNNNNNNNh////++/::::::::::::::
-::::::::/oo++++++mNNNNNNNNNNNNNNNNNNNNNNNNNmNmNNNmNNNNNNNNh/////++/:::::::::::::
-::::::::/oo++++++mNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNd++++++++:::::::::::::
-:::::://+oo+++++omNNNNNNNNNNNNNNNNNNmNNNNNNNNNNNNNNNmNNNNNh++++++oo/::::::::::::
-:::::///oo++++++omNNNNmNNNNNNNNNNNNNNNNNNNNNNNmNmNNmmNNNNNh++++++oo/::::::::::::
-:::::///ooo+++oosmNNNNmNmNNNNNNNNNNNNNNNNNNNNNNNmNmmmmNmNNho+++++oo+::::::::::::
-::::///+ooo+ooosymNNNNNNNNNNNNNNNNNNNNNNNNNNNmNNmNmNNmmmmNdoo+++++oo::::::::::::
-::::///+oooooooshmNNNNNNmNNmmNNNNNNNNNNNNNNNNNmmmmNNNNNNNNdso++++ooo::::::::::::
-::::///+oooooooshmNNNNNNNmmmmNmmNNNNNNNNNNNNNmmmmmNNNNNNNNdsoo+++ooo::::::::::::
-EOF
+if [[ "${#unapproved[@]}" -ne 0 ]]; then
+  cat << EOF
+  --------------------------------------------------------------------------------
+  -██--██--██--██---████---█████---█████---█████----████---██--██--██████--█████--
+  -██--██--██--██--██--██--██--██--██--██--██--██--██--██--██--██--██------██--██-
+  -██--██--███-██--██--██--██--██--██--██--██--██--██--██--██--██--██------██--██-
+  -██--██--██-███--██████--█████---█████---█████---██--██---█--█---██████--██--██-
+  -██████--██--██--██--██--██------██------██-██---██--██---████---██------██--██-
+  --████---██--██--██--██--██------██------██--██---████-----██----██████--█████--
+  --------------------------------------------------------------------------------
+  ------------------------------------:::::::::-----------------------------------
+  ---------------------------::::::/++soyhys//::/o--------------------------------
+  --------------------------:y/:/oyhhhhyhhddhhyyss/-------------------------------
+  -------------------------:/sydddhhhdmdmNNmmdddddy:------------------------------
+  -------------------------:ydmmmddddmmmmdhhdddddddo:-----------------------------
+  ---------------------::::/hmmmmdhyyssoso++osyhmmmds:----------------------------
+  ----------------:::::::::odmmdhso+////////++ooyhdmdo:---------------------------
+  --------------::::::::::/hmmhsoo+++//+++++++oooshddh/::-------------------------
+  ----------:::::::::::::/sdmdsooo+++++++++++++oosyddds:::::----------------------
+  -----:::::::::::::::::/+hdmdsooo++++++++++oosssssdmdh/::::-:--------------------
+  -:---:::::::::::::::::/sdmmhossyhhhysooosyhhyyyssdmmds:::::::-------------------
+  ---:::::::::::::::::::+hNmmyosydddhhhs+oyhhhmddyosmmmh+::::::::-----------------
+  :::::::::::::::::::::/smmddsooshyyssoo++ooosyysooohmNds::::::::::---------------
+  :::::::::::::::::::://ydmmhs++++++++oo++oo+/+++++ohNNdh/:::::::::---------------
+  ::::::::::::::::::://+hmmNhyoo+++++ossooss+++++ooshNmdho::::::::::---:::--------
+  ::::::::::::::::::://odmmmmysooooo++shyyhy+++oosohmNmdhs::::::::::--::::--------
+  ::::::::::::::::::://ohdmmNmdssssoooooooooooossssNNNdhho:::::::::::::::::-------
+  ::::::::::::::::::///+hddmNmNyssssyyhhhhhhyyyssshNNmddh+::::::::::::::::::-:----
+  :::::::::::::::::::///oddmmmNNsssssssyhhyysssssyNNmmmho/::::::::::::::::::::----
+  :::::::::::::::::::////ohmmdmNmyssssoooooosssydNNNNmhs///:::::::::::::::::::----
+  ::::::::::::::::::://///odmmdNmyyyysyyyhyyyyyhNNNmmho+////:::::::::::::::::::---
+  ::::::::::::::::::://////+hmdmNyyyyyhhhhhhhysdNNmho+++////:::::::::::::::::::::-
+  :::::::::::::::::::///////+shmhyyyyyyhhhhyyssdmmdh++++/////:::::::::::::::::::::
+  ::::::::::::::::::///////++ooyyssyyyyyyyyssssyyo++++++/////::::::::::::::::::::-
+  :::::::::::::::::://////oo+osssssssyyyyysssssssoo++++++/////::::::::::::::::::::
+  :::::::::::::::://///oyddo++oooooosssyyysssssooooomhs++++///::::::::::::::::::::
+  ::::::::::::::://yddmNNNmy+++oooooo+oosssssoooooohmNNNdysoo/::::::::::::::::::::
+  :::::::::::://+++mNNNNNNmmyo+oo+++++++++++ooooosdmNNNNNNNNms//::::::::::::::::::
+  ::::::::::/++++//dNNNNNNNNNmhsso+//++++oossyyddmNNNNNNNNNNd+++//::::::::::::::::
+  :::::::::/++++///dNNNNNNNNNNNNNNNNmmmmNNNNNNNNNNNNNNNNNNNNh////++/::::::::::::::
+  ::::::::/oo++++++mNNNNNNNNNNNNNNNNNNNNNNNNNmNmNNNmNNNNNNNNh/////++/:::::::::::::
+  ::::::::/oo++++++mNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNd++++++++:::::::::::::
+  :::::://+oo+++++omNNNNNNNNNNNNNNNNNNmNNNNNNNNNNNNNNNmNNNNNh++++++oo/::::::::::::
+  :::::///oo++++++omNNNNmNNNNNNNNNNNNNNNNNNNNNNNmNmNNmmNNNNNh++++++oo/::::::::::::
+  :::::///ooo+++oosmNNNNmNmNNNNNNNNNNNNNNNNNNNNNNNmNmmmmNmNNho+++++oo+::::::::::::
+  ::::///+ooo+ooosymNNNNNNNNNNNNNNNNNNNNNNNNNNNmNNmNmNNmmmmNdoo+++++oo::::::::::::
+  ::::///+oooooooshmNNNNNNmNNmmNNNNNNNNNNNNNNNNNmmmmNNNNNNNNdso++++ooo::::::::::::
+  ::::///+oooooooshmNNNNNNNmmmmNmmNNNNNNNNNNNNNmmmmmNNNNNNNNdsoo+++ooo::::::::::::
+  EOF
 
-for file in "${!unapproved[@]}"; do
-  message="${unapproved[$file]}"
-  echo "${file}: $message"
+  for file in "${!unapproved[@]}"; do
+    message="${unapproved[$file]}"
+    echo "${file}: $message"
 done
+fi
