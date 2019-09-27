@@ -8,21 +8,46 @@ ThisBuild / scalacOptions := Seq(
     "-Xfatal-warnings"
 )
 
+lazy val formatAll = taskKey[Unit]("Format all the source code which includes src, test, and build files")
+lazy val checkFormat = taskKey[Unit]("Check all the source code which includes src, test, and build files")
+
+lazy val commonSettings = Seq(
+  formatAll := {
+    (scalafmt in Compile).value
+    (scalafmt in Test).value
+  },
+  checkFormat := {
+    (scalafmtCheck in Compile).value
+    (scalafmtCheck in Test).value
+  },
+  compile in Compile := (compile in Compile).dependsOn(checkFormat).value,
+  test in Test := (test in Test).dependsOn(checkFormat).value
+)
+
+addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")
+addCommandAlias("check", "all scalafmtSbtCheck scalafmtCheck test:scalafmtCheck")
+
 lazy val root = (project in file("."))
-    .settings(name := "Cromwell pipeline")
-    .aggregate(portal)
+  .settings(
+    name := "Cromwell pipeline",
+    commonSettings
+  )
+  .aggregate(portal, datasource)
 
-
-lazy val datasource = project.settings(
+lazy val datasource = project
+  .settings(
     name := "Datasource",
-    libraryDependencies ++= dbDependencies)
+    commonSettings,
+    libraryDependencies ++= dbDependencies
+  )
 
 lazy val portal = project
     .configs(IntegrationTest)
     .settings(
         name := "Portal",
+        commonSettings,
         Defaults.itSettings,
-        libraryDependencies ++= akkaDependencies ++ testDependencies  ++ jsonDependencies ++ macwire ++ testContainers,
+        libraryDependencies ++= akkaDependencies ++ testDependencies  ++ jsonDependencies ++ macwire,
         libraryDependencies += cats,
         addCommandAlias("testAll", "; test ; it:test"),
     ).dependsOn(datasource)
