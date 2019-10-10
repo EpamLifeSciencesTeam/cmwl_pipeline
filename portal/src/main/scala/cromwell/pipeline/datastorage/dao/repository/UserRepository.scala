@@ -8,11 +8,12 @@ import scala.concurrent.Future
 
 class UserRepository(pipelineDatabaseEngine: PipelineDatabaseEngine, userEntry: UserEntry) {
 
+  import pipelineDatabaseEngine._
   import pipelineDatabaseEngine.profile.api._
 
-  private val database = pipelineDatabaseEngine.database
-
   def getUserById(userId: UserId): Future[Option[User]] = database.run(userEntry.getUserByIdAction(userId).result.headOption)
+
+  def getUserByEmail(email: String): Future[Option[User]] = database.run(userEntry.getUserByEmailAction(email).result.headOption)
 
   def addUser(user: User): Future[UserId] = database.run(userEntry.addUserAction(user))
 

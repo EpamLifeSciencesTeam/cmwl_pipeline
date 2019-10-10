@@ -20,5 +20,6 @@ lazy val datasource = project.settings(
 lazy val portal = project
     .settings(
         name := "Portal",
-        libraryDependencies ++= akkaDependencies ++ testDependencies :+ macwire,
+        libraryDependencies ++= akkaDependencies ++ testDependencies  ++ jsonDependencies ++ macwire,
+        libraryDependencies += cats,
     ).dependsOn(datasource)

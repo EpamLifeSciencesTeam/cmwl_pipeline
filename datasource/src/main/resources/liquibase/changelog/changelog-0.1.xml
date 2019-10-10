@@ -23,4 +23,13 @@
         <addNotNullConstraint constraintName="user_last_name_nn" tableName="user" columnName="last_name"/>
     </changeSet>
 
+    <changeSet id="expand_text_length_for_full_name_columns" author="alitkovetc">
+        <modifyDataType tableName="user" columnName="password_hash" newDataType="${64_length_text.type}"/>
+        <modifyDataType tableName="user" columnName="password_salt" newDataType="${64_length_text.type}"/>
+        <rollback>
+            <modifyDataType tableName="user" columnName="password_salt" newDataType="${32_length_text.type}"/>
+            <modifyDataType tableName="user" columnName="password_hash" newDataType="${32_length_text.type}"/>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>
