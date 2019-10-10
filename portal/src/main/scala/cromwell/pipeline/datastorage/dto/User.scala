@@ -8,7 +8,7 @@ case class User(userId: UserId,
                 passwordSalt: String,
                 firstName: String,
                 lastName: String,
-                profilePicture: Option[ProfilePicture])
+                profilePicture: Option[ProfilePicture] = None)
 
 final case class UserId(value: String) extends MappedTo[String]
 final case class ProfilePicture(value: Array[Byte]) extends MappedTo[Array[Byte]]
