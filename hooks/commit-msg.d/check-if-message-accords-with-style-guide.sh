@@ -6,7 +6,7 @@
 # characters length. The body is considered everything until the end of the message.
 pattern="^(feat|fix|docs|style|refactor|test|chore):[ ](.{1,50})("$'\n'"("$'\n'"[^"$'\n'"]{0,72})+)?$"
 
-message=$(cat "${1}")
+message=$(grep --invert-match "^#" < "${1}")
 
 if [[ "${message}" =~ ${pattern} ]]; then
   exit 0
