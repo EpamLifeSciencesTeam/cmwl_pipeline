@@ -3,20 +3,20 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.ContentTypes.`application/json`
 import akka.http.scaladsl.model.{HttpEntity, StatusCodes}
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import cromwell.pipeline.BaseTest
 import cromwell.pipeline.controller.AuthController._
 import cromwell.pipeline.datastorage.dto.auth.{AuthResponse, SignInRequest, SignUpRequest}
 import cromwell.pipeline.service.AuthService
 import cromwell.pipeline.utils.validator.DomainValidation
-import org.scalatest.Assertion
+import org.scalamock.scalatest.MockFactory
+import org.scalatest.{Assertion, Matchers, WordSpec}
 import play.api.libs.json.Json
 
 import scala.concurrent.Future
 
-class AuthControllerTest extends BaseTest with ScalatestRouteTest {
+class AuthControllerTest extends WordSpec with Matchers with MockFactory with ScalatestRouteTest {
 
   private val authService = stub[AuthService]
-  private val authController = new AuthController(authService)(scala.concurrent.ExecutionContext.Implicits.global)
+  private val authController = new AuthController(authService)
   private val accessToken = "access-token"
   private val refreshToken = "refresh-token"
   private val accessTokenExpiration = 300
