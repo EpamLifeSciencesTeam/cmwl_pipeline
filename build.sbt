@@ -18,8 +18,11 @@ lazy val datasource = project.settings(
     libraryDependencies ++= dbDependencies)
 
 lazy val portal = project
+    .configs(IntegrationTest)
     .settings(
         name := "Portal",
-        libraryDependencies ++= akkaDependencies ++ testDependencies  ++ jsonDependencies ++ macwire,
+        Defaults.itSettings,
+        libraryDependencies ++= akkaDependencies ++ testDependencies  ++ jsonDependencies ++ macwire ++ testContainers,
         libraryDependencies += cats,
+        addCommandAlias("testAll", "; test ; it:test"),
     ).dependsOn(datasource)

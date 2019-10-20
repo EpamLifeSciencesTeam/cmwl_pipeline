@@ -6,7 +6,6 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import com.softwaremill.macwire._
-import com.typesafe.config.ConfigFactory
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContextExecutor
@@ -18,7 +17,6 @@ object CromwellPipelineApp extends App {
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
   val log = LoggerFactory.getLogger(CromwellPipelineApp.getClass)
-  val config = ConfigFactory.load()
   val components = wire[ApplicationComponents]
 
   import components.applicationConfig.webServiceConfig

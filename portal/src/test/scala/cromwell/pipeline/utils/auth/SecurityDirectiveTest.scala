@@ -7,13 +7,14 @@ import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.utils.auth.SecurityDirective._
-import cromwell.pipeline.{AuthConfig, BaseTest, ExpirationTimeInSeconds}
+import cromwell.pipeline.{AuthConfig, ExpirationTimeInSeconds}
+import org.scalatest.{Matchers, WordSpec}
 import pdi.jwt.algorithms.JwtHmacAlgorithm
 import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
 import play.api.libs.json.Json
 
 
-class SecurityDirectiveTest extends BaseTest with ScalatestRouteTest {
+class SecurityDirectiveTest extends WordSpec with Matchers with ScalatestRouteTest {
 
   private val authConfig = AuthConfig(secretKey = "secretKey",
     hmacAlgorithm = JwtAlgorithm.fromString(algo = "HS256").asInstanceOf[JwtHmacAlgorithm],

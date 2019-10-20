@@ -11,33 +11,37 @@ object Dependencies {
     val akkaHttpJson = "1.29.1"
     val jwtCore      = "4.1.0"
     val cats         = "2.0.0"
+    val macwire      = "2.3.3"
     val scalaCheck   = "1.14.0"
     val scalaTest    = "3.0.8"
     val scalaMock    = "4.4.0"
-    val macwire      = "2.3.3"
+    val tcCore       = "0.27.0"
+    val tcPostgres   = "1.12.2"
     val liquibase    = "3.8.0"
     val postgresql   = "42.2.8"
   }
 
 
-  val akkaActor        = "com.typesafe.akka"        %% "akka-actor"          % Version.akka
-  val akkaStreams      = "com.typesafe.akka"        %% "akka-stream"         % Version.akka
-  val akkaHttp         = "com.typesafe.akka"        %% "akka-http"           % Version.akkaHttp
-  val slick            = "com.typesafe.slick"       %% "slick"               % Version.slick
-  val hikariCP         = "com.typesafe.slick"       %% "slick-hikaricp"      % Version.hikariCP
-  val playJson         = "com.typesafe.play"        %% "play-json"           % Version.playJson
-  val akkaHttpJson     = "de.heikoseeberger"        %% "akka-http-play-json" % Version.akkaHttpJson
-  val jwtCore          = "com.pauldijou"            %% "jwt-core"            % Version.jwtCore
-  val cats             = "org.typelevel"            %% "cats-core"           % Version.cats
-  val macwireUtil      = "com.softwaremill.macwire" %% "util"                % Version.macwire
-  val macwireMacros    = "com.softwaremill.macwire" %% "macros"              % Version.macwire    % Provided
-  val akkaTestKit      = "com.typesafe.akka"        %% "akka-testkit"        % Version.akka       % Test
-  val akkaHttpTestKit  = "com.typesafe.akka"        %% "akka-http-testkit"   % Version.akkaHttp   % Test
-  val scalaCheck       = "org.scalacheck"           %% "scalacheck"          % Version.scalaCheck % Test
-  val scalaTest        = "org.scalatest"            %% "scalatest"           % Version.scalaTest  % Test
-  val scalaMock        = "org.scalamock"            %% "scalamock"           % Version.scalaMock  % Test
-  val liquibase        = "org.liquibase"             % "liquibase-core"      % Version.liquibase
-  val postgresql       = "org.postgresql"            % "postgresql"          % Version.postgresql
+  val akkaActor       = "com.typesafe.akka"        %% "akka-actor"           % Version.akka
+  val akkaStreams     = "com.typesafe.akka"        %% "akka-stream"          % Version.akka
+  val akkaHttp        = "com.typesafe.akka"        %% "akka-http"            % Version.akkaHttp
+  val slick           = "com.typesafe.slick"       %% "slick"                % Version.slick
+  val hikariCP        = "com.typesafe.slick"       %% "slick-hikaricp"       % Version.hikariCP
+  val playJson        = "com.typesafe.play"        %% "play-json"            % Version.playJson
+  val akkaHttpJson    = "de.heikoseeberger"        %% "akka-http-play-json"  % Version.akkaHttpJson
+  val jwtCore         = "com.pauldijou"            %% "jwt-core"             % Version.jwtCore
+  val cats            = "org.typelevel"            %% "cats-core"            % Version.cats
+  val macwireUtil     = "com.softwaremill.macwire" %% "util"                 % Version.macwire
+  val macwireMacros   = "com.softwaremill.macwire" %% "macros"               % Version.macwire    % Provided
+  val scalaMock       = "org.scalamock"            %% "scalamock"            % Version.scalaMock  % Test
+  val akkaTestKit     = "com.typesafe.akka"        %% "akka-testkit"         % Version.akka       % "test,it"
+  val akkaHttpTestKit = "com.typesafe.akka"        %% "akka-http-testkit"    % Version.akkaHttp   % "test,it"
+  val scalaCheck      = "org.scalacheck"           %% "scalacheck"           % Version.scalaCheck % "test,it"
+  val scalaTest       = "org.scalatest"            %% "scalatest"            % Version.scalaTest  % "test,it"
+  val tcCore          = "com.dimafeng"             %% "testcontainers-scala" % Version.tcCore     % IntegrationTest
+  val tcPostgres      = "org.testcontainers"        % "postgresql"           % Version.tcPostgres % IntegrationTest
+  val liquibase       = "org.liquibase"             % "liquibase-core"       % Version.liquibase
+  val postgresql      = "org.postgresql"            % "postgresql"           % Version.postgresql
 
 
   lazy val akkaDependencies = Seq(akkaActor, akkaStreams, akkaHttp)
@@ -45,4 +49,5 @@ object Dependencies {
   lazy val dbDependencies   = Seq(slick, hikariCP, liquibase, postgresql)
   lazy val testDependencies = Seq(akkaTestKit, akkaHttpTestKit, scalaCheck, scalaTest, scalaMock)
   lazy val macwire          = Seq(macwireMacros, macwireUtil)
+  lazy val testContainers   = Seq(tcCore, tcPostgres)
 }
