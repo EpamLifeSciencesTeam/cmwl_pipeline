@@ -19,6 +19,7 @@ object Dependencies {
     val tcPostgres = "1.12.2"
     val liquibase = "3.8.0"
     val postgresql = "42.2.8"
+    val qalaDatagen = "2.5.1"
   }
 
   val akkaActor = "com.typesafe.akka" %% "akka-actor" % Version.akka
@@ -41,6 +42,7 @@ object Dependencies {
   val tcPostgres = "org.testcontainers" % "postgresql" % Version.tcPostgres % IntegrationTest
   val liquibase = "org.liquibase" % "liquibase-core" % Version.liquibase
   val postgresql = "org.postgresql" % "postgresql" % Version.postgresql
+  val qalaDatagen = "io.qala.datagen" % "qala-datagen" % Version.qalaDatagen
 
   lazy val akkaDependencies = Seq(akkaActor, akkaStreams, akkaHttp)
   lazy val jsonDependencies = Seq(playJson, akkaHttpJson, jwtCore)

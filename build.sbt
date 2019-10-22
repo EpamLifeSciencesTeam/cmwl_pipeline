@@ -49,6 +49,7 @@ lazy val portal = project
     Defaults.itSettings,
     libraryDependencies ++= akkaDependencies ++ testDependencies ++ jsonDependencies ++ macwire ++ testContainers,
     libraryDependencies += cats,
+    libraryDependencies += qalaDatagen,
     addCommandAlias("testAll", "; test ; it:test")
   )
   .dependsOn(datasource)
