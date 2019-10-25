@@ -3,7 +3,7 @@
 script_dir=$(dirname "${0}")
 git_dir=$(git rev-parse --git-dir)
 
-for hook_dir in "${script_dir}"/*.d/; do
+for hook_dir in "${script_dir}"/*.d; do
   hook_name=$(basename "${hook_dir}" ".d")
   cp -r "${hook_dir}" "${git_dir}/hooks/"
   cp "${script_dir}/template" "${git_dir}/hooks/${hook_name}"
