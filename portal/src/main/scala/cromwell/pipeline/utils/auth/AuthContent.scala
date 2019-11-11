@@ -12,7 +12,7 @@ object AccessTokenContent {
   implicit val accessTokenContentFormat: OFormat[AccessTokenContent] = Json.format[AccessTokenContent]
 }
 
-final case class RefreshTokenContent private(userId: String, optRestOfUserSession: Option[Long]) extends AuthContent
+final case class RefreshTokenContent private (userId: String, optRestOfUserSession: Option[Long]) extends AuthContent
 object RefreshTokenContent {
   implicit val refreshTokenContentFormat: OFormat[RefreshTokenContent] = Json.format[RefreshTokenContent]
 }

@@ -3,19 +3,18 @@ package cromwell.pipeline.controller
 import java.util.UUID
 
 import akka.http.scaladsl.model.ContentTypes.`application/json`
-import akka.http.scaladsl.model.{HttpEntity, StatusCodes}
+import akka.http.scaladsl.model.{ HttpEntity, StatusCodes }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import com.dimafeng.testcontainers.{Container, ForAllTestContainer}
+import com.dimafeng.testcontainers.{ Container, ForAllTestContainer }
 import cromwell.pipeline.controller.AuthController._
-import cromwell.pipeline.datastorage.dto.auth.{SignInRequest, SignUpRequest}
-import cromwell.pipeline.datastorage.dto.{User, UserId}
+import cromwell.pipeline.datastorage.dto.auth.{ SignInRequest, SignUpRequest }
+import cromwell.pipeline.datastorage.dto.{ User, UserId }
 import cromwell.pipeline.utils.StringUtils
-import cromwell.pipeline.{ApplicationComponents, BaseItTest}
+import cromwell.pipeline.{ ApplicationComponents, BaseItTest }
 import org.scalatest.compatible.Assertion
 import org.scalatest.concurrent.ScalaFutures._
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.{ Matchers, WordSpec }
 import play.api.libs.json.Json
-
 
 class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTest with ForAllTestContainer {
 
@@ -26,12 +25,10 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
 
   override val container: Container = BaseItTest.getPostgreSQLContainer()
 
-  override protected def beforeAll(): Unit = {
+  override protected def beforeAll(): Unit =
     pipelineDatabaseEngine.updateSchema()
-  }
 
   private val userPassword = "-Pa$$w0rd-"
-
 
   "AuthController" when {
 
@@ -41,7 +38,6 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
         val newUser = getDummyUser(userPassword)
 
         whenReady(userRepository.addUser(newUser)) { _ =>
-
           val signInRequest = SignInRequest(newUser.email, userPassword)
           val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signInRequest)))
 
@@ -73,7 +69,6 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
         val newUser = getDummyUser(userPassword)
 
         whenReady(userRepository.addUser(newUser)) { _ =>
-
           val signInRequest = SignInRequest(newUser.email, userPassword)
           val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signInRequest)))
 
@@ -94,18 +89,18 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
   private def getDummyUser(password: String = userPassword, passwordSalt: String = "salt"): User = {
     val uuid = UUID.randomUUID().toString
     val passwordHash = StringUtils.calculatePasswordHash(password, passwordSalt)
-    User(userId = UserId(uuid),
+    User(
+      userId = UserId(uuid),
       email = s"JohnDoe-$uuid@cromwell.com",
       passwordHash = passwordHash,
       passwordSalt = passwordSalt,
       firstName = "FirstName",
       lastName = "LastName",
-      profilePicture = None)
+      profilePicture = None
+    )
   }
 
-  private def checkAuthTokens: Assertion = {
-    Seq(AccessTokenHeader, RefreshTokenHeader, AccessTokenExpirationHeader)
-      .forall(header(_).isDefined) shouldBe true
-  }
+  private def checkAuthTokens: Assertion =
+    Seq(AccessTokenHeader, RefreshTokenHeader, AccessTokenExpirationHeader).forall(header(_).isDefined) shouldBe true
 
 }

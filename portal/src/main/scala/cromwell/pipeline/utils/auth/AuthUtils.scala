@@ -2,16 +2,18 @@ package cromwell.pipeline.utils.auth
 
 import cromwell.pipeline.AuthConfig
 import cromwell.pipeline.datastorage.dto.auth.AuthResponse
-import pdi.jwt.{Jwt, JwtClaim}
+import pdi.jwt.{ Jwt, JwtClaim }
 import play.api.libs.json.Json
 
 class AuthUtils(authConfig: AuthConfig) {
 
   import authConfig._
 
-  def getAuthResponse(accessTokenContent: AccessTokenContent,
-                      refreshTokenContent: RefreshTokenContent,
-                      currentTimestamp: Long): Option[AuthResponse] = {
+  def getAuthResponse(
+    accessTokenContent: AccessTokenContent,
+    refreshTokenContent: RefreshTokenContent,
+    currentTimestamp: Long
+  ): Option[AuthResponse] = {
 
     def buildAuthResponse: AuthResponse = {
       val updatedAccessTokenLifetime = refreshTokenContent.optRestOfUserSession.map { restOfUserSession =>
@@ -25,7 +27,7 @@ class AuthUtils(authConfig: AuthConfig) {
       val updatedRefreshTokenContent = refreshTokenContent.optRestOfUserSession.map { restOfUserSession =>
         val updatedRestOfUserSession = restOfUserSession - updatedRefreshTokenLifetime
         refreshTokenContent.copy(optRestOfUserSession = Some(updatedRestOfUserSession))
-      }.getOrElse{
+      }.getOrElse {
         val restOfUserSession = expirationTimeInSeconds.userSession - expirationTimeInSeconds.refreshToken
         refreshTokenContent.copy(optRestOfUserSession = Some(restOfUserSession))
       }
@@ -44,14 +46,15 @@ class AuthUtils(authConfig: AuthConfig) {
     }
   }
 
-  def getOptJwtClaims(refreshToken: String): Option[JwtClaim] = {
+  def getOptJwtClaims(refreshToken: String): Option[JwtClaim] =
     Jwt.decode(refreshToken, secretKey, Seq(hmacAlgorithm)).toOption
-  }
 
   private def getAuthToken(authContent: AuthContent, currentTimestamp: Long, lifetime: Long): String = {
-    val claims = JwtClaim(content = Json.stringify(Json.toJson(authContent)),
+    val claims = JwtClaim(
+      content = Json.stringify(Json.toJson(authContent)),
       expiration = Some(currentTimestamp + lifetime),
-      issuedAt = Some(currentTimestamp))
+      issuedAt = Some(currentTimestamp)
+    )
 
     Jwt.encode(claims, secretKey, hmacAlgorithm)
   }

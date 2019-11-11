@@ -7,6 +7,8 @@ import cromwell.pipeline.utils.UtilsModule
 import scala.concurrent.ExecutionContext
 
 @Module
-class ServiceModule(datastorageModule: DatastorageModule, utilsModule: UtilsModule)(implicit executionContext: ExecutionContext) {
+class ServiceModule(datastorageModule: DatastorageModule, utilsModule: UtilsModule)(
+  implicit executionContext: ExecutionContext
+) {
   lazy val authService: AuthService = wire[AuthService]
 }

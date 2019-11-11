@@ -3,9 +3,10 @@ import Dependencies._
 ThisBuild / version := "0.1"
 ThisBuild / scalaVersion := "2.12.9"
 ThisBuild / scalacOptions := Seq(
-    "-encoding", "utf8",
-    "-deprecation",
-    "-Xfatal-warnings"
+  "-encoding",
+  "utf8",
+  "-deprecation",
+  "-Xfatal-warnings"
 )
 
 lazy val formatAll = taskKey[Unit]("Format all the source code which includes src, test, and build files")
@@ -34,20 +35,20 @@ lazy val root = (project in file("."))
   )
   .aggregate(portal, datasource)
 
-lazy val datasource = project
-  .settings(
-    name := "Datasource",
-    commonSettings,
-    libraryDependencies ++= dbDependencies
-  )
+lazy val datasource = project.settings(
+  name := "Datasource",
+  commonSettings,
+  libraryDependencies ++= dbDependencies
+)
 
 lazy val portal = project
-    .configs(IntegrationTest)
-    .settings(
-        name := "Portal",
-        commonSettings,
-        Defaults.itSettings,
-        libraryDependencies ++= akkaDependencies ++ testDependencies  ++ jsonDependencies ++ macwire,
-        libraryDependencies += cats,
-        addCommandAlias("testAll", "; test ; it:test"),
-    ).dependsOn(datasource)
+  .configs(IntegrationTest)
+  .settings(
+    name := "Portal",
+    commonSettings,
+    Defaults.itSettings,
+    libraryDependencies ++= akkaDependencies ++ testDependencies ++ jsonDependencies ++ macwire,
+    libraryDependencies += cats,
+    addCommandAlias("testAll", "; test ; it:test")
+  )
+  .dependsOn(datasource)

@@ -3,17 +3,19 @@ package cromwell.pipeline.utils.auth
 import java.time.Instant
 
 import cromwell.pipeline.datastorage.dto.auth.AuthResponse
-import cromwell.pipeline.{AuthConfig, ExpirationTimeInSeconds}
-import org.scalatest.{Assertion, Matchers, WordSpec}
+import cromwell.pipeline.{ AuthConfig, ExpirationTimeInSeconds }
+import org.scalatest.{ Assertion, Matchers, WordSpec }
 import pdi.jwt.algorithms.JwtHmacAlgorithm
-import pdi.jwt.{Jwt, JwtAlgorithm}
+import pdi.jwt.{ Jwt, JwtAlgorithm }
 import play.api.libs.json.Json
 
 class AuthUtilsTest extends WordSpec with Matchers {
 
-  private val authConfig = AuthConfig(secretKey = "secretKey",
+  private val authConfig = AuthConfig(
+    secretKey = "secretKey",
     hmacAlgorithm = JwtAlgorithm.fromString(algo = "HS256").asInstanceOf[JwtHmacAlgorithm],
-    expirationTimeInSeconds = ExpirationTimeInSeconds(accessToken = 300, refreshToken = 900, userSession = 3600))
+    expirationTimeInSeconds = ExpirationTimeInSeconds(accessToken = 300, refreshToken = 900, userSession = 3600)
+  )
   private val authUtils = new AuthUtils(authConfig)
   private val userId = "userId"
 
@@ -31,10 +33,12 @@ class AuthUtilsTest extends WordSpec with Matchers {
 
         optAuthResponse match {
           case Some(authResponse) =>
-            checkAuthResponse(authResponse = authResponse,
+            checkAuthResponse(
+              authResponse = authResponse,
               accessTokenExpiration = initTimestamp + authConfig.expirationTimeInSeconds.accessToken,
               refreshTokenExpiration = initTimestamp + authConfig.expirationTimeInSeconds.refreshToken,
-              restOfUserSession = authConfig.expirationTimeInSeconds.userSession - authConfig.expirationTimeInSeconds.refreshToken)
+              restOfUserSession = authConfig.expirationTimeInSeconds.userSession - authConfig.expirationTimeInSeconds.refreshToken
+            )
           case _ =>
             fail
         }
@@ -52,10 +56,12 @@ class AuthUtilsTest extends WordSpec with Matchers {
 
         optAuthResponse match {
           case Some(authResponse) =>
-            checkAuthResponse(authResponse = authResponse,
+            checkAuthResponse(
+              authResponse = authResponse,
               accessTokenExpiration = initTimestamp + authConfig.expirationTimeInSeconds.accessToken,
               refreshTokenExpiration = initTimestamp + authConfig.expirationTimeInSeconds.refreshToken,
-              restOfUserSession = updatedRestOfUserSession - authConfig.expirationTimeInSeconds.refreshToken)
+              restOfUserSession = updatedRestOfUserSession - authConfig.expirationTimeInSeconds.refreshToken
+            )
           case _ =>
             fail
         }
@@ -73,10 +79,12 @@ class AuthUtilsTest extends WordSpec with Matchers {
 
         optAuthResponse match {
           case Some(authResponse) =>
-            checkAuthResponse(authResponse = authResponse,
+            checkAuthResponse(
+              authResponse = authResponse,
               accessTokenExpiration = initTimestamp + authConfig.expirationTimeInSeconds.accessToken,
               refreshTokenExpiration = initTimestamp + updatedRestOfUserSession,
-              restOfUserSession = 0)
+              restOfUserSession = 0
+            )
           case _ =>
             fail
         }
@@ -93,10 +101,12 @@ class AuthUtilsTest extends WordSpec with Matchers {
 
         optAuthResponse match {
           case Some(authResponse) =>
-            checkAuthResponse(authResponse = authResponse,
+            checkAuthResponse(
+              authResponse = authResponse,
               accessTokenExpiration = initTimestamp + updatedRestOfUserSession,
               refreshTokenExpiration = initTimestamp + updatedRestOfUserSession,
-              restOfUserSession = 0)
+              restOfUserSession = 0
+            )
           case _ =>
             fail
         }
@@ -118,10 +128,12 @@ class AuthUtilsTest extends WordSpec with Matchers {
 
   }
 
-  def checkAuthResponse(authResponse: AuthResponse,
-                        accessTokenExpiration: Long,
-                        refreshTokenExpiration: Long,
-                        restOfUserSession: Long): Assertion = {
+  def checkAuthResponse(
+    authResponse: AuthResponse,
+    accessTokenExpiration: Long,
+    refreshTokenExpiration: Long,
+    restOfUserSession: Long
+  ): Assertion = {
     val result = for {
       accessTokenClaims <- Jwt.decode(authResponse.accessToken, authConfig.secretKey, Seq(authConfig.hmacAlgorithm))
       refreshTokenClaims <- Jwt.decode(authResponse.refreshToken, authConfig.secretKey, Seq(authConfig.hmacAlgorithm))
@@ -136,7 +148,7 @@ class AuthUtilsTest extends WordSpec with Matchers {
       val isUserIdEqual = Seq(accessTokenContent.userId, refreshTokenContent.userId).forall(_ == userId)
 
       isAccessTokenExpirationEqual && isAccessTokenExpirationCorrect && isRefreshTokenExpirationCorrect &&
-        isRestOfUserSessionCorrect && isUserIdEqual
+      isRestOfUserSessionCorrect && isUserIdEqual
     }
 
     result.toOption.getOrElse(false) shouldBe true

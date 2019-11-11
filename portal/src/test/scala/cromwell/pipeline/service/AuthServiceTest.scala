@@ -5,12 +5,12 @@ import java.time.Instant
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dto.UserId
 import cromwell.pipeline.datastorage.dto.auth.AuthResponse
-import cromwell.pipeline.utils.auth.{AccessTokenContent, AuthContent, AuthUtils, RefreshTokenContent}
-import cromwell.pipeline.{AuthConfig, ExpirationTimeInSeconds}
+import cromwell.pipeline.utils.auth.{ AccessTokenContent, AuthContent, AuthUtils, RefreshTokenContent }
+import cromwell.pipeline.{ AuthConfig, ExpirationTimeInSeconds }
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.{ Matchers, WordSpec }
 import pdi.jwt.algorithms.JwtHmacAlgorithm
-import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
+import pdi.jwt.{ Jwt, JwtAlgorithm, JwtClaim }
 import play.api.libs.json.Json
 
 import scala.concurrent.ExecutionContext
@@ -19,9 +19,11 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
 
   implicit val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-  private val authConfig = AuthConfig(secretKey = "secretKey",
+  private val authConfig = AuthConfig(
+    secretKey = "secretKey",
     hmacAlgorithm = JwtAlgorithm.fromString(algo = "HS256").asInstanceOf[JwtHmacAlgorithm],
-    expirationTimeInSeconds = ExpirationTimeInSeconds(accessToken = 300, refreshToken = 900, userSession = 3600))
+    expirationTimeInSeconds = ExpirationTimeInSeconds(accessToken = 300, refreshToken = 900, userSession = 3600)
+  )
 
   import authConfig._
 
@@ -45,12 +47,14 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
       "return None for another type of token" in {
         val currentTimestamp = Instant.now.getEpochSecond
         val accessTokenContent: AuthContent = AccessTokenContent(userId = userId.value)
-        val accessTokenClaims = JwtClaim(content = Json.stringify(Json.toJson(accessTokenContent)),
+        val accessTokenClaims = JwtClaim(
+          content = Json.stringify(Json.toJson(accessTokenContent)),
           expiration = Some(currentTimestamp + expirationTimeInSeconds.accessToken),
-          issuedAt = Some(currentTimestamp))
+          issuedAt = Some(currentTimestamp)
+        )
         val accessToken = Jwt.encode(accessTokenClaims, secretKey, hmacAlgorithm)
 
-        authUtils.getOptJwtClaims _ when accessToken returns Some(accessTokenClaims)
+        (authUtils.getOptJwtClaims _ when accessToken).returns(Some(accessTokenClaims))
 
         authService.refreshTokens(accessToken) shouldBe None
       }
@@ -58,7 +62,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
       "return None for wrong token" in {
         val wrongToken = "wrongToken"
 
-        authUtils.getOptJwtClaims _ when wrongToken returns None
+        (authUtils.getOptJwtClaims _ when wrongToken).returns(None)
 
         authService.refreshTokens(wrongToken) shouldBe None
       }
@@ -67,16 +71,20 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
 
   class RefreshTokenContext(lifetime: Long) {
     val currentTimestamp: Long = Instant.now.getEpochSecond
-    val refreshTokenContent: AuthContent = RefreshTokenContent(userId = userId.value,
-      optRestOfUserSession = Some(expirationTimeInSeconds.userSession - lifetime))
-    val refreshTokenClaims: JwtClaim = JwtClaim(content = Json.stringify(Json.toJson(refreshTokenContent)),
+    val refreshTokenContent: AuthContent = RefreshTokenContent(
+      userId = userId.value,
+      optRestOfUserSession = Some(expirationTimeInSeconds.userSession - lifetime)
+    )
+    val refreshTokenClaims: JwtClaim = JwtClaim(
+      content = Json.stringify(Json.toJson(refreshTokenContent)),
       expiration = Some(currentTimestamp + lifetime),
-      issuedAt = Some(currentTimestamp))
+      issuedAt = Some(currentTimestamp)
+    )
     val refreshToken: String = Jwt.encode(refreshTokenClaims, secretKey, hmacAlgorithm)
     val authResponse: AuthResponse = AuthResponse("accessToken", "refreshToken", expirationTimeInSeconds.accessToken)
 
-    authUtils.getOptJwtClaims _ when refreshToken returns Some(refreshTokenClaims)
-    authUtils.getAuthResponse _ when (*, *, *) returns Some(authResponse)
+    (authUtils.getOptJwtClaims _ when refreshToken).returns(Some(refreshTokenClaims))
+    (authUtils.getAuthResponse _ when (*, *, *)).returns(Some(authResponse))
   }
 
 }
