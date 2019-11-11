@@ -7,18 +7,19 @@ import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.utils.auth.SecurityDirective._
-import cromwell.pipeline.{AuthConfig, ExpirationTimeInSeconds}
-import org.scalatest.{Matchers, WordSpec}
+import cromwell.pipeline.{ AuthConfig, ExpirationTimeInSeconds }
+import org.scalatest.{ Matchers, WordSpec }
 import pdi.jwt.algorithms.JwtHmacAlgorithm
-import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
+import pdi.jwt.{ Jwt, JwtAlgorithm, JwtClaim }
 import play.api.libs.json.Json
-
 
 class SecurityDirectiveTest extends WordSpec with Matchers with ScalatestRouteTest {
 
-  private val authConfig = AuthConfig(secretKey = "secretKey",
+  private val authConfig = AuthConfig(
+    secretKey = "secretKey",
     hmacAlgorithm = JwtAlgorithm.fromString(algo = "HS256").asInstanceOf[JwtHmacAlgorithm],
-    expirationTimeInSeconds = ExpirationTimeInSeconds(accessToken = 300, refreshToken = 900, userSession = 3600))
+    expirationTimeInSeconds = ExpirationTimeInSeconds(accessToken = 300, refreshToken = 900, userSession = 3600)
+  )
   private val securityDirective = new SecurityDirective(authConfig)
   private val publicPath = "publicContent"
   private val securedPath = "securedContent"
@@ -87,9 +88,11 @@ class SecurityDirectiveTest extends WordSpec with Matchers with ScalatestRouteTe
   private def getAccessToken(lifetimeInSeconds: Long): String = {
     val currentTimestamp = Instant.now.getEpochSecond
     val accessTokenContent: AuthContent = AccessTokenContent("userId")
-    val claims = JwtClaim(content = Json.stringify(Json.toJson(accessTokenContent)),
+    val claims = JwtClaim(
+      content = Json.stringify(Json.toJson(accessTokenContent)),
       expiration = Some(currentTimestamp + lifetimeInSeconds),
-      issuedAt = Some(currentTimestamp))
+      issuedAt = Some(currentTimestamp)
+    )
 
     Jwt.encode(claims, authConfig.secretKey, authConfig.hmacAlgorithm)
   }

@@ -1,6 +1,6 @@
 package cromwell.pipeline
 
-import com.dimafeng.testcontainers.{Container, PostgreSQLContainer}
+import com.dimafeng.testcontainers.{ Container, PostgreSQLContainer }
 import com.typesafe.config.ConfigFactory
 
 import scala.collection.convert.ImplicitConversions._
@@ -13,12 +13,11 @@ object BaseItTest {
   private val password = dbConfig.getString("password")
   private val portNumber = dbConfig.getString("portNumber")
 
-  def getPostgreSQLContainer(postgresImageName: String = "postgres:12"): Container = {
+  def getPostgreSQLContainer(postgresImageName: String = "postgres:12"): Container =
     PostgreSQLContainer(postgresImageName).configure { c =>
       c.withDatabaseName(s"$databaseName")
       c.withUsername(s"$user")
       c.withPassword(s"$password")
       c.setPortBindings(Seq(s"$portNumber:5432"))
     }
-  }
 }

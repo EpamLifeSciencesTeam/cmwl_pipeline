@@ -14,8 +14,8 @@ object EmailDoesNotMeetCriteria extends DomainValidation {
 object PasswordDoesNotMeetCriteria extends DomainValidation {
   val errorCode: String = DomainValidation.incorrectPasswordErrorCode
   val errorMessage: String = "Password must be at least 10 characters long, " +
-                             "including an uppercase and a lowercase letter, " +
-                             "one number and one special character."
+    "including an uppercase and a lowercase letter, " +
+    "one number and one special character."
 }
 
 object FirstNameHasSpecialCharacters extends DomainValidation {
@@ -29,13 +29,11 @@ object LastNameHasSpecialCharacters extends DomainValidation {
 }
 
 object DomainValidation {
-  val incorrectEmailErrorCode     = "INCORRECT_EMAIL"
-  val incorrectPasswordErrorCode  = "INCORRECT_PASSWORD"
+  val incorrectEmailErrorCode = "INCORRECT_EMAIL"
+  val incorrectPasswordErrorCode = "INCORRECT_PASSWORD"
   val incorrectFirstNameErrorCode = "INCORRECT_FIRST_NAME"
-  val incorrectLastNameErrorCode  = "INCORRECT_LAST_NAME"
+  val incorrectLastNameErrorCode = "INCORRECT_LAST_NAME"
 
-  val allErrorCodes: Seq[String] = Seq(incorrectEmailErrorCode,
-                                       incorrectPasswordErrorCode,
-                                       incorrectFirstNameErrorCode,
-                                       incorrectLastNameErrorCode)
+  val allErrorCodes: Seq[String] =
+    Seq(incorrectEmailErrorCode, incorrectPasswordErrorCode, incorrectFirstNameErrorCode, incorrectLastNameErrorCode)
 }

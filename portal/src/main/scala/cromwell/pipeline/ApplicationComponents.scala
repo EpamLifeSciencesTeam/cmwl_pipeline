@@ -1,7 +1,7 @@
 package cromwell.pipeline
 
 import com.softwaremill.macwire._
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{ Config, ConfigFactory }
 import cromwell.pipeline.controller.ControllerModule
 import cromwell.pipeline.datastorage.DatastorageModule
 import cromwell.pipeline.service.ServiceModule

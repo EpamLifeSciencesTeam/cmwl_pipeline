@@ -5,7 +5,6 @@ import cats.data._
 import cats.implicits._
 import cromwell.pipeline.datastorage.dto.auth.SignUpRequest
 
-
 object FormValidatorNel {
 
   type ValidationResult[A] = ValidatedNel[DomainValidation, A]
@@ -23,11 +22,12 @@ object FormValidatorNel {
   private def validateLastName(lastName: String): ValidationResult[String] =
     if (lastName.matches("^[a-zA-Z]+$")) lastName.validNel else LastNameHasSpecialCharacters.invalidNel
 
-  def validateForm(signUpRequest: SignUpRequest): ValidationResult[SignUpRequest] = {
-    (validateEmail(signUpRequest.email),
+  def validateForm(signUpRequest: SignUpRequest): ValidationResult[SignUpRequest] =
+    (
+      validateEmail(signUpRequest.email),
       validatePassword(signUpRequest.password),
       validateFirstName(signUpRequest.firstName),
-      validateLastName(signUpRequest.lastName)).mapN(SignUpRequest.apply)
-  }
+      validateLastName(signUpRequest.lastName)
+    ).mapN(SignUpRequest.apply)
 
 }

@@ -6,20 +6,20 @@ import java.util.UUID
 import cats.data.OptionT
 import cats.implicits._
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
-import cromwell.pipeline.datastorage.dto.auth.{AuthResponse, SignInRequest, SignUpRequest}
-import cromwell.pipeline.datastorage.dto.{User, UserId}
+import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, SignInRequest, SignUpRequest }
+import cromwell.pipeline.datastorage.dto.{ User, UserId }
 import cromwell.pipeline.utils.StringUtils
-import cromwell.pipeline.utils.auth.{AccessTokenContent, AuthContent, AuthUtils, RefreshTokenContent}
+import cromwell.pipeline.utils.auth.{ AccessTokenContent, AuthContent, AuthUtils, RefreshTokenContent }
 import play.api.libs.json.Json
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.Random
 
 class AuthService(userRepository: UserRepository, authUtils: AuthUtils)(implicit executionContext: ExecutionContext) {
 
   import authUtils._
 
-  def signIn(request: SignInRequest): Future[Option[AuthResponse]] = {
+  def signIn(request: SignInRequest): Future[Option[AuthResponse]] =
     OptionT(userRepository.getUserByEmail(request.email))
       .filter(user => user.passwordHash == StringUtils.calculatePasswordHash(request.password, user.passwordSalt))
       .map { user =>
@@ -29,17 +29,18 @@ class AuthService(userRepository: UserRepository, authUtils: AuthUtils)(implicit
       }
       .value
       .map(_.flatten)
-  }
 
   def signUp(request: SignUpRequest): Future[Option[AuthResponse]] = {
     val passwordSalt = Random.nextLong().toHexString
     val passwordHash = StringUtils.calculatePasswordHash(request.password, passwordSalt)
-    val newUser = User(userId = UserId(UUID.randomUUID().toString),
+    val newUser = User(
+      userId = UserId(UUID.randomUUID().toString),
       email = request.email,
       passwordSalt = passwordSalt,
       passwordHash = passwordHash,
       firstName = request.firstName,
-      lastName = request.lastName)
+      lastName = request.lastName
+    )
 
     userRepository.addUser(newUser).map { userId =>
       val accessTokenContent = AccessTokenContent(userId.value)

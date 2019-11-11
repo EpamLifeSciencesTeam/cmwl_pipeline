@@ -2,10 +2,10 @@ package cromwell.pipeline.utils.auth
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directive1
-import akka.http.scaladsl.server.Directives.{optionalHeaderValueByName, provide}
+import akka.http.scaladsl.server.Directives.{ optionalHeaderValueByName, provide }
 import akka.http.scaladsl.server.directives.RouteDirectives
 import cromwell.pipeline.AuthConfig
-import pdi.jwt.{Jwt, JwtClaim}
+import pdi.jwt.{ Jwt, JwtClaim }
 import play.api.libs.json.Json
 
 class SecurityDirective(authConfig: AuthConfig) {
@@ -14,7 +14,7 @@ class SecurityDirective(authConfig: AuthConfig) {
   import SecurityDirective._
   import authConfig._
 
-  def authenticated: Directive1[AccessTokenContent] = {
+  def authenticated: Directive1[AccessTokenContent] =
     optionalHeaderValueByName(AuthorizationHeader).flatMap {
       case Some(jwt) if !Jwt.isValid(jwt, secretKey, Seq(hmacAlgorithm)) =>
         complete(StatusCodes.Unauthorized -> UnauthorizedMessages.InvalidToken)
@@ -27,7 +27,6 @@ class SecurityDirective(authConfig: AuthConfig) {
       case None =>
         complete(StatusCodes.Unauthorized -> UnauthorizedMessages.MissedToken)
     }
-  }
 
   private def getClaims(jwt: String): Option[JwtClaim] = Jwt.decode(jwt, secretKey, Seq(hmacAlgorithm)).toOption
 

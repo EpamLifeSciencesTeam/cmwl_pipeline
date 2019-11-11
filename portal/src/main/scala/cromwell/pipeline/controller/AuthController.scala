@@ -4,8 +4,8 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import cats.data.Validated.{Invalid, Valid}
-import cromwell.pipeline.datastorage.dto.auth.{AuthResponse, SignInRequest, SignUpRequest}
+import cats.data.Validated.{ Invalid, Valid }
+import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, SignInRequest, SignUpRequest }
 import cromwell.pipeline.service.AuthService
 import cromwell.pipeline.utils.validator.FormValidatorNel
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
@@ -24,7 +24,7 @@ class AuthController(authService: AuthService)(implicit executionContext: Execut
           entity(as[SignInRequest]) { request =>
             onComplete(authService.signIn(request)) {
               case Success(Some(authResponse)) => setSuccessAuthRoute(authResponse)
-              case _ => complete(StatusCodes.Unauthorized)
+              case _                           => complete(StatusCodes.Unauthorized)
             }
           }
         }
@@ -36,7 +36,7 @@ class AuthController(authService: AuthService)(implicit executionContext: Execut
               case Valid(validatedRequest) =>
                 onComplete(authService.signUp(validatedRequest)) {
                   case Success(Some(authResponse)) => setSuccessAuthRoute(authResponse)
-                  case _ => complete(StatusCodes.BadRequest)
+                  case _                           => complete(StatusCodes.BadRequest)
                 }
               case Invalid(errors) =>
                 complete(StatusCodes.BadRequest -> errors.toList.map(_.toMap))
@@ -49,7 +49,7 @@ class AuthController(authService: AuthService)(implicit executionContext: Execut
           parameter('refreshToken.as[String]) { refreshToken =>
             authService.refreshTokens(refreshToken) match {
               case Some(authResponse) => setSuccessAuthRoute(authResponse)
-              case _ => complete(StatusCodes.BadRequest)
+              case _                  => complete(StatusCodes.BadRequest)
             }
           }
         }
@@ -57,13 +57,12 @@ class AuthController(authService: AuthService)(implicit executionContext: Execut
     )
   }
 
-  private def setSuccessAuthRoute(authResponse: AuthResponse): Route = {
+  private def setSuccessAuthRoute(authResponse: AuthResponse): Route =
     respondWithHeaders(
       RawHeader(AccessTokenHeader, authResponse.accessToken),
       RawHeader(RefreshTokenHeader, authResponse.refreshToken),
       RawHeader(AccessTokenExpirationHeader, authResponse.accessTokenExpiration.toString)
     )(complete(StatusCodes.OK))
-  }
 
 }
 

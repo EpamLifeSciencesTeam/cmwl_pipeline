@@ -2,7 +2,7 @@ package cromwell.pipeline.utils
 
 import com.softwaremill.macwire._
 import cromwell.pipeline.AuthConfig
-import cromwell.pipeline.utils.auth.{AuthUtils, SecurityDirective}
+import cromwell.pipeline.utils.auth.{ AuthUtils, SecurityDirective }
 
 @Module
 class UtilsModule(authConfig: AuthConfig) {

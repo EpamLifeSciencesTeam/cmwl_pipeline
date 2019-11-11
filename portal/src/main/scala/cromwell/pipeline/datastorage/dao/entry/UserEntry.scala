@@ -1,7 +1,7 @@
 package cromwell.pipeline.datastorage.dao.entry
 
 import cromwell.pipeline.database.PipelineDatabaseEngine
-import cromwell.pipeline.datastorage.dto.{ProfilePicture, User, UserId}
+import cromwell.pipeline.datastorage.dto.{ ProfilePicture, User, UserId }
 
 class UserEntry(val pipelineDatabaseEngine: PipelineDatabaseEngine) {
 
@@ -29,6 +29,6 @@ class UserEntry(val pipelineDatabaseEngine: PipelineDatabaseEngine) {
     users.filter(_.email === email).take(1)
   }
 
-  def addUserAction(user: User) = (users returning users.map(_.userId)) += user
+  def addUserAction(user: User) = (users.returning(users.map(_.userId))) += user
 
 }

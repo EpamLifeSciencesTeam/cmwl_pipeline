@@ -1,7 +1,7 @@
 package cromwell.pipeline
 
 import com.softwaremill.macwire.Module
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{ Config, ConfigFactory }
 import pdi.jwt.JwtAlgorithm
 import pdi.jwt.algorithms.JwtHmacAlgorithm
 
@@ -9,17 +9,19 @@ sealed trait ConfigComponent
 
 final case class WebServiceConfig(interface: String, port: Int) extends ConfigComponent
 
-final case class AuthConfig(secretKey: String,
-                            hmacAlgorithm: JwtHmacAlgorithm,
-                            expirationTimeInSeconds: ExpirationTimeInSeconds) extends ConfigComponent
+final case class AuthConfig(
+  secretKey: String,
+  hmacAlgorithm: JwtHmacAlgorithm,
+  expirationTimeInSeconds: ExpirationTimeInSeconds
+) extends ConfigComponent
 
 final case class ExpirationTimeInSeconds(accessToken: Long, refreshToken: Long, userSession: Long)
 
 @Module
 class ApplicationConfig(config: Config) {
 
-  lazy val webServiceConfig: WebServiceConfig = WebServiceConfig(interface = config.getString("webservice.interface"),
-    port = config.getInt("webservice.port"))
+  lazy val webServiceConfig: WebServiceConfig =
+    WebServiceConfig(interface = config.getString("webservice.interface"), port = config.getInt("webservice.port"))
 
   lazy val authConfig: AuthConfig = {
     val result = AuthConfig(
@@ -31,7 +33,8 @@ class ApplicationConfig(config: Config) {
       expirationTimeInSeconds = ExpirationTimeInSeconds(
         accessToken = config.getLong("auth.expirationTimeInSeconds.accessToken"),
         refreshToken = config.getLong("auth.expirationTimeInSeconds.refreshToken"),
-        userSession = config.getLong("auth.expirationTimeInSeconds.userSession"))
+        userSession = config.getLong("auth.expirationTimeInSeconds.userSession")
+      )
     )
 
     if (result.expirationTimeInSeconds.accessToken >= result.expirationTimeInSeconds.refreshToken) {
@@ -46,7 +49,6 @@ class ApplicationConfig(config: Config) {
 }
 
 object ApplicationConfig {
-  def load(config: Config = ConfigFactory.load()): ApplicationConfig = {
+  def load(config: Config = ConfigFactory.load()): ApplicationConfig =
     new ApplicationConfig(config)
-  }
 }
