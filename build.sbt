@@ -47,7 +47,7 @@ lazy val portal = project
     name := "Portal",
     commonSettings,
     Defaults.itSettings,
-    libraryDependencies ++= akkaDependencies ++ testDependencies ++ jsonDependencies ++ macwire,
+    libraryDependencies ++= akkaDependencies ++ testDependencies ++ jsonDependencies ++ macwire ++ testContainers,
     libraryDependencies += cats,
     addCommandAlias("testAll", "; test ; it:test")
   )
