@@ -55,6 +55,11 @@ To run the integration test suit, execute the following command:
 sbt it:test
 ```
 Default configuration can be overloaded in application.properties file located in the same directory as service jar
+## Local database usage
+Locally we could start Postgres db instance via
+```
+docker-compose up
+```
 ## Build With
 * [SBT](https://www.scala-sbt.org/) Build and dependency management
 * [AkkaHTTP](https://doc.akka.io/docs/akka-http/current/index.html)  Asynchronous, streaming-first HTTP server and client
