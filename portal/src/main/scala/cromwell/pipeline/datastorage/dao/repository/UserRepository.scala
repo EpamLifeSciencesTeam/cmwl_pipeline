@@ -19,4 +19,6 @@ class UserRepository(pipelineDatabaseEngine: PipelineDatabaseEngine, userEntry: 
 
   def addUser(user: User): Future[UserId] = database.run(userEntry.addUserAction(user))
 
+  def deactivateUser(email: String): Future[Int] = database.run(userEntry.deactivateUserAction(email))
+
 }

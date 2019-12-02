@@ -32,6 +32,17 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="add_column_for_user_deactivation" author="ysheiko">
+        <addColumn tableName="user">
+        <column name="active" type="boolean"/>
+        </addColumn>
+        <addDefaultValue tableName="user" columnName="active" defaultValueBoolean="true"/>
+        <addNotNullConstraint constraintName="user_active_nn" tableName="user" columnName="active"/>
+        <rollback>
+            <dropColumn tableName="user" columnName="active"/>
+        </rollback>
+    </changeSet>
+
     <changeSet id="create_project_table" author="andrey_stolyarov">
         <createTable tableName="project">
             <column name="project_id" type="${uuid.type}"/>

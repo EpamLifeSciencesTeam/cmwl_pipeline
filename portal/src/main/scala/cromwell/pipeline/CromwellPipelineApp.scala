@@ -26,7 +26,7 @@ object CromwellPipelineApp extends App {
 
   pipelineDatabaseEngine.updateSchema()
 
-  val route = authController.route ~ securityDirective.authenticated { _ =>
+  val route = authController.route ~ userManagementController.route ~ securityDirective.authenticated { _ =>
     complete(StatusCodes.OK)
   }
 

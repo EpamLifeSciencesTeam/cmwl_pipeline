@@ -9,7 +9,8 @@ final case class User(
   passwordSalt: String,
   firstName: String,
   lastName: String,
-  profilePicture: Option[ProfilePicture] = None
+  profilePicture: Option[ProfilePicture] = None,
+  active: Boolean = true
 )
 
 final case class UserId(value: String) extends MappedTo[String]

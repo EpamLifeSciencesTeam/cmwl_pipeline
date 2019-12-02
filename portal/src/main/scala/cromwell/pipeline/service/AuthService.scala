@@ -39,7 +39,7 @@ class AuthService(userRepository: UserRepository, authUtils: AuthUtils)(implicit
       passwordSalt = passwordSalt,
       passwordHash = passwordHash,
       firstName = request.firstName,
-      lastName = request.lastName
+      lastName = request.lastName,
     )
 
     userRepository.addUser(newUser).map { userId =>
