@@ -68,3 +68,6 @@ docker-compose up
 * [Circee]() JSON processing
 * [ScalaTest](http://www.scalatest.org/) Unit-testing framework
 * [ScalaMock](https://scalamock.org/) Unit-testing framework
+
+## Developer Guide
+https://kb.epam.com/display/EPMLSTR/Cromwell+Developer+Guide

@@ -16,8 +16,9 @@ trait UserEntry {
     def firstName = column[String]("first_name")
     def lastName = column[String]("last_name")
     def profilePicture = column[ProfilePicture]("profile_picture")
-    def * = (userId, email, passwordHash, passwordSalt, firstName, lastName, profilePicture.?) <>
-      (User.tupled, User.unapply)
+    def active = column[Boolean]("active")
+    def * = (userId, email, passwordHash, passwordSalt, firstName, lastName, profilePicture.?, active) <>
+      ((User.apply _).tupled, User.unapply)
   }
 
   val users = TableQuery[UserTable]
@@ -31,5 +32,9 @@ trait UserEntry {
   }
 
   def addUserAction(user: User) = (users.returning(users.map(_.userId))) += user
+
+  def deactivateUserByEmail(email: String) = users.filter(_.email === email).map(_.active).update(false)
+
+  def deactivateUserById(userId: UserId) = users.filter(_.userId === userId).map(_.active).update(false)
 
 }

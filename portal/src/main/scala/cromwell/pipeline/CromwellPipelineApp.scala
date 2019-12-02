@@ -2,7 +2,6 @@ package cromwell.pipeline
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import com.softwaremill.macwire._
@@ -26,11 +25,8 @@ object CromwellPipelineApp extends App {
 
   pipelineDatabaseEngine.updateSchema()
 
-  val route = authController.route ~ securityDirective.authenticated { _ =>
-    complete(StatusCodes.OK)
-  }
+  val route = authController.route ~ securityDirective.authenticated { userController.route }
 
   log.info(s"Server online at http://${webServiceConfig.interface}:${webServiceConfig.port}/")
   Http().bindAndHandle(route, webServiceConfig.interface, webServiceConfig.port)
-
 }

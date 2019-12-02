@@ -1,4 +1,4 @@
-package cromwell.pipeline
+package cromwell.pipeline.utils.auth
 
 import com.dimafeng.testcontainers.PostgreSQLContainer
 import com.typesafe.config.{ Config, ConfigFactory }

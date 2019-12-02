@@ -6,7 +6,8 @@ import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
 import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, User, UserId }
 import cromwell.pipeline.utils.StringUtils
-import cromwell.pipeline.{ ApplicationComponents, TestContainersUtils }
+import cromwell.pipeline.ApplicationComponents
+import cromwell.pipeline.utils.auth.TestContainersUtils
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 
 class ProjectRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfterAll with ForAllTestContainer {
