@@ -2,7 +2,7 @@ package cromwell.pipeline.utils.auth
 
 import java.util.UUID
 
-import cromwell.pipeline.datastorage.dto.{ User, UserId }
+import cromwell.pipeline.datastorage.dto.{ ProfilePicture, User, UserId }
 import cromwell.pipeline.utils.StringUtils
 
 object TestUserUtils {
@@ -11,15 +11,72 @@ object TestUserUtils {
   def getDummyUser(password: String = userPassword, passwordSalt: String = "salt", active: Boolean = true): User = {
     val uuid = UUID.randomUUID().toString
     val passwordHash = StringUtils.calculatePasswordHash(password, passwordSalt)
-    User(
-      userId = UserId(uuid),
-      email = s"JohnDoe-$uuid@cromwell.com",
-      passwordHash = passwordHash,
-      passwordSalt = passwordSalt,
-      firstName = "FirstName",
-      lastName = "LastName",
-      profilePicture = None,
-      active = active
+    createDummyUser(
+      UserId(uuid),
+      s"JohnDoe-$uuid@cromwell.com",
+      passwordHash,
+      passwordSalt,
+      "FirstName",
+      "LastName",
+      active
     )
   }
+
+  def getDummyUserWithCustomEmailDomain(
+    password: String = userPassword,
+    passwordSalt: String = "salt",
+    active: Boolean = true,
+    emailDomain: String
+  ): User = {
+    val uuid = UUID.randomUUID().toString
+    val passwordHash = StringUtils.calculatePasswordHash(password, passwordSalt)
+    createDummyUser(
+      UserId(uuid),
+      s"JohnDoe-$uuid@$emailDomain",
+      passwordHash,
+      passwordSalt,
+      "FirstName",
+      "LastName",
+      active
+    )
+  }
+
+  def getDummyUserWithWrongEmailPattern(
+    password: String = userPassword,
+    passwordSalt: String = "salt",
+    active: Boolean = true
+  ): User = {
+    val uuid = UUID.randomUUID().toString
+    val passwordHash = StringUtils.calculatePasswordHash(password, passwordSalt)
+    createDummyUser(
+      UserId(uuid),
+      s"JohnDoe-$uuid-cromwell.com",
+      passwordHash,
+      passwordSalt,
+      "FirstName",
+      "LastName",
+      active
+    )
+  }
+
+  def createDummyUser(
+    userId: UserId,
+    email: String,
+    passwordHash: String,
+    passwordSalt: String,
+    firstName: String,
+    lastName: String,
+    active: Boolean
+  ): User =
+    User(
+      userId,
+      email,
+      passwordHash,
+      passwordSalt,
+      firstName,
+      lastName,
+      profilePicture = None,
+      active = true
+    )
+
 }
