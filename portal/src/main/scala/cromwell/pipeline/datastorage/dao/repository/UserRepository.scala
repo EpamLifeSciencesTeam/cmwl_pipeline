@@ -2,11 +2,11 @@ package cromwell.pipeline.datastorage.dao.repository
 
 import cromwell.pipeline.database.PipelineDatabaseEngine
 import cromwell.pipeline.datastorage.dao.entry.UserEntry
-import cromwell.pipeline.datastorage.dto.{ User, UserId }
+import cromwell.pipeline.datastorage.dto.{User, UserId}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class UserRepository(pipelineDatabaseEngine: PipelineDatabaseEngine, userEntry: UserEntry) {
+class UserRepository(pipelineDatabaseEngine: PipelineDatabaseEngine, userEntry: UserEntry)(implicit executionContext: ExecutionContext) {
 
   import pipelineDatabaseEngine._
   import pipelineDatabaseEngine.profile.api._
@@ -19,6 +19,8 @@ class UserRepository(pipelineDatabaseEngine: PipelineDatabaseEngine, userEntry: 
 
   def addUser(user: User): Future[UserId] = database.run(userEntry.addUserAction(user))
 
-  def deactivateUser(email: String): Future[Int] = database.run(userEntry.deactivateUserAction(email))
+  def deactivateUserByEmail(email: String): Future[Int] = database.run(userEntry.deactivateUserByEmail(email))
+
+  def deactivateUserById(userId: UserId): Future[Int] = database.run(userEntry.deactivateUserById(userId))
 
 }

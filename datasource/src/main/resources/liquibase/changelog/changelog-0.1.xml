@@ -34,7 +34,7 @@
 
     <changeSet id="add_column_for_user_deactivation" author="ysheiko">
         <addColumn tableName="user">
-        <column name="active" type="boolean"/>
+          <column name="active" type="boolean"/>
         </addColumn>
         <addDefaultValue tableName="user" columnName="active" defaultValueBoolean="true"/>
         <addNotNullConstraint constraintName="user_active_nn" tableName="user" columnName="active"/>
