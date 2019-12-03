@@ -10,17 +10,18 @@ object FormValidatorNel {
   type ValidationResult[A] = ValidatedNel[DomainValidation, A]
 
   private def validateEmail(email: String): ValidationResult[String] =
-    if (email.matches("^[^@]+@[^\\.]+\\..+$")) email.validNel else EmailDoesNotMeetCriteria.invalidNel
+    if (DomainValidation.checkEmail(email)) email.validNel else EmailDoesNotMeetCriteria.invalidNel
 
   private def validatePassword(password: String): ValidationResult[String] =
-    if (password.matches("(?=^.{10,}$)((?=.*\\d)|(?=.*\\W+))(?![.\\n])(?=.*[A-Z])(?=.*[a-z]).*$")) password.validNel
+    if (password.matches("(?=^.{10,}$)((?=.*\\d)|(?=.*\\W+))(?![.\\n])(?=.*[A-Z])(?=.*[a-z]).*$"))
+      password.validNel
     else PasswordDoesNotMeetCriteria.invalidNel
 
   private def validateFirstName(firstName: String): ValidationResult[String] =
-    if (firstName.matches("^[a-zA-Z]+$")) firstName.validNel else FirstNameHasSpecialCharacters.invalidNel
+    if (DomainValidation.checkFirstName(firstName)) firstName.validNel else FirstNameHasSpecialCharacters.invalidNel
 
   private def validateLastName(lastName: String): ValidationResult[String] =
-    if (lastName.matches("^[a-zA-Z]+$")) lastName.validNel else LastNameHasSpecialCharacters.invalidNel
+    if (DomainValidation.checkLastName(lastName)) lastName.validNel else LastNameHasSpecialCharacters.invalidNel
 
   def validateForm(signUpRequest: SignUpRequest): ValidationResult[SignUpRequest] =
     (

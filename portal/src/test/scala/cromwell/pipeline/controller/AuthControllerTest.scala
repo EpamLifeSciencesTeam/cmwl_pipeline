@@ -26,7 +26,7 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
     "signIn" should {
 
       "return token headers if user exists" in {
-        val signInRequest = SignInRequest("email", "password")
+        val signInRequest = SignInRequest("email@cromwell.com", "password")
         val authResponse = AuthResponse(accessToken, refreshToken, accessTokenExpiration)
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signInRequest)))
         (authService.signIn _ when signInRequest).returns(Future(Option(authResponse)))
@@ -38,7 +38,7 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
       }
 
       "return Unauthorized status if user doesn't exist" in {
-        val signInRequest = SignInRequest("email", "password")
+        val signInRequest = SignInRequest("email@cromwell.com", "password")
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signInRequest)))
         (authService.signIn _ when signInRequest).returns(Future(None))
 
@@ -78,7 +78,7 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
       }
 
       "return BadRequest status if user registration was failed" in {
-        val signUpRequest = SignUpRequest("email", "password", "First-name", "Last-name")
+        val signUpRequest = SignUpRequest("email@cromwell.com", "password", "First-name", "Last-name")
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signUpRequest)))
         (authService.signUp _ when signUpRequest).returns(Future(throw new RuntimeException("Something wrong.")))
 

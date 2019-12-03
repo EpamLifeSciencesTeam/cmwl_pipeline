@@ -51,6 +51,7 @@ lazy val portal = project
     Defaults.itSettings,
     libraryDependencies ++= akkaDependencies ++ testDependencies ++ jsonDependencies ++ macwire ++ testContainers,
     libraryDependencies += cats,
+    //TODO need to check out parallel execution
     addCommandAlias("testAll", "; test ; it:test")
   )
   .dependsOn(datasource)

@@ -31,6 +31,9 @@ trait UserEntry {
     users.filter(_.email === email).take(1)
   }
 
+  def getUsersByEmailAction(emailPattern: String) =
+    users.filter(_.email.like(s"%$emailPattern%")).result
+
   def addUserAction(user: User) = (users.returning(users.map(_.userId))) += user
 
   def deactivateUserByEmail(email: String) = users.filter(_.email === email).map(_.active).update(false)
