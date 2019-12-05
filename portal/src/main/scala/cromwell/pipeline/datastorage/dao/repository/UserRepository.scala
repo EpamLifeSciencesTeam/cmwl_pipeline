@@ -19,4 +19,6 @@ class UserRepository(pipelineDatabaseEngine: PipelineDatabaseEngine, userEntry: 
 
   def addUser(user: User): Future[UserId] = database.run(userEntry.addUserAction(user))
 
+  def updateUser(curUser: User): Future[Int] = database.run(userEntry.updateUserById(curUser))
+
 }

@@ -31,4 +31,6 @@ class UserEntry(val pipelineDatabaseEngine: PipelineDatabaseEngine) {
 
   def addUserAction(user: User) = (users.returning(users.map(_.userId))) += user
 
+  def updateUserById(updatedUser: User) = users.filter(_.userId ===  updatedUser.userId).update(updatedUser)
+
 }
