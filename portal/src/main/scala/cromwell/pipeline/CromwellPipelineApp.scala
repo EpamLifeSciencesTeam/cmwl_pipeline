@@ -27,7 +27,7 @@ object CromwellPipelineApp extends App {
   pipelineDatabaseEngine.updateSchema()
 
   val route = authController.route ~ securityDirective.authenticated { _ =>
-    complete(StatusCodes.OK)
+    userController.route
   }
 
   log.info(s"Server online at http://${webServiceConfig.interface}:${webServiceConfig.port}/")
