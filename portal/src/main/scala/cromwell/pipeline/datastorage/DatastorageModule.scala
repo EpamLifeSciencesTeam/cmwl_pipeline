@@ -7,10 +7,8 @@ import cromwell.pipeline.datastorage.dao.entry.{ ProjectEntry, UserEntry }
 import cromwell.pipeline.datastorage.dao.repository.{ ProjectRepository, UserRepository }
 import slick.jdbc.JdbcProfile
 
-import scala.concurrent.ExecutionContext
-
 @Module
-class DatastorageModule(config: Config)  (implicit executionContext: ExecutionContext){
+class DatastorageModule(config: Config) {
   lazy val pipelineDatabaseEngine: PipelineDatabaseEngine = wireWith(PipelineDatabaseEngine.fromConfig _)
   lazy val profile: JdbcProfile = pipelineDatabaseEngine.profile
   lazy val databaseLayer: DatabaseLayer = wire[DatabaseLayer]

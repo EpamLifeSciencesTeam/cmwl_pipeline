@@ -11,5 +11,5 @@ class ServiceModule(datastorageModule: DatastorageModule, utilsModule: UtilsModu
   implicit executionContext: ExecutionContext
 ) {
   lazy val authService: AuthService = wire[AuthService]
-  lazy val userManagementService: UserManagementService = wire[UserManagementService]
+  lazy val userManagementService: UserService = wire[UserService]
 }
