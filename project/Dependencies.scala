@@ -15,7 +15,7 @@ object Dependencies {
     val scalaCheck = "1.14.0"
     val scalaTest = "3.0.8"
     val scalaMock = "4.4.0"
-    val tcCore = "0.27.0"
+    val tcCore = "0.34.0"
     val tcPostgres = "1.12.2"
     val liquibase = "3.8.0"
     val postgresql = "42.2.8"
@@ -37,8 +37,8 @@ object Dependencies {
   val akkaHttpTestKit = "com.typesafe.akka" %% "akka-http-testkit" % Version.akkaHttp % "test,it"
   val scalaCheck = "org.scalacheck" %% "scalacheck" % Version.scalaCheck % "test,it"
   val scalaTest = "org.scalatest" %% "scalatest" % Version.scalaTest % "test,it"
-  val tcCore = "com.dimafeng" %% "testcontainers-scala" % Version.tcCore % IntegrationTest
-  val tcPostgres = "org.testcontainers" % "postgresql" % Version.tcPostgres % IntegrationTest
+  val tcCore = "com.dimafeng" %% "testcontainers-scala" % Version.tcCore % Test
+  val tcPostgres = "org.testcontainers" % "postgresql" % Version.tcPostgres % Test
   val liquibase = "org.liquibase" % "liquibase-core" % Version.liquibase
   val postgresql = "org.postgresql" % "postgresql" % Version.postgresql
 
