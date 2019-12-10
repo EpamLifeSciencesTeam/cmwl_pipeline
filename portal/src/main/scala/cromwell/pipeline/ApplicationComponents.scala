@@ -9,8 +9,10 @@ import cromwell.pipeline.utils.UtilsModule
 
 import scala.concurrent.ExecutionContext
 
-final class ApplicationComponents(implicit val executionContext: ExecutionContext) {
-  lazy val config: Config = ConfigFactory.load()
+final class ApplicationComponents(
+  implicit val config: Config = ConfigFactory.load(),
+  val executionContext: ExecutionContext
+) {
   lazy val applicationConfig: ApplicationConfig = wireWith(ApplicationConfig.load _)
   lazy val utilsModule: UtilsModule = wire[UtilsModule]
   lazy val datastorageModule: DatastorageModule = wire[DatastorageModule]

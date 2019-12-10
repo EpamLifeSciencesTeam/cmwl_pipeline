@@ -35,6 +35,8 @@ lazy val root = (project in file("."))
   )
   .aggregate(portal, datasource)
 
+lazy val IntegrationTest = config("it").extend(Test)
+
 lazy val datasource = project.settings(
   name := "Datasource",
   commonSettings,

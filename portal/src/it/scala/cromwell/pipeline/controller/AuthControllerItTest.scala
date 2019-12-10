@@ -5,12 +5,13 @@ import java.util.UUID
 import akka.http.scaladsl.model.ContentTypes.`application/json`
 import akka.http.scaladsl.model.{ HttpEntity, StatusCodes }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import com.dimafeng.testcontainers.{ Container, ForAllTestContainer }
+import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
+import com.typesafe.config.Config
 import cromwell.pipeline.controller.AuthController._
 import cromwell.pipeline.datastorage.dto.auth.{ SignInRequest, SignUpRequest }
 import cromwell.pipeline.datastorage.dto.{ User, UserId }
 import cromwell.pipeline.utils.StringUtils
-import cromwell.pipeline.{ ApplicationComponents, BaseItTest }
+import cromwell.pipeline.{ ApplicationComponents, TestContainersUtils }
 import org.scalatest.compatible.Assertion
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.{ Matchers, WordSpec }
@@ -18,15 +19,16 @@ import play.api.libs.json.Json
 
 class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTest with ForAllTestContainer {
 
-  private val components = new ApplicationComponents()
-
-  import components.controllerModule.authController
-  import components.datastorageModule._
-
-  override val container: Container = BaseItTest.getPostgreSQLContainer()
+  override val container: PostgreSQLContainer = TestContainersUtils.getPostgreSQLContainer()
+  container.start()
+  implicit val config: Config = TestContainersUtils.getConfigForPgContainer(container)
+  private val components: ApplicationComponents = new ApplicationComponents()
 
   override protected def beforeAll(): Unit =
-    pipelineDatabaseEngine.updateSchema()
+    components.datastorageModule.pipelineDatabaseEngine.updateSchema()
+
+  import components.datastorageModule.userRepository
+  import components.controllerModule.authController
 
   private val userPassword = "-Pa$$w0rd-"
 
