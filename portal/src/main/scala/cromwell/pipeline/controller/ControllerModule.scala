@@ -7,5 +7,5 @@ import scala.concurrent.ExecutionContext
 
 class ControllerModule(serviceModule: ServiceModule)(implicit executionContext: ExecutionContext) {
   lazy val authController: AuthController = wire[AuthController]
-  lazy val userManagementController: UserController = wire[UserController]
+  lazy val userController: UserController = wire[UserController]
 }
