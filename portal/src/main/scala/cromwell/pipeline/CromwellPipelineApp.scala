@@ -31,5 +31,4 @@ object CromwellPipelineApp extends App {
 
   log.info(s"Server online at http://${webServiceConfig.interface}:${webServiceConfig.port}/")
   Http().bindAndHandle(route, webServiceConfig.interface, webServiceConfig.port)
-
 }

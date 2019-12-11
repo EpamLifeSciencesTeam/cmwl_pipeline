@@ -3,11 +3,10 @@ package cromwell.pipeline.service
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dto.user.DeactivateUserRequestByEmail
 import cromwell.pipeline.datastorage.dto.{ UserDeactivationByEmailResponse, UserDeactivationByIdResponse, UserId }
-import cromwell.pipeline.utils.auth.AuthUtils
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class UserService(userRepository: UserRepository, authUtils: AuthUtils)(implicit executionContext: ExecutionContext) {
+class UserService(userRepository: UserRepository)(implicit executionContext: ExecutionContext) {
   def deactivateByEmail(request: DeactivateUserRequestByEmail): Future[Option[UserDeactivationByEmailResponse]] =
     userRepository
       .deactivateByEmail(request.email)
