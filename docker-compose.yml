@@ -12,3 +12,20 @@ services:
     #   Map port 6432 (localhost) to port 5432 on the container
     ports:
       - "6432:5432"
+
+  gitlab:
+    image: 'gitlab/gitlab-ce:latest'
+    restart: always
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+       external_url 'http://localhost:9080'
+       nginx['listen_port'] = 9080                   # make nginx to listen on the same port as confgured in external_url
+       # Add any other gitlab.rb configuration here, each on its own line
+    ports:
+      - '9080:9080'
+      - '9443:443'
+      - '9022:22'
+    volumes:
+      - '/srv/gitlab/config:/etc/gitlab'
+      - '/srv/gitlab/logs:/var/log/gitlab'
+      - '/srv/gitlab/data:/var/opt/gitlab'
