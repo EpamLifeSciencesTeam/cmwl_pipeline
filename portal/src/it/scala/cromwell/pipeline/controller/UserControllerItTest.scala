@@ -2,20 +2,18 @@ package cromwell.pipeline.controller
 
 import java.util.UUID
 
-import akka.http.scaladsl.model.ContentTypes.`application/json`
-import akka.http.scaladsl.model.{ HttpEntity, StatusCodes }
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
-import cromwell.pipeline.datastorage.dto.user.DeactivateUserRequestByEmail
 import cromwell.pipeline.datastorage.dto.{ User, UserDeactivationByEmailResponse, UserDeactivationByIdResponse, UserId }
 import cromwell.pipeline.utils.StringUtils
 import cromwell.pipeline.{ ApplicationComponents, TestContainersUtils }
+import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import org.scalatest.concurrent.ScalaFutures.whenReady
-import org.scalatest.{ Matchers, WordSpec }
-import play.api.libs.json.Json
+import org.scalatest.{ AsyncWordSpec, Matchers }
 
-class UserControllerItTest extends WordSpec with Matchers with ScalatestRouteTest with ForAllTestContainer {
+class UserControllerItTest extends AsyncWordSpec with Matchers with ScalatestRouteTest with ForAllTestContainer {
   override val container: PostgreSQLContainer = TestContainersUtils.getPostgreSQLContainer()
   container.start()
   implicit val config: Config = TestContainersUtils.getConfigForPgContainer(container)
@@ -35,11 +33,9 @@ class UserControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
         val newUser = getDummyUser(userPassword)
         val emailResponse = UserDeactivationByEmailResponse(newUser.email, false)
         whenReady(userRepository.addUser(newUser)) { _ =>
-          val deactivateUserRequestByEmail = DeactivateUserRequestByEmail(newUser.email)
-          val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(deactivateUserRequestByEmail)))
-          Delete("/users/deactivate", httpEntity) ~> userController.route ~> check {
-            val response = Json.parse(responseAs[String]).as[UserDeactivationByEmailResponse]
-            response shouldBe emailResponse
+          val deactivateUserByEmailRequest = newUser.email
+          Delete("/users/deactivate", deactivateUserByEmailRequest) ~> userController.route ~> check {
+            responseAs[UserDeactivationByEmailResponse] shouldBe emailResponse
             status shouldBe StatusCodes.OK
           }
         }
@@ -51,8 +47,7 @@ class UserControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
         val idResponse = UserDeactivationByIdResponse(newUser.userId, false)
         whenReady(userRepository.addUser(newUser)) { _ =>
           Delete(s"/users/deactivate/${newUser.userId.value}") ~> userController.route ~> check {
-            val response = Json.parse(responseAs[String]).as[UserDeactivationByIdResponse]
-            response shouldBe idResponse
+            responseAs[UserDeactivationByIdResponse] shouldBe idResponse
             status shouldBe StatusCodes.OK
           }
         }

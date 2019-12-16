@@ -71,5 +71,3 @@ docker-compose up
 
 ## Developer Guide
 https://kb.epam.com/display/EPMLSTR/Cromwell+Developer+Guide
-
-

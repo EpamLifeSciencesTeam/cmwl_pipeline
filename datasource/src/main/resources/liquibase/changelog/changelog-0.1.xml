@@ -34,7 +34,7 @@
 
     <changeSet id="add_column_for_user_deactivation" author="ysheiko">
         <addColumn tableName="user">
-            <column name="active" type="boolean" defaultValueBoolean="true"/>
+            <column name="active" type="${user_active.type}" defaultValueBoolean="true"/>
         </addColumn>
         <rollback>
             <dropColumn tableName="user" columnName="active"/>

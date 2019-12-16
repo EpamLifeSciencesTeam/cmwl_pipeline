@@ -27,7 +27,6 @@ object Dependencies {
   val slick = "com.typesafe.slick" %% "slick" % Version.slick
   val hikariCP = "com.typesafe.slick" %% "slick-hikaricp" % Version.hikariCP
   val playJson = "com.typesafe.play" %% "play-json" % Version.playJson
-  val playFunctional = "com.typesafe.play" %% "play-functional" % Version.playJson
   val akkaHttpJson = "de.heikoseeberger" %% "akka-http-play-json" % Version.akkaHttpJson
   val jwtCore = "com.pauldijou" %% "jwt-core" % Version.jwtCore
   val cats = "org.typelevel" %% "cats-core" % Version.cats

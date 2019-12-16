@@ -1,17 +1,17 @@
 package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
-import cromwell.pipeline.datastorage.dto.user.DeactivateUserRequestByEmail
+import cromwell.pipeline.datastorage.dto.User.UserEmail
 import cromwell.pipeline.datastorage.dto.{ UserDeactivationByEmailResponse, UserDeactivationByIdResponse, UserId }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 class UserService(userRepository: UserRepository)(implicit executionContext: ExecutionContext) {
-  def deactivateByEmail(request: DeactivateUserRequestByEmail): Future[Option[UserDeactivationByEmailResponse]] =
+  def deactivateByEmail(email: UserEmail): Future[Option[UserDeactivationByEmailResponse]] =
     userRepository
-      .deactivateByEmail(request.email)
+      .deactivateByEmail(email)
       .flatMap { _ =>
-        userRepository.getUserByEmail(request.email)
+        userRepository.getUserByEmail(email)
       }
       .map { getUser =>
         getUser.map { user =>
