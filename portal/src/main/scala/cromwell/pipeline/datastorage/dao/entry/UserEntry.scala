@@ -1,13 +1,14 @@
 package cromwell.pipeline.datastorage.dao.entry
 
-import cromwell.pipeline.database.PipelineDatabaseEngine
+import cromwell.pipeline.datastorage.Profile
 import cromwell.pipeline.datastorage.dto.{ ProfilePicture, User, UserId }
 
-class UserEntry(val pipelineDatabaseEngine: PipelineDatabaseEngine) {
+trait UserEntry {
+  this: Profile =>
 
-  import pipelineDatabaseEngine.profile.api._
+  import profile.api._
 
-  class Users(tag: Tag) extends Table[User](tag, "user") {
+  class UserTable(tag: Tag) extends Table[User](tag, "user") {
     def userId = column[UserId]("user_id", O.PrimaryKey)
     def email = column[String]("email")
     def passwordHash = column[String]("password_hash")
@@ -19,7 +20,7 @@ class UserEntry(val pipelineDatabaseEngine: PipelineDatabaseEngine) {
       (User.tupled, User.unapply)
   }
 
-  val users = TableQuery[Users]
+  val users = TableQuery[UserTable]
 
   def getUserByIdAction = Compiled { userId: Rep[UserId] =>
     users.filter(_.userId === userId).take(1)

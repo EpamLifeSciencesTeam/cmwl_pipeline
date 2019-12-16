@@ -4,12 +4,12 @@ import java.util.UUID
 
 import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
-import cromwell.pipeline.datastorage.dto.{ User, UserId }
+import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, User, UserId }
 import cromwell.pipeline.utils.StringUtils
 import cromwell.pipeline.{ ApplicationComponents, TestContainersUtils }
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 
-class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfterAll with ForAllTestContainer {
+class ProjectRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfterAll with ForAllTestContainer {
 
   override val container: PostgreSQLContainer = TestContainersUtils.getPostgreSQLContainer()
   container.start()
@@ -22,39 +22,26 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
   private val userPassword = "-Pa$$w0rd-"
 
   import components.datastorageModule.userRepository
+  import components.datastorageModule.projectRepository
 
-  "UserRepository" when {
+  "ProjectRepository" when {
 
     "getUserById" should {
 
-      "find newly added user by id" in {
+      "find newly added project by id" in {
         val newUser = getDummyUser(userPassword)
+        val newProject = getDummyProject(newUser.userId)
 
         val addUserFuture = userRepository.addUser(newUser)
         val result = for {
           _ <- addUserFuture
-          getById <- userRepository.getUserById(newUser.userId)
+          _ <- projectRepository.addProject(newProject)
+          getById <- projectRepository.getProjectById(newProject.projectId)
         } yield getById
 
-        result.map(optUser => optUser shouldEqual Some(newUser))
+        result.map(optProject => optProject shouldEqual Some(newProject))
       }
     }
-
-    "getUserByEmail" should {
-
-      "find newly added user by email" in {
-        val newUser = getDummyUser(userPassword)
-
-        val addUserFuture = userRepository.addUser(newUser)
-        val result = for {
-          _ <- addUserFuture
-          getByEmail <- userRepository.getUserByEmail(newUser.email)
-        } yield getByEmail
-
-        result.map(optUser => optUser shouldEqual Some(newUser))
-      }
-    }
-
   }
 
   private def getDummyUser(password: String = userPassword, passwordSalt: String = "salt"): User = {
@@ -68,6 +55,17 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
       firstName = "FirstName",
       lastName = "LastName",
       profilePicture = None
+    )
+  }
+
+  private def getDummyProject(ownerId: UserId): Project = {
+    val uuid = UUID.randomUUID().toString
+    Project(
+      projectId = ProjectId(uuid),
+      ownerId = ownerId,
+      name = s"project-$uuid",
+      repository = s"repo-$uuid",
+      active = true
     )
   }
 }
