@@ -1,11 +1,9 @@
 package cromwell.pipeline.datastorage.dao.repository
 
-import java.util.UUID
-
 import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
-import cromwell.pipeline.datastorage.dto.{ User, UserId }
-import cromwell.pipeline.utils.StringUtils
+import cromwell.pipeline.datastorage.dto.User
+import cromwell.pipeline.utils.auth.TestUserUtils
 import cromwell.pipeline.{ ApplicationComponents, TestContainersUtils }
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 
@@ -19,8 +17,6 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
   override protected def beforeAll(): Unit =
     components.datastorageModule.pipelineDatabaseEngine.updateSchema()
 
-  private val userPassword = "-Pa$$w0rd-"
-
   import components.datastorageModule.userRepository
 
   "UserRepository" when {
@@ -28,46 +24,32 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
     "getUserById" should {
 
       "find newly added user by id" in {
-        val newUser = getDummyUser(userPassword)
-
-        val addUserFuture = userRepository.addUser(newUser)
+        val dummyUser: User = TestUserUtils.getDummyUser()
+        val addUserFuture = userRepository.addUser(dummyUser)
         val result = for {
           _ <- addUserFuture
-          getById <- userRepository.getUserById(newUser.userId)
+          getById <- userRepository.getUserById(dummyUser.userId)
         } yield getById
 
-        result.map(optUser => optUser shouldEqual Some(newUser))
+        result.map(optUser => optUser shouldEqual Some(dummyUser))
       }
     }
 
     "getUserByEmail" should {
 
       "find newly added user by email" in {
-        val newUser = getDummyUser(userPassword)
+        val dummyUser: User = TestUserUtils.getDummyUser()
 
-        val addUserFuture = userRepository.addUser(newUser)
+        val addUserFuture = userRepository.addUser(dummyUser)
         val result = for {
           _ <- addUserFuture
-          getByEmail <- userRepository.getUserByEmail(newUser.email)
+          getByEmail <- userRepository.getUserByEmail(dummyUser.email)
         } yield getByEmail
 
-        result.map(optUser => optUser shouldEqual Some(newUser))
+        result.map(optUser => optUser shouldEqual Some(dummyUser))
       }
     }
 
   }
 
-  private def getDummyUser(password: String = userPassword, passwordSalt: String = "salt"): User = {
-    val uuid = UUID.randomUUID().toString
-    val passwordHash = StringUtils.calculatePasswordHash(password, passwordSalt)
-    User(
-      userId = UserId(uuid),
-      email = s"JohnDoe-$uuid@cromwell.com",
-      passwordHash = passwordHash,
-      passwordSalt = passwordSalt,
-      firstName = "FirstName",
-      lastName = "LastName",
-      profilePicture = None
-    )
-  }
 }

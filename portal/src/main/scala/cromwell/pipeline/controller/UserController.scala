@@ -37,4 +37,5 @@ class UserController(userService: UserService)(implicit executionContext: Execut
       }
     )
   }
+
 }
