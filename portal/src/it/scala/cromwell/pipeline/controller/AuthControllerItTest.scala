@@ -8,8 +8,8 @@ import com.typesafe.config.Config
 import cromwell.pipeline.controller.AuthController._
 import cromwell.pipeline.datastorage.dto.User
 import cromwell.pipeline.datastorage.dto.auth.{ SignInRequest, SignUpRequest }
-import cromwell.pipeline.utils.auth.TestUserUtils
-import cromwell.pipeline.{ ApplicationComponents, TestContainersUtils }
+import cromwell.pipeline.utils.auth.{ TestContainersUtils, TestUserUtils }
+import cromwell.pipeline.ApplicationComponents
 import org.scalatest.compatible.Assertion
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.{ Matchers, WordSpec }

@@ -3,8 +3,8 @@ package cromwell.pipeline.datastorage.dao.repository
 import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
 import cromwell.pipeline.datastorage.dto.User
-import cromwell.pipeline.utils.auth.TestUserUtils
-import cromwell.pipeline.{ ApplicationComponents, TestContainersUtils }
+import cromwell.pipeline.utils.auth.{ TestContainersUtils, TestUserUtils }
+import cromwell.pipeline.ApplicationComponents
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 
 class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfterAll with ForAllTestContainer {

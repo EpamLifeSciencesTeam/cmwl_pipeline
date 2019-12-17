@@ -2,15 +2,14 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dto.{ User, UserDeactivationByEmailResponse, UserDeactivationByIdResponse, UserId }
-import org.scalamock.scalatest.MockFactory
-import org.scalatest.concurrent.ScalaFutures._
-import org.scalatest.{ Matchers, WordSpec }
+import org.mockito.Mockito._
+import org.scalatest.{ AsyncWordSpec, Matchers }
+import org.scalatestplus.mockito.MockitoSugar
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.Future
 
-class UserServiceTest extends WordSpec with Matchers with MockFactory {
-  implicit val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
-  private val userRepository: UserRepository = stub[UserRepository]
+class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
+  private val userRepository: UserRepository = mock[UserRepository]
   private val userService: UserService = new UserService(userRepository)
 
   "UserService" when {
@@ -19,8 +18,8 @@ class UserServiceTest extends WordSpec with Matchers with MockFactory {
         val email = "email"
         val user = User(UserId("123"), email, "hash", "salt", "name", "lastName", active = false)
 
-        (userRepository.deactivateByEmail _ when email).returns(Future(1))
-        (userRepository.getUserByEmail _ when email).returns(Future(Option(user)))
+        when(userRepository.deactivateByEmail(email)).thenReturn(Future.successful(1))
+        when(userRepository.getUserByEmail(email)).thenReturn(Future(Some(user)))
 
         val emailResponse = UserDeactivationByEmailResponse(email, active = false)
         userService.deactivateByEmail(email).map { result =>
@@ -29,10 +28,10 @@ class UserServiceTest extends WordSpec with Matchers with MockFactory {
       }
       "return None if user wasn't found by email" in {
         val email = "email"
-        (userRepository.deactivateByEmail _ when email).returns(Future(0))
-        (userRepository.getUserByEmail _ when email).returns(Future(None))
+        when(userRepository.deactivateByEmail(email)).thenReturn(Future.successful(0))
+        when(userRepository.getUserByEmail(email)).thenReturn(Future(None))
 
-        whenReady(userService.deactivateByEmail(email)) { result =>
+        userService.deactivateByEmail(email).map { result =>
           result shouldBe None
         }
       }
@@ -42,21 +41,21 @@ class UserServiceTest extends WordSpec with Matchers with MockFactory {
         val userId = UserId("123")
         val user = User(UserId("123"), "email", "hash", "salt", "name", "lastName", active = false)
 
-        (userRepository.deactivateById _ when userId).returns(Future(1))
-        (userRepository.getUserById _ when userId).returns((Future(Option(user))))
+        when(userRepository.deactivateById(userId)).thenReturn(Future.successful(1))
+        when(userRepository.getUserById(userId)).thenReturn(Future(Some(user)))
 
         val idResponse = UserDeactivationByIdResponse(userId, active = false)
-        whenReady(userService.deactivateById(userId)) { result =>
+        userService.deactivateById(userId).map { result =>
           result shouldBe Some(idResponse)
         }
       }
       "return None if user wasn't found by Id" in {
         val userId = UserId("123")
 
-        (userRepository.deactivateById _ when userId).returns(Future(0))
-        (userRepository.getUserById _ when userId).returns(Future(None))
+        when(userRepository.deactivateById(userId)).thenReturn(Future.successful(0))
+        when(userRepository.getUserById(userId)).thenReturn(Future(None))
 
-        whenReady(userService.deactivateById(userId)) { result =>
+        userService.deactivateById(userId).map { result =>
           result shouldBe None
         }
       }
