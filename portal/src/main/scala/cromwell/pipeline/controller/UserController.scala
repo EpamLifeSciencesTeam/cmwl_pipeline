@@ -20,7 +20,7 @@ class UserController(userService: UserService)(implicit executionContext: Execut
           entity(as[UserEmail]) { request =>
             onComplete(userService.deactivateByEmail(request)) {
               case Success(Some(emailResponse)) => complete(emailResponse)
-              case Success(None)                => complete(StatusCodes.BadRequest, "User's not found")
+              case Success(None)                => complete(StatusCodes.NotFound, "User's not found")
               case Failure(_)                   => complete(StatusCodes.InternalServerError, "Internal error")
             }
           }
@@ -30,7 +30,7 @@ class UserController(userService: UserService)(implicit executionContext: Execut
         delete {
           onComplete(userService.deactivateById(UserId(userId))) {
             case Success(Some(idResponse)) => complete(idResponse)
-            case Success(None)             => complete(StatusCodes.BadRequest, "User's not found")
+            case Success(None)             => complete(StatusCodes.NotFound, "User's not found")
             case Failure(_)                => complete(StatusCodes.InternalServerError, "Internal error")
           }
         }

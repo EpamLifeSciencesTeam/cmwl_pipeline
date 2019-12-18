@@ -1,7 +1,7 @@
 package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
-import cromwell.pipeline.datastorage.dto.{ User, UserDeactivationByEmailResponse, UserDeactivationByIdResponse, UserId }
+import cromwell.pipeline.datastorage.dto.{ User, UserDeactivationResponse, UserId }
 import org.mockito.Mockito._
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
@@ -21,9 +21,9 @@ class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         when(userRepository.deactivateByEmail(email)).thenReturn(Future.successful(1))
         when(userRepository.getUserByEmail(email)).thenReturn(Future(Some(user)))
 
-        val emailResponse = UserDeactivationByEmailResponse(email, active = false)
+        val response = UserDeactivationResponse.fromUser(user)
         userService.deactivateByEmail(email).map { result =>
-          result shouldBe Some(emailResponse)
+          result shouldBe Some(response)
         }
       }
       "return None if user wasn't found by email" in {
@@ -44,9 +44,9 @@ class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         when(userRepository.deactivateById(userId)).thenReturn(Future.successful(1))
         when(userRepository.getUserById(userId)).thenReturn(Future(Some(user)))
 
-        val idResponse = UserDeactivationByIdResponse(userId, active = false)
+        val response = UserDeactivationResponse.fromUser(user)
         userService.deactivateById(userId).map { result =>
-          result shouldBe Some(idResponse)
+          result shouldBe Some(response)
         }
       }
       "return None if user wasn't found by Id" in {
