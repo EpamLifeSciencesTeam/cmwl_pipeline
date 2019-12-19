@@ -16,6 +16,7 @@ class ProjectRepository(pipelineDatabaseEngine: PipelineDatabaseEngine, projectE
 
   def addProject(project: Project): Future[ProjectId] = database.run(projectEntry.addProjectAction(project))
 
-  def deactivateById(projectId: ProjectId): Future[Int] = database.run(projectEntry.deactivateProjectById(projectId))
+  def deactivateProjectById(projectId: ProjectId): Future[Int] =
+    database.run(projectEntry.deactivateProjectById(projectId))
 
 }

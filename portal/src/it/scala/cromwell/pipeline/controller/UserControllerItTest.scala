@@ -23,7 +23,7 @@ class UserControllerItTest extends AsyncWordSpec with Matchers with ScalatestRou
   import components.datastorageModule.userRepository
 
   "UserController" when {
-    "deactivateById" should {
+    "deactivateUserById" should {
       "return user's entity with false value if user was successfully deactivated" in {
         val dummyUser: User = TestUserUtils.getDummyUser()
         val deactivatedUserResponse = UserNoCredentials.fromUser(dummyUser.copy(active = false))

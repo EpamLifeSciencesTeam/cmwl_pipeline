@@ -18,14 +18,14 @@ class UserControllerTest extends AsyncWordSpec with Matchers with MockitoSugar w
   private val userController = new UserController(userService)
 
   "UserController" when {
-    "deactivateById" should {
+    "deactivateUserById" should {
       "return user's entity with false value if user was successfully deactivated" in {
         val dummyUser: User = TestUserUtils.getDummyUser(active = false)
         val userId = dummyUser.userId
         val response = UserNoCredentials.fromUser(dummyUser)
         val accessToken = AccessTokenContent(userId.value)
 
-        when(userService.deactivateById(userId)).thenReturn(Future.successful(Some(response)))
+        when(userService.deactivateUserById(userId)).thenReturn(Future.successful(Some(response)))
 
         Delete("/users") ~> userController.route(accessToken) ~> check {
           responseAs[UserNoCredentials] shouldBe response
@@ -35,7 +35,7 @@ class UserControllerTest extends AsyncWordSpec with Matchers with MockitoSugar w
       "return server error if user deactivation was failed" in {
         val userId = TestUserUtils.getDummyUser().userId.value
         val accessToken = AccessTokenContent(userId)
-        when(userService.deactivateById(UserId(userId)))
+        when(userService.deactivateUserById(UserId(userId)))
           .thenReturn(Future.failed(new RuntimeException("Something wrong.")))
 
         Delete("/users") ~> userController.route(accessToken) ~> check {
@@ -45,7 +45,7 @@ class UserControllerTest extends AsyncWordSpec with Matchers with MockitoSugar w
       "return NotFound status if user deactivation was failed" in {
         val userId = TestUserUtils.getDummyUser().userId.value
         val accessToken = AccessTokenContent(userId)
-        when(userService.deactivateById(UserId(userId))).thenReturn(Future(None))
+        when(userService.deactivateUserById(UserId(userId))).thenReturn(Future(None))
 
         Delete("/users") ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NotFound
