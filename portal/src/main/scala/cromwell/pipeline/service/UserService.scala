@@ -2,22 +2,20 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dto.User.UserEmail
-import cromwell.pipeline.datastorage.dto.{ UserDeactivationResponse, UserId }
+import cromwell.pipeline.datastorage.dto.{ UserId, UserNoCredentials }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 class UserService(userRepository: UserRepository)(implicit executionContext: ExecutionContext) {
-  def deactivateByEmail(email: UserEmail): Future[Option[UserDeactivationResponse]] =
+  def deactivateByEmail(email: UserEmail): Future[Option[UserNoCredentials]] =
     for {
       _ <- userRepository.deactivateByEmail(email)
-      getUser <- userRepository.getUserByEmail(email)
-    } yield getUser.map(UserDeactivationResponse.fromUser)
+      user <- userRepository.getUserByEmail(email)
+    } yield user.map(UserNoCredentials.formUser)
 
-  def deactivateById(userId: UserId): Future[Option[UserDeactivationResponse]] =
+  def deactivateById(userId: UserId): Future[Option[UserNoCredentials]] =
     for {
       _ <- userRepository.deactivateById(userId)
-      getUser <- userRepository.getUserById(userId)
-    } yield {
-      getUser.map(UserDeactivationResponse.fromUser)
-    }
+      user <- userRepository.getUserById(userId)
+    } yield user.map(UserNoCredentials.formUser)
 }

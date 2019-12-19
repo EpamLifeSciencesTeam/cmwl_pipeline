@@ -2,7 +2,7 @@ package cromwell.pipeline.datastorage.dto
 
 import play.api.libs.json.{ Json, OFormat }
 
-final case class UserDeactivationResponse(
+final case class UserNoCredentials(
   userId: UserId,
   email: String,
   firstName: String,
@@ -10,12 +10,12 @@ final case class UserDeactivationResponse(
   active: Boolean
 )
 
-object UserDeactivationResponse {
-  implicit val UserDeactivationByIdResponseFormat: OFormat[UserDeactivationResponse] =
-    Json.format[UserDeactivationResponse]
+object UserNoCredentials {
+  implicit val UserNoCredentialsFormat: OFormat[UserNoCredentials] =
+    Json.format[UserNoCredentials]
 
-  def fromUser(user: User): UserDeactivationResponse =
-    UserDeactivationResponse(
+  def formUser(user: User): UserNoCredentials =
+    UserNoCredentials(
       userId = user.userId,
       email = user.email,
       firstName = user.firstName,

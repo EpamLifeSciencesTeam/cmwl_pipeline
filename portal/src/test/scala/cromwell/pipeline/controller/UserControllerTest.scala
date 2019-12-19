@@ -2,7 +2,7 @@ package cromwell.pipeline.controller
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import cromwell.pipeline.datastorage.dto.{ User, UserDeactivationResponse, UserId }
+import cromwell.pipeline.datastorage.dto.{ User, UserId, UserNoCredentials }
 import cromwell.pipeline.service.UserService
 import cromwell.pipeline.utils.auth.{ SecurityDirective, TestUserUtils }
 import cromwell.pipeline.{ AuthConfig, ExpirationTimeInSeconds }
@@ -24,12 +24,12 @@ class UserControllerTest extends AsyncWordSpec with Matchers with MockitoSugar w
       "return email and false value if user was successfully deactivated" in {
         val dummyUser: User = TestUserUtils.getDummyUser()
         val deactivateUserByEmailRequest = "JohnDoe@cromwell.com"
-        val response = UserDeactivationResponse.fromUser(dummyUser)
+        val response = UserNoCredentials.formUser(dummyUser)
 
         when(userService.deactivateByEmail(deactivateUserByEmailRequest)).thenReturn(Future(Option(response)))
 
         Delete("/users/deactivate", deactivateUserByEmailRequest) ~> userController.route ~> check {
-          responseAs[UserDeactivationResponse] shouldBe response
+          responseAs[UserNoCredentials] shouldBe response
           status shouldBe StatusCodes.OK
         }
       }
@@ -57,12 +57,12 @@ class UserControllerTest extends AsyncWordSpec with Matchers with MockitoSugar w
       "return id and false value if user was successfully deactivated" in {
         val dummyUser: User = TestUserUtils.getDummyUser(active = false)
         val userId = TestUserUtils.getDummyUser().userId.value
-        val response = UserDeactivationResponse.fromUser(dummyUser)
+        val response = UserNoCredentials.formUser(dummyUser)
 
         when(userService.deactivateById(UserId(userId))).thenReturn(Future(Option(response)))
 
         Delete(s"/users/deactivate/$userId") ~> userController.route ~> check {
-          responseAs[UserDeactivationResponse] shouldBe response
+          responseAs[UserNoCredentials] shouldBe response
           status shouldBe StatusCodes.OK
         }
       }
@@ -104,7 +104,7 @@ class UserControllerTest extends AsyncWordSpec with Matchers with MockitoSugar w
       "should return err when id is not 36 symbols" in {
         val dummyUser: User = TestUserUtils.getDummyUser()
         val userId = "not-user-id"
-        val response = UserDeactivationResponse.fromUser(dummyUser)
+        val response = UserNoCredentials.formUser(dummyUser)
         when(userService.deactivateById(UserId(userId))).thenReturn(Future(Option(response)))
         Delete(s"/users/deactivate/$userId") ~> userController.route ~> check {
           handled shouldBe false

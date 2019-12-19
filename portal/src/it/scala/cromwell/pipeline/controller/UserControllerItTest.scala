@@ -5,7 +5,7 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
 import cromwell.pipeline.ApplicationComponents
-import cromwell.pipeline.datastorage.dto.{ User, UserDeactivationResponse }
+import cromwell.pipeline.datastorage.dto.{ User, UserNoCredentials }
 import cromwell.pipeline.utils.auth.{ TestContainersUtils, TestUserUtils }
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import org.scalatest.{ AsyncWordSpec, Matchers }
@@ -26,11 +26,11 @@ class UserControllerItTest extends AsyncWordSpec with Matchers with ScalatestRou
     "deactivateByEmail" should {
       "return email and false value if user was successfully deactivated" in {
         val dummyUser: User = TestUserUtils.getDummyUser(active = false)
-        val response = UserDeactivationResponse.fromUser(dummyUser)
+        val response = UserNoCredentials.formUser(dummyUser)
         userRepository.addUser(dummyUser).map { _ =>
           val deactivateUserByEmailRequest = dummyUser.email
           Delete("/users/deactivate", deactivateUserByEmailRequest) ~> userController.route ~> check {
-            responseAs[UserDeactivationResponse] shouldBe response
+            responseAs[UserNoCredentials] shouldBe response
             status shouldBe StatusCodes.OK
           }
         }
@@ -39,10 +39,10 @@ class UserControllerItTest extends AsyncWordSpec with Matchers with ScalatestRou
     "deactivateById" should {
       "return id and false value if user was successfully deactivated" in {
         val dummyUser: User = TestUserUtils.getDummyUser(active = false)
-        val response = UserDeactivationResponse.fromUser(dummyUser)
+        val response = UserNoCredentials.formUser(dummyUser)
         userRepository.addUser(dummyUser).map { _ =>
           Delete(s"/users/deactivate/${dummyUser.userId.value}") ~> userController.route ~> check {
-            responseAs[UserDeactivationResponse] shouldBe response
+            responseAs[UserNoCredentials] shouldBe response
             status shouldBe StatusCodes.OK
           }
         }

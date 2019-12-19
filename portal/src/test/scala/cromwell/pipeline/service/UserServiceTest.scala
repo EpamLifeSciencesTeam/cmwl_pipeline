@@ -1,7 +1,7 @@
 package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
-import cromwell.pipeline.datastorage.dto.{ User, UserDeactivationResponse, UserId }
+import cromwell.pipeline.datastorage.dto.{ User, UserId, UserNoCredentials }
 import org.mockito.Mockito._
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
@@ -21,7 +21,7 @@ class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         when(userRepository.deactivateByEmail(email)).thenReturn(Future.successful(1))
         when(userRepository.getUserByEmail(email)).thenReturn(Future(Some(user)))
 
-        val response = UserDeactivationResponse.fromUser(user)
+        val response = UserNoCredentials.formUser(user)
         userService.deactivateByEmail(email).map { result =>
           result shouldBe Some(response)
         }
@@ -44,7 +44,7 @@ class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         when(userRepository.deactivateById(userId)).thenReturn(Future.successful(1))
         when(userRepository.getUserById(userId)).thenReturn(Future(Some(user)))
 
-        val response = UserDeactivationResponse.fromUser(user)
+        val response = UserNoCredentials.formUser(user)
         userService.deactivateById(userId).map { result =>
           result shouldBe Some(response)
         }
