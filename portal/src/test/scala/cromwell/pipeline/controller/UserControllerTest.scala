@@ -24,7 +24,7 @@ class UserControllerTest extends AsyncWordSpec with Matchers with MockitoSugar w
       "return email and false value if user was successfully deactivated" in {
         val dummyUser: User = TestUserUtils.getDummyUser()
         val deactivateUserByEmailRequest = "JohnDoe@cromwell.com"
-        val response = UserNoCredentials.formUser(dummyUser)
+        val response = UserNoCredentials.fromUser(dummyUser)
 
         when(userService.deactivateByEmail(deactivateUserByEmailRequest)).thenReturn(Future(Option(response)))
 
@@ -57,7 +57,7 @@ class UserControllerTest extends AsyncWordSpec with Matchers with MockitoSugar w
       "return id and false value if user was successfully deactivated" in {
         val dummyUser: User = TestUserUtils.getDummyUser(active = false)
         val userId = TestUserUtils.getDummyUser().userId.value
-        val response = UserNoCredentials.formUser(dummyUser)
+        val response = UserNoCredentials.fromUser(dummyUser)
 
         when(userService.deactivateById(UserId(userId))).thenReturn(Future(Option(response)))
 
@@ -104,7 +104,7 @@ class UserControllerTest extends AsyncWordSpec with Matchers with MockitoSugar w
       "should return err when id is not 36 symbols" in {
         val dummyUser: User = TestUserUtils.getDummyUser()
         val userId = "not-user-id"
-        val response = UserNoCredentials.formUser(dummyUser)
+        val response = UserNoCredentials.fromUser(dummyUser)
         when(userService.deactivateById(UserId(userId))).thenReturn(Future(Option(response)))
         Delete(s"/users/deactivate/$userId") ~> userController.route ~> check {
           handled shouldBe false

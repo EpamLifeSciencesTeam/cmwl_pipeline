@@ -14,7 +14,7 @@ object UserNoCredentials {
   implicit val UserNoCredentialsFormat: OFormat[UserNoCredentials] =
     Json.format[UserNoCredentials]
 
-  def formUser(user: User): UserNoCredentials =
+  def fromUser(user: User): UserNoCredentials =
     UserNoCredentials(
       userId = user.userId,
       email = user.email,

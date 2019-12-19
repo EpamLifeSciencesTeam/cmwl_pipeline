@@ -36,6 +36,7 @@
         <addColumn tableName="user">
             <column name="active" type="${boolean.type}" defaultValueBoolean="true"/>
         </addColumn>
+        <addNotNullConstraint constraintName="user_active_nn" tableName="user" columnName="active"/>
         <rollback>
             <dropColumn tableName="user" columnName="active"/>
         </rollback>

@@ -21,7 +21,7 @@ class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         when(userRepository.deactivateByEmail(email)).thenReturn(Future.successful(1))
         when(userRepository.getUserByEmail(email)).thenReturn(Future(Some(user)))
 
-        val response = UserNoCredentials.formUser(user)
+        val response = UserNoCredentials.fromUser(user)
         userService.deactivateByEmail(email).map { result =>
           result shouldBe Some(response)
         }
@@ -44,7 +44,7 @@ class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         when(userRepository.deactivateById(userId)).thenReturn(Future.successful(1))
         when(userRepository.getUserById(userId)).thenReturn(Future(Some(user)))
 
-        val response = UserNoCredentials.formUser(user)
+        val response = UserNoCredentials.fromUser(user)
         userService.deactivateById(userId).map { result =>
           result shouldBe Some(response)
         }

@@ -1,7 +1,7 @@
 package cromwell.pipeline.controller
 
 import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directives.{ as, complete, delete, entity, onComplete, path, pathPrefix, _ }
+import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import cromwell.pipeline.datastorage.dto.User.UserEmail
 import cromwell.pipeline.datastorage.dto.UserId

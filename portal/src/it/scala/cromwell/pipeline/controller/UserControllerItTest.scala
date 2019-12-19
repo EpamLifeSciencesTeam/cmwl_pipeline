@@ -25,12 +25,12 @@ class UserControllerItTest extends AsyncWordSpec with Matchers with ScalatestRou
   "UserController" when {
     "deactivateByEmail" should {
       "return email and false value if user was successfully deactivated" in {
-        val dummyUser: User = TestUserUtils.getDummyUser(active = false)
-        val response = UserNoCredentials.formUser(dummyUser)
+        val dummyUser: User = TestUserUtils.getDummyUser()
         userRepository.addUser(dummyUser).map { _ =>
           val deactivateUserByEmailRequest = dummyUser.email
           Delete("/users/deactivate", deactivateUserByEmailRequest) ~> userController.route ~> check {
-            responseAs[UserNoCredentials] shouldBe response
+            val deactivatedUserResponse = UserNoCredentials.fromUser(dummyUser.copy(active = false))
+            responseAs[UserNoCredentials] shouldBe deactivatedUserResponse
             status shouldBe StatusCodes.OK
           }
         }
@@ -38,11 +38,11 @@ class UserControllerItTest extends AsyncWordSpec with Matchers with ScalatestRou
     }
     "deactivateById" should {
       "return id and false value if user was successfully deactivated" in {
-        val dummyUser: User = TestUserUtils.getDummyUser(active = false)
-        val response = UserNoCredentials.formUser(dummyUser)
+        val dummyUser: User = TestUserUtils.getDummyUser()
         userRepository.addUser(dummyUser).map { _ =>
           Delete(s"/users/deactivate/${dummyUser.userId.value}") ~> userController.route ~> check {
-            responseAs[UserNoCredentials] shouldBe response
+            val deactivatedUserResponse = UserNoCredentials.fromUser(dummyUser.copy(active = false))
+            responseAs[UserNoCredentials] shouldBe deactivatedUserResponse
             status shouldBe StatusCodes.OK
           }
         }

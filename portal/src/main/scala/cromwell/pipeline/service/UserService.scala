@@ -11,11 +11,11 @@ class UserService(userRepository: UserRepository)(implicit executionContext: Exe
     for {
       _ <- userRepository.deactivateByEmail(email)
       user <- userRepository.getUserByEmail(email)
-    } yield user.map(UserNoCredentials.formUser)
+    } yield user.map(UserNoCredentials.fromUser)
 
   def deactivateById(userId: UserId): Future[Option[UserNoCredentials]] =
     for {
       _ <- userRepository.deactivateById(userId)
       user <- userRepository.getUserById(userId)
-    } yield user.map(UserNoCredentials.formUser)
+    } yield user.map(UserNoCredentials.fromUser)
 }
