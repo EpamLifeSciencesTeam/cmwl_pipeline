@@ -16,7 +16,7 @@ class UserController(userService: UserService)(implicit executionContext: Execut
   val route: AccessTokenContent => Route = accessToken =>
     path("users") {
       delete {
-        onComplete(userService.deactivateById(UserId(accessToken.userId))) {
+        onComplete(userService.deactivateUserById(UserId(accessToken.userId))) {
           case Success(Some(idResponse)) => complete(idResponse)
           case Success(None)             => complete(StatusCodes.NotFound, "User not found")
           case Failure(_)                => complete(StatusCodes.InternalServerError, "Internal error")

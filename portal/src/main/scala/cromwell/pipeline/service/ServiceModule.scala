@@ -12,4 +12,5 @@ class ServiceModule(datastorageModule: DatastorageModule, utilsModule: UtilsModu
 ) {
   lazy val authService: AuthService = wire[AuthService]
   lazy val userService: UserService = wire[UserService]
+  lazy val projectService: ProjectService = wire[ProjectService]
 }

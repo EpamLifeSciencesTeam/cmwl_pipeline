@@ -7,9 +7,9 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class UserService(userRepository: UserRepository)(implicit executionContext: ExecutionContext) {
 
-  def deactivateById(userId: UserId): Future[Option[UserNoCredentials]] =
+  def deactivateUserById(userId: UserId): Future[Option[UserNoCredentials]] =
     for {
-      _ <- userRepository.deactivateById(userId)
+      _ <- userRepository.deactivateUserById(userId)
       user <- userRepository.getUserById(userId)
     } yield user.map(UserNoCredentials.fromUser)
 }
