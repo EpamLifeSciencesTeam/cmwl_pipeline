@@ -6,7 +6,7 @@ import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
 import cromwell.pipeline.ApplicationComponents
 import cromwell.pipeline.datastorage.dto.{ User, UserNoCredentials }
-import cromwell.pipeline.utils.auth.{ TestContainersUtils, TestUserUtils }
+import cromwell.pipeline.utils.auth.{ AccessTokenContent, TestContainersUtils, TestUserUtils }
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import org.scalatest.{ AsyncWordSpec, Matchers }
 
@@ -24,11 +24,12 @@ class UserControllerItTest extends AsyncWordSpec with Matchers with ScalatestRou
 
   "UserController" when {
     "deactivateByEmail" should {
-      "return email and false value if user was successfully deactivated" in {
+      "return user's entity with false value if user was successfully deactivated" in {
         val dummyUser: User = TestUserUtils.getDummyUser()
         userRepository.addUser(dummyUser).map { _ =>
           val deactivateUserByEmailRequest = dummyUser.email
-          Delete("/users/deactivate", deactivateUserByEmailRequest) ~> userController.route ~> check {
+          val accessToken = AccessTokenContent(dummyUser.userId.value)
+          Delete("/users/delete", deactivateUserByEmailRequest) ~> userController.route(accessToken) ~> check {
             val deactivatedUserResponse = UserNoCredentials.fromUser(dummyUser.copy(active = false))
             responseAs[UserNoCredentials] shouldBe deactivatedUserResponse
             status shouldBe StatusCodes.OK
@@ -37,10 +38,11 @@ class UserControllerItTest extends AsyncWordSpec with Matchers with ScalatestRou
       }
     }
     "deactivateById" should {
-      "return id and false value if user was successfully deactivated" in {
+      "return user's entity with false value if user was successfully deactivated" in {
         val dummyUser: User = TestUserUtils.getDummyUser()
         userRepository.addUser(dummyUser).map { _ =>
-          Delete(s"/users/deactivate/${dummyUser.userId.value}") ~> userController.route ~> check {
+          val accessToken = AccessTokenContent(dummyUser.userId.value)
+          Delete("/users/delete") ~> userController.route(accessToken) ~> check {
             val deactivatedUserResponse = UserNoCredentials.fromUser(dummyUser.copy(active = false))
             responseAs[UserNoCredentials] shouldBe deactivatedUserResponse
             status shouldBe StatusCodes.OK
