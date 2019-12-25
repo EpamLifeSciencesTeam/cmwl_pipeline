@@ -6,7 +6,9 @@ import cromwell.pipeline.datastorage.dto.{ User, UserId }
 import cromwell.pipeline.utils.StringUtils
 
 object TestUserUtils {
-  def getDummyUser(password: String = "-Pa$$w0rd-", passwordSalt: String = "salt", active: Boolean = true): User = {
+  val userPassword = "-Pa$$w0rd-"
+
+  def getDummyUser(password: String = userPassword, passwordSalt: String = "salt", active: Boolean = true): User = {
     val uuid = UUID.randomUUID().toString
     val passwordHash = StringUtils.calculatePasswordHash(password, passwordSalt)
     User(

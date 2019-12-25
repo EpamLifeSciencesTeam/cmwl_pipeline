@@ -13,31 +13,8 @@ class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
   private val userService: UserService = new UserService(userRepository)
 
   "UserService" when {
-    "deactivateByEmail" should {
-      "return user's email and active value" in {
-        val email = "email"
-        val user = User(UserId("123"), email, "hash", "salt", "name", "lastName", active = false)
-
-        when(userRepository.deactivateByEmail(email)).thenReturn(Future.successful(1))
-        when(userRepository.getUserByEmail(email)).thenReturn(Future(Some(user)))
-
-        val response = UserNoCredentials.fromUser(user)
-        userService.deactivateByEmail(email).map { result =>
-          result shouldBe Some(response)
-        }
-      }
-      "return None if user wasn't found by email" in {
-        val email = "email"
-        when(userRepository.deactivateByEmail(email)).thenReturn(Future.successful(0))
-        when(userRepository.getUserByEmail(email)).thenReturn(Future(None))
-
-        userService.deactivateByEmail(email).map { result =>
-          result shouldBe None
-        }
-      }
-    }
     "deactivateById" should {
-      "returns user's id and active value" in {
+      "returns user's entity with false value" in {
         val userId = UserId("123")
         val user = User(UserId("123"), "email", "hash", "salt", "name", "lastName", active = false)
 

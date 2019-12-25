@@ -28,8 +28,6 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
   import components.controllerModule.authController
   import components.datastorageModule.userRepository
 
-  private val userPassword = "-Pa$$w0rd-"
-
   "AuthController" when {
 
     "signIn" should {
@@ -38,7 +36,7 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
         val dummyUser: User = TestUserUtils.getDummyUser()
 
         whenReady(userRepository.addUser(dummyUser)) { _ =>
-          val signInRequest = SignInRequest(dummyUser.email, userPassword)
+          val signInRequest = SignInRequest(dummyUser.email, TestUserUtils.userPassword)
           val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signInRequest)))
 
           Post("/auth/signIn", httpEntity) ~> authController.route ~> check {
@@ -53,7 +51,8 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
 
       "return token headers if user was successfully registered" in {
         val dummyUser: User = TestUserUtils.getDummyUser()
-        val signUpRequest = SignUpRequest(dummyUser.email, userPassword, dummyUser.firstName, dummyUser.lastName)
+        val signUpRequest =
+          SignUpRequest(dummyUser.email, TestUserUtils.userPassword, dummyUser.firstName, dummyUser.lastName)
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signUpRequest)))
 
         Post("/auth/signUp", httpEntity) ~> authController.route ~> check {
@@ -69,7 +68,7 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
         val dummyUser: User = TestUserUtils.getDummyUser()
 
         whenReady(userRepository.addUser(dummyUser)) { _ =>
-          val signInRequest = SignInRequest(dummyUser.email, userPassword)
+          val signInRequest = SignInRequest(dummyUser.email, TestUserUtils.userPassword)
           val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signInRequest)))
 
           Post("/auth/signIn", httpEntity) ~> authController.route ~> check {

@@ -3,7 +3,6 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import cromwell.pipeline.datastorage.dto.User.UserEmail
 import cromwell.pipeline.datastorage.dto.UserId
 import cromwell.pipeline.service.UserService
 import cromwell.pipeline.utils.auth.AccessTokenContent
@@ -16,27 +15,14 @@ class UserController(userService: UserService)(implicit executionContext: Execut
 
   val route: AccessTokenContent => Route = accessToken =>
     pathPrefix("users") {
-      concat(
-        path("delete") {
-          delete {
-            entity(as[UserEmail]) { request =>
-              onComplete(userService.deactivateByEmail(request)) {
-                case Success(Some(emailResponse)) => complete(emailResponse)
-                case Success(None)                => complete(StatusCodes.NotFound, "User not found")
-                case Failure(_)                   => complete(StatusCodes.InternalServerError, "Internal error")
-              }
-            }
-          }
-        },
-        path("delete") {
-          delete {
-            onComplete(userService.deactivateById(UserId(accessToken.userId))) {
-              case Success(Some(idResponse)) => complete(idResponse)
-              case Success(None)             => complete(StatusCodes.NotFound, "User not found")
-              case Failure(_)                => complete(StatusCodes.InternalServerError, "Internal error")
-            }
+      path("delete") {
+        delete {
+          onComplete(userService.deactivateById(UserId(accessToken.userId))) {
+            case Success(Some(idResponse)) => complete(idResponse)
+            case Success(None)             => complete(StatusCodes.NotFound, "User not found")
+            case Failure(_)                => complete(StatusCodes.InternalServerError, "Internal error")
           }
         }
-      )
+      }
     }
 }
