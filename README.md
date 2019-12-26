@@ -9,7 +9,7 @@ Dependencies:
 # Getting Started
 
 ## Installation
-First, install Java 8 JDK, Scala 2.12, the Scala build tool, and Docker on your computer. For more instructions, see [Getting Started](https://kb.epam.com/display/EPMLSTR/Cromwell+Getting+Started).
+First, install Java 8 JDK, Scala 2.12, the Scala build tool, and Docker on your computer.
 
 To install Docker and docker-compose CLI, run the **scripts/install-docker.sh** script.
 
@@ -68,6 +68,3 @@ docker-compose up
 * [Circee]() JSON processing
 * [ScalaTest](http://www.scalatest.org/) Unit-testing framework
 * [ScalaMock](https://scalamock.org/) Unit-testing framework
-
-## Developer Guide
-https://kb.epam.com/display/EPMLSTR/Cromwell+Developer+Guide
