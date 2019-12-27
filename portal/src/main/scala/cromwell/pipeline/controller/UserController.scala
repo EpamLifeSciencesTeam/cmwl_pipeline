@@ -14,14 +14,12 @@ import scala.util.{ Failure, Success }
 class UserController(userService: UserService)(implicit executionContext: ExecutionContext) {
 
   val route: AccessTokenContent => Route = accessToken =>
-    pathPrefix("users") {
-      path("delete") {
-        delete {
-          onComplete(userService.deactivateById(UserId(accessToken.userId))) {
-            case Success(Some(idResponse)) => complete(idResponse)
-            case Success(None)             => complete(StatusCodes.NotFound, "User not found")
-            case Failure(_)                => complete(StatusCodes.InternalServerError, "Internal error")
-          }
+    path("users") {
+      delete {
+        onComplete(userService.deactivateById(UserId(accessToken.userId))) {
+          case Success(Some(idResponse)) => complete(idResponse)
+          case Success(None)             => complete(StatusCodes.NotFound, "User not found")
+          case Failure(_)                => complete(StatusCodes.InternalServerError, "Internal error")
         }
       }
     }

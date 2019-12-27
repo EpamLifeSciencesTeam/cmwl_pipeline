@@ -29,7 +29,7 @@ class UserControllerItTest extends AsyncWordSpec with Matchers with ScalatestRou
         val deactivatedUserResponse = UserNoCredentials.fromUser(dummyUser.copy(active = false))
         userRepository.addUser(dummyUser).map { _ =>
           val accessToken = AccessTokenContent(dummyUser.userId.value)
-          Delete("/users/delete") ~> userController.route(accessToken) ~> check {
+          Delete("/users") ~> userController.route(accessToken) ~> check {
             responseAs[UserNoCredentials] shouldBe deactivatedUserResponse
             status shouldBe StatusCodes.OK
           }

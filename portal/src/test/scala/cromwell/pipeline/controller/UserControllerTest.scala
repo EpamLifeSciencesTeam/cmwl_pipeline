@@ -27,7 +27,7 @@ class UserControllerTest extends AsyncWordSpec with Matchers with MockitoSugar w
 
         when(userService.deactivateById(userId)).thenReturn(Future.successful(Some(response)))
 
-        Delete("/users/delete") ~> userController.route(accessToken) ~> check {
+        Delete("/users") ~> userController.route(accessToken) ~> check {
           responseAs[UserNoCredentials] shouldBe response
           status shouldBe StatusCodes.OK
         }
@@ -38,7 +38,7 @@ class UserControllerTest extends AsyncWordSpec with Matchers with MockitoSugar w
         when(userService.deactivateById(UserId(userId)))
           .thenReturn(Future.failed(new RuntimeException("Something wrong.")))
 
-        Delete("/users/delete") ~> userController.route(accessToken) ~> check {
+        Delete("/users") ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
         }
       }
@@ -47,7 +47,7 @@ class UserControllerTest extends AsyncWordSpec with Matchers with MockitoSugar w
         val accessToken = AccessTokenContent(userId)
         when(userService.deactivateById(UserId(userId))).thenReturn(Future(None))
 
-        Delete("/users/delete") ~> userController.route(accessToken) ~> check {
+        Delete("/users") ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NotFound
         }
       }
