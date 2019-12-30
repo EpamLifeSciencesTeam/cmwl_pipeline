@@ -51,6 +51,8 @@ lazy val portal = project
     Defaults.itSettings,
     libraryDependencies ++= akkaDependencies ++ testDependencies ++ jsonDependencies ++ macwire ++ testContainers,
     libraryDependencies += cats,
+    assemblyJarName in assembly := "portal.jar",
+    test in assembly := {},
     addCommandAlias("testAll", "; test ; it:test")
   )
   .dependsOn(datasource)
