@@ -3,7 +3,7 @@ package cromwell.pipeline.utils.auth
 import java.util.UUID
 
 import cromwell.pipeline.datastorage.dto.User.UserEmail
-import cromwell.pipeline.datastorage.dto.{ User, UserId }
+import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, User, UserId }
 import cromwell.pipeline.utils.StringUtils
 
 object TestUserUtils {
@@ -28,6 +28,17 @@ object TestUserUtils {
       lastName,
       None,
       active
+    )
+  }
+
+  def getDummyProject(ownerId: UserId): Project = {
+    val uuid = UUID.randomUUID().toString
+    Project(
+      projectId = ProjectId(uuid),
+      ownerId = ownerId,
+      name = s"project-$uuid",
+      repository = s"repo-$uuid",
+      active = true
     )
   }
 }

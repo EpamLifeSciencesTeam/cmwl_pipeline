@@ -15,7 +15,7 @@ trait ProjectEntry {
     def repository = column[String]("repository")
     def active = column[Boolean]("active")
     def * = (projectId, ownerId, name, repository, active) <>
-      (Project.tupled, Project.unapply)
+      ((Project.apply _).tupled, Project.unapply)
 
     def user = foreignKey("fk_project_user", ownerId, users)(_.userId)
   }
