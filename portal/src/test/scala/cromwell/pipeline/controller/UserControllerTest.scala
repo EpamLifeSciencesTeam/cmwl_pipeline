@@ -60,9 +60,8 @@ class UserControllerTest extends ControllerSpec {
           responseAs[Seq[User]].size shouldEqual 2
         }
       }
-
     }
-    "deactivateById" should {
+
     "deactivateUserById" should {
       "return user's entity with false value if user was successfully deactivated" in {
         val dummyUser: User = TestUserUtils.getDummyUser(active = false)
