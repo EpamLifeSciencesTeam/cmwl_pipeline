@@ -1,8 +1,11 @@
 package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
+import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
 import cromwell.pipeline.datastorage.dto.{ User, UserId, UserNoCredentials }
 import cromwell.pipeline.tag.Service
+import cromwell.pipeline.utils.auth.{ TestUserUtils }
+import cromwell.pipeline.utils.StringUtils._
 import cromwell.pipeline.utils.auth.TestUserUtils
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
@@ -11,8 +14,7 @@ import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.Future
 
-class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar with ScalaFutures {
-
+class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
   private val userRepository: UserRepository = mock[UserRepository]
   private val user = TestUserUtils.getDummyUser()
   private val userService: UserService = new UserService(userRepository)
@@ -20,16 +22,7 @@ class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar with
   private val userRepositoryResp = Seq(user)
   private val userServiceResp: Seq[User] = Seq(user)
 
-  "UserServiceTest" when {
-    "invoke UserService" should {
-      "get userResponse sequence from users sequence" taggedAs (Service) in {
-
-        when(userRepository.getUsersByEmail(userByEmailRequest)).thenReturn(Future.successful(userRepositoryResp))
-        userService.getUsersByEmail(userByEmailRequest).map { result =>
-          result shouldBe userServiceResp
-        }
-      }
-    }
+  "UserService" when {
     "deactivateUserById" should {
       "returns user's entity with false value" taggedAs (Service) in {
         val userId = UserId("123")
@@ -51,6 +44,40 @@ class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar with
 
         userService.deactivateUserById(userId).map { result =>
           result shouldBe None
+        }
+      }
+    }
+
+    "updateUser" should {
+      "returns success if database handles query" in {
+        val userId = "123"
+        val user = User(UserId("123"), "email@cromwell.com", "hash", "salt", "name", "lastName")
+        val user2 = user.copy(email = "updatedEmail", firstName = "updatedFirstName", lastName = "updatedLastName")
+        val request = UserUpdateRequest("updatedEmail", "updatedFirstName", "updatedLastName")
+
+        when(userRepository.getUserById(UserId("123"))).thenReturn(Future(Some(user)))
+        when(userRepository.updateUser(user2)).thenReturn(Future.successful(1))
+
+        userService.updateUser(userId, request).map { result =>
+          result shouldBe 1
+        }
+      }
+    }
+
+    "updatePassword" should {
+      "returns success if database handles query" in {
+        val id = "123"
+        val salt = "salt"
+        val user =
+          User(UserId(id), "email@cromwell.com", calculatePasswordHash("password", salt), salt, "name", "lastName")
+        val request = PasswordUpdateRequest("password", "newPassword", "newPassword")
+        val updatedUser1 = user.copy(passwordHash = calculatePasswordHash("newPassword", salt), passwordSalt = salt)
+
+        when(userRepository.getUserById(UserId(id))).thenReturn(Future(Some(user)))
+        when(userRepository.updatePassword(updatedUser1)).thenReturn(Future.successful(1))
+
+        userService.updatePassword(id, request, salt).map { result =>
+          result shouldBe 1
         }
       }
     }

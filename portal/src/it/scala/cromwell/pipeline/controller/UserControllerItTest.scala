@@ -4,6 +4,7 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
+import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
 import cromwell.pipeline.datastorage.dto.{ User, UserNoCredentials }
 import cromwell.pipeline.utils.auth.{ AccessTokenContent, TestContainersUtils, TestUserUtils }
 import cromwell.pipeline.ApplicationComponents
@@ -48,6 +49,7 @@ class UserControllerItTest
     }
 
     "deactivateUserById" should {
+
       "return user's entity with false value if user was successfully deactivated" in {
         val dummyUser: User = TestUserUtils.getDummyUser()
         val deactivatedUserResponse = UserNoCredentials.fromUser(dummyUser.copy(active = false))
@@ -58,6 +60,45 @@ class UserControllerItTest
             status shouldBe StatusCodes.OK
           }
         }
+      }
+    }
+
+    "updateUser" should {
+
+      "return status code NoContent if user was successfully updated" in {
+        val dummyUser: User = TestUserUtils.getDummyUser()
+        val request = UserUpdateRequest(dummyUser.email, dummyUser.firstName, dummyUser.lastName)
+        userRepository
+          .addUser(dummyUser)
+          .flatMap(
+            _ =>
+              userRepository.updateUser(dummyUser).map { _ =>
+                val accessToken = AccessTokenContent(dummyUser.userId.value)
+                Put("/users", request) ~> userController.route(accessToken) ~> check {
+                  status shouldBe StatusCodes.NoContent
+                }
+              }
+          )
+      }
+    }
+
+    "updatePassword" should {
+
+      "return status code NoContent if user's password was successfully updated" in {
+        val dummyUser: User = TestUserUtils.getDummyUser()
+        val currentPassword = TestUserUtils.userPassword
+        val request = PasswordUpdateRequest(currentPassword, "newPassword", "newPassword")
+        userRepository
+          .addUser(dummyUser)
+          .flatMap(
+            _ =>
+              userRepository.updatePassword(dummyUser).map { _ =>
+                val accessToken = AccessTokenContent(dummyUser.userId.value)
+                Put("/users", request) ~> userController.route(accessToken) ~> check {
+                  status shouldBe StatusCodes.NoContent
+                }
+              }
+          )
       }
     }
   }
