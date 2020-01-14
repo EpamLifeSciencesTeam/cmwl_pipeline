@@ -40,4 +40,15 @@ trait UserEntry {
 
   def deactivateUserById(userId: UserId) = users.filter(_.userId === userId).map(_.active).update(false)
 
+  def updateUser(updatedUser: User) =
+    users
+      .filter(_.userId === updatedUser.userId)
+      .map(user => (user.email, user.firstName, user.lastName))
+      .update((updatedUser.email, updatedUser.firstName, updatedUser.lastName))
+
+  def updatePassword(updatedUser: User) =
+    users
+      .filter(_.userId === updatedUser.userId)
+      .map(user => (user.passwordHash, user.passwordSalt))
+      .update((updatedUser.passwordHash, updatedUser.passwordSalt))
 }

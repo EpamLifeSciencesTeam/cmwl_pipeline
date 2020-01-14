@@ -2,7 +2,7 @@ package cromwell.pipeline.datastorage.dao.repository
 
 import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
-import cromwell.pipeline.datastorage.dto.{ User }
+import cromwell.pipeline.datastorage.dto.User
 import cromwell.pipeline.utils.auth.{ TestContainersUtils, TestUserUtils }
 import cromwell.pipeline.ApplicationComponents
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
@@ -53,6 +53,49 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
 
     "getUsersByEmail" should {
 
+      "should find newly added user by email pattern" taggedAs (Dao) in {
+        val newUser: User = TestUserUtils.getDummyUser()
+        userRepository
+          .addUser(newUser)
+          .flatMap(
+            _ =>
+              userRepository
+                .getUsersByEmail(newUser.email)
+                .map(repoResp => repoResp should contain theSameElementsAs Seq(newUser))
+          )
+      }
+    }
+
+    "updateUser" should {
+      "update email, firstName and lastName" in {
+        val dummyUser: User = TestUserUtils.getDummyUser()
+        userRepository.addUser(dummyUser)
+
+        val updatedUser =
+          dummyUser.copy(email = "updated@email.com", firstName = "updatedFName", lastName = "updatedLName")
+        userRepository
+          .updateUser(updatedUser)
+          .flatMap(
+            _ => userRepository.getUserById(dummyUser.userId).map(dummyUser => dummyUser.get shouldEqual updatedUser)
+          )
+      }
+    }
+
+    "updatePassword" should {
+      "update password" in {
+        val dummyUser: User = TestUserUtils.getDummyUser()
+        userRepository.addUser(dummyUser)
+
+        val updatedUser = dummyUser.copy(passwordHash = TestUserUtils.getDummyUser("newPassword").passwordHash)
+        userRepository
+          .updatePassword(updatedUser)
+          .flatMap(
+            _ => userRepository.getUserById(dummyUser.userId).map(dummyUser => dummyUser.get shouldEqual updatedUser)
+          )
+      }
+    }
+
+    "getUsersByEmail" should {
       "should find newly added user by email pattern" taggedAs (Dao) in {
         val newUser: User = TestUserUtils.getDummyUser()
         userRepository

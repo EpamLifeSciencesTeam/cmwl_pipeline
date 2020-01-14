@@ -2,6 +2,7 @@ package cromwell.pipeline.controller
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
+import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
 import cromwell.pipeline.datastorage.dto.{ User, UserId, UserNoCredentials }
 import cromwell.pipeline.service.UserService
 import cromwell.pipeline.tag.Controller
@@ -30,8 +31,10 @@ class UserControllerTest
       "return the sequence of users" taggedAs (Controller) in {
         val usersByEmailRequest: String = "@mail"
         val dummyUser: User = TestUserUtils.getDummyUser()
+        val userId = dummyUser.userId
         val uEmailRespSeq: Seq[User] = Seq(dummyUser)
-        val accessToken = AccessTokenContent(dummyUser.userId.value)
+
+        val accessToken = AccessTokenContent(userId.value)
         when(userService.getUsersByEmail(usersByEmailRequest)).thenReturn(Future.successful(uEmailRespSeq))
 
         Get("/users?email=" + usersByEmailRequest) ~> userController.route(accessToken) ~> check {
@@ -103,6 +106,64 @@ class UserControllerTest
 
         Delete("/users") ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NotFound
+        }
+      }
+    }
+
+    "update" should {
+      "return NoContent status if user was amended" in {
+        val dummyUser: User = TestUserUtils.getDummyUser()
+        val userId = dummyUser.userId.value
+        val accessToken = AccessTokenContent(userId)
+        val request = UserUpdateRequest(dummyUser.email, dummyUser.firstName, dummyUser.lastName)
+
+        when(userService.updateUser(userId, request)).thenReturn(Future.successful(1))
+
+        Put("/users", request) ~> userController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.NoContent
+        }
+      }
+
+      "return NoContent status if user's password was amended" in {
+        val dummyUser: User = TestUserUtils.getDummyUser()
+        val userId = dummyUser.userId.value
+        val accessToken = AccessTokenContent(userId)
+        val userPassword = "-Pa$$w0rd-"
+        val request = PasswordUpdateRequest(userPassword, userPassword, userPassword)
+
+        when(userService.updatePassword(userId, request)).thenReturn(Future.successful(1))
+
+        Put("/users", request) ~> userController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.NoContent
+        }
+      }
+
+      "return InternalServerError status if user's id doesn't match" in {
+        val dummyUser: User = TestUserUtils.getDummyUser()
+        val userId = dummyUser.userId.value
+        val accessToken = AccessTokenContent("0")
+        val request = UserUpdateRequest(dummyUser.email, dummyUser.firstName, dummyUser.lastName)
+
+        when(userService.updateUser(userId, request))
+          .thenReturn(Future.failed(new RuntimeException("Something wrong.")))
+
+        Put("/users", request) ~> userController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.InternalServerError
+        }
+      }
+
+      "return BadRequest status if user's passwords don't match" in {
+        val dummyUser: User = TestUserUtils.getDummyUser()
+        val userId = dummyUser.userId.value
+        val accessToken = AccessTokenContent(userId)
+        val userPassword = "-Pa$$w0rd-"
+        val request = PasswordUpdateRequest(userPassword, userPassword + "1", userPassword)
+
+        when(userService.updatePassword(userId, request))
+          .thenReturn(Future.failed(new RuntimeException("Something wrong.")))
+
+        Put("/users", request) ~> userController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.BadRequest
         }
       }
     }
