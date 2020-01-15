@@ -29,7 +29,7 @@ class UserServiceTest extends ServiceSpec {
       }
     }
     "deactivateUserById" should {
-      "returns user's entity with false value" in {
+      "returns user's entity with false value" taggedAs (Service) in {
         val userId = UserId("123")
         val user = User(UserId("123"), "email@cromwell.com", "hash", "salt", "name", "lastName", active = false) //TODO -check if test do its work
 
@@ -41,7 +41,7 @@ class UserServiceTest extends ServiceSpec {
           result shouldBe Some(response)
         }
       }
-      "return None if user wasn't found by Id" in {
+      "return None if user wasn't found by Id" taggedAs (Service) in {
         val userId = UserId("123")
 
         when(userRepository.deactivateUserById(userId)).thenReturn(Future.successful(0))
