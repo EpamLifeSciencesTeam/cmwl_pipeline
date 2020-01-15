@@ -22,10 +22,10 @@ class UserController(userService: UserService)(implicit executionContext: Execut
           parameter('email.as[String]) { email =>
             onComplete(userService.getUsersByEmail(email)) {
               case Success(r) => complete(r)
-              case Failure(_) =>
+              case Failure(exc) =>
                 complete(
                   StatusCodes.InternalServerError,
-                  "may be, database error or query syntax error: try to check your request email-pattern"
+                  exc.getMessage
                 )
             }
           }
