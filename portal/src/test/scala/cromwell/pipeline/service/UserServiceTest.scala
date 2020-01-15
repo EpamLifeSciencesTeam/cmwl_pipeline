@@ -31,7 +31,7 @@ class UserServiceTest extends ServiceSpec {
     "deactivateUserById" should {
       "returns user's entity with false value" taggedAs (Service) in {
         val userId = UserId("123")
-        val user = User(UserId("123"), "email@cromwell.com", "hash", "salt", "name", "lastName", active = false) //TODO -check if test do its work
+        val user = User(UserId("123"), "email@cromwell.com", "hash", "salt", "name", "lastName", active = false)
 
         when(userRepository.deactivateUserById(userId)).thenReturn(Future.successful(1))
         when(userRepository.getUserById(userId)).thenReturn(Future(Some(user)))
