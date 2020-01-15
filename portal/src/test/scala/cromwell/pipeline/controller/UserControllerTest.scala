@@ -63,7 +63,7 @@ class UserControllerTest extends ControllerSpec {
     }
 
     "deactivateUserById" should {
-      "return user's entity with false value if user was successfully deactivated" in {
+      "return user's entity with false value if user was successfully deactivated" taggedAs (Controller) in {
         val dummyUser: User = TestUserUtils.getDummyUser(active = false)
         val userId = dummyUser.userId
         val response = UserNoCredentials.fromUser(dummyUser)
@@ -76,7 +76,7 @@ class UserControllerTest extends ControllerSpec {
           status shouldBe StatusCodes.OK
         }
       }
-      "return server error if user deactivation was failed" in {
+      "return server error if user deactivation was failed" taggedAs (Controller) in {
         val userId = TestUserUtils.getDummyUser().userId.value
         val accessToken = AccessTokenContent(userId)
         when(userService.deactivateUserById(UserId(userId)))
@@ -86,7 +86,7 @@ class UserControllerTest extends ControllerSpec {
           status shouldBe StatusCodes.InternalServerError
         }
       }
-      "return NotFound status if user deactivation was failed" in {
+      "return NotFound status if user deactivation was failed" taggedAs (Controller) in {
         val userId = TestUserUtils.getDummyUser().userId.value
         val accessToken = AccessTokenContent(userId)
         when(userService.deactivateUserById(UserId(userId))).thenReturn(Future(None))
