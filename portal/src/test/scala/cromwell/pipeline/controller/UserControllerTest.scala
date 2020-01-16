@@ -1,16 +1,24 @@
 package cromwell.pipeline.controller
 
 import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.datastorage.dto.{ User, UserId, UserNoCredentials }
 import cromwell.pipeline.service.UserService
-import cromwell.pipeline.spec.ControllerSpec
 import cromwell.pipeline.tag.Controller
 import cromwell.pipeline.utils.auth.{ AccessTokenContent, TestUserUtils }
+import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import org.mockito.Mockito._
+import org.scalatest.{ AsyncWordSpec, Matchers }
+import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.Future
 
-class UserControllerTest extends ControllerSpec {
+class UserControllerTest
+    extends AsyncWordSpec
+    with Matchers
+    with ScalatestRouteTest
+    with MockitoSugar
+    with PlayJsonSupport {
 
   private val userService = mock[UserService]
   private val userController = new UserController(userService)
@@ -22,10 +30,8 @@ class UserControllerTest extends ControllerSpec {
       "return the sequence of users" taggedAs (Controller) in {
         val usersByEmailRequest: String = "@mail"
         val dummyUser: User = TestUserUtils.getDummyUser()
-        val userId = dummyUser.userId
         val uEmailRespSeq: Seq[User] = Seq(dummyUser)
-
-        val accessToken = AccessTokenContent(userId.value)
+        val accessToken = AccessTokenContent(dummyUser.userId.value)
         when(userService.getUsersByEmail(usersByEmailRequest)).thenReturn(Future.successful(uEmailRespSeq))
 
         Get("/users?email=" + usersByEmailRequest) ~> userController.route(accessToken) ~> check {

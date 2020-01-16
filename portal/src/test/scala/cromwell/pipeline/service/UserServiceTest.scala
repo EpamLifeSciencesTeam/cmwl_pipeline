@@ -2,14 +2,16 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dto.{ User, UserId, UserNoCredentials }
-import cromwell.pipeline.spec.ServiceSpec
 import cromwell.pipeline.tag.Service
-import cromwell.pipeline.utils.auth.{ TestUserUtils }
+import cromwell.pipeline.utils.auth.TestUserUtils
 import org.mockito.Mockito._
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.{ AsyncWordSpec, Matchers }
+import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.Future
 
-class UserServiceTest extends ServiceSpec {
+class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar with ScalaFutures {
 
   private val userRepository: UserRepository = mock[UserRepository]
   private val user = TestUserUtils.getDummyUser()

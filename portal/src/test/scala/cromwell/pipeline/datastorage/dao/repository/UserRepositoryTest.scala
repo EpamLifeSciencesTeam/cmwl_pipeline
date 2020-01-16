@@ -2,7 +2,7 @@ package cromwell.pipeline.datastorage.dao.repository
 
 import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
-import cromwell.pipeline.datastorage.dto.User
+import cromwell.pipeline.datastorage.dto.{ User }
 import cromwell.pipeline.utils.auth.{ TestContainersUtils, TestUserUtils }
 import cromwell.pipeline.ApplicationComponents
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
@@ -54,11 +54,12 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
     "getUsersByEmail" should {
 
       "should find newly added user by email pattern" taggedAs (Dao) in {
-
         val newUser: User = TestUserUtils.getDummyUser()
-        userRepository.addUser(newUser)
-        userRepository.getUsersByEmail(newUser.email).map(repoResp => repoResp shouldBe Vector(newUser))
-
+        userRepository
+          .addUser(newUser)
+          .flatMap(
+            _ => userRepository.getUsersByEmail(newUser.email).map(repoResp => repoResp shouldBe Vector(newUser))
+          )
       }
     }
   }

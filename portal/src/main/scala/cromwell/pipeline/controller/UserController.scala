@@ -23,10 +23,7 @@ class UserController(userService: UserService)(implicit executionContext: Execut
             onComplete(userService.getUsersByEmail(email)) {
               case Success(r) => complete(r)
               case Failure(exc) =>
-                complete(
-                  StatusCodes.InternalServerError,
-                  exc.getMessage
-                )
+                complete(StatusCodes.InternalServerError, exc.getMessage)
             }
           }
         },
