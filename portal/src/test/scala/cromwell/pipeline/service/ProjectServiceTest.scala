@@ -22,6 +22,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
           ProjectAdditionRequest(
             ownerId = UserId("userId"),
             name = "projectName",
+            description = "description",
             repository = "repositoryName"
           )
         val projectId = ProjectId("projectId")
@@ -41,6 +42,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
             projectId = projectId,
             ownerId = UserId("userId"),
             name = "projectName",
+            description = "description",
             repository = "repositoryName",
             active = false
           )
@@ -60,6 +62,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
             projectId = projectId,
             ownerId = UserId("userId"),
             name = "projectName",
+            description = "description",
             repository = "repositoryName",
             active = false
           )

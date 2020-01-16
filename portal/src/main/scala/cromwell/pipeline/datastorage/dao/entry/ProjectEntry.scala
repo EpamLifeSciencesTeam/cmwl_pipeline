@@ -12,9 +12,10 @@ trait ProjectEntry {
     def projectId = column[ProjectId]("project_id", O.PrimaryKey)
     def ownerId = column[UserId]("owner_id")
     def name = column[String]("name")
+    def description = column[String]("description")
     def repository = column[String]("repository")
     def active = column[Boolean]("active")
-    def * = (projectId, ownerId, name, repository, active) <>
+    def * = (projectId, ownerId, name, description, repository, active) <>
       (Project.tupled, Project.unapply)
 
     def user = foreignKey("fk_project_user", ownerId, users)(_.userId)

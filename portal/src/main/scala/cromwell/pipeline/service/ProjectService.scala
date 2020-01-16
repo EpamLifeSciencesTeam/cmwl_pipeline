@@ -18,6 +18,7 @@ class ProjectService(projectRepository: ProjectRepository)(implicit executionCon
         projectId = ProjectId(UUID.randomUUID().toString),
         ownerId = request.ownerId,
         name = request.name,
+        description = request.description,
         repository = request.repository,
         active = true
       )

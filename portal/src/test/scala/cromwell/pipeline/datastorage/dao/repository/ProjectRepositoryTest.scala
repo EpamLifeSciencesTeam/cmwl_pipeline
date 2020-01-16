@@ -65,6 +65,7 @@ class ProjectRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAf
       projectId = ProjectId(uuid),
       ownerId = ownerId,
       name = s"project-$uuid",
+      description = "description",
       repository = s"repo-$uuid",
       active = true
     )

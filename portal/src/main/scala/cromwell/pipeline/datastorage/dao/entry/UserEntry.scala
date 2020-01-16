@@ -36,8 +36,6 @@ trait UserEntry {
 
   def addUserAction(user: User) = (users.returning(users.map(_.userId))) += user
 
-  def deactivateUserByEmail(email: String) = users.filter(_.email === email).map(_.active).update(false)
-
   def deactivateUserById(userId: UserId) = users.filter(_.userId === userId).map(_.active).update(false)
 
   def updateUser(updatedUser: User) =
