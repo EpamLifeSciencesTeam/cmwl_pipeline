@@ -1,12 +1,6 @@
 package cromwell.pipeline.datastorage.dto
 
 import cromwell.pipeline.datastorage.dto.User.UserEmail
-import cromwell.pipeline.utils.validator.{
-  DomainValidation,
-  EmailDoesNotMeetCriteria,
-  FirstNameHasSpecialCharacters,
-  LastNameHasSpecialCharacters
-}
 import play.api.libs.json.{ Json, OFormat }
 import play.api.libs.json.Format
 import slick.lifted.MappedTo
@@ -23,11 +17,7 @@ final case class User(
   lastName: String,
   profilePicture: Option[ProfilePicture] = None,
   active: Boolean = true
-) {
-  require(DomainValidation.checkEmail(email), EmailDoesNotMeetCriteria.errorMessage)
-  require(DomainValidation.checkFirstName(firstName), FirstNameHasSpecialCharacters.errorMessage)
-  require(DomainValidation.checkLastName(lastName), LastNameHasSpecialCharacters.errorMessage)
-}
+) {}
 
 object User {
   implicit lazy val userFormat: OFormat[User] = Json.format[User]

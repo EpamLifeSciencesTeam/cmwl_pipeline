@@ -40,12 +40,16 @@ class UserControllerTest
           responseAs[Seq[User]].size shouldEqual 1
         }
       }
-      "get user with wrong email pattern is unreal" taggedAs (Controller) in {
-        val dummyUser =
-          intercept[IllegalArgumentException] {
-            TestUserUtils.getDummyUserWithWrongEmailPattern()
-          }
-        assert(dummyUser.getMessage.substring(20, 25) == "Email")
+      "return the internal server error if service fails" taggedAs (Controller) in {
+        val usersByEmailRequest: String = "@mail"
+        val dummyUser: User = TestUserUtils.getDummyUser()
+        val accessToken = AccessTokenContent(dummyUser.userId.value)
+        when(userService.getUsersByEmail(usersByEmailRequest))
+          .thenReturn(Future.failed(new RuntimeException("something went wrong")))
+
+        Get("/users?email=" + usersByEmailRequest) ~> userController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.InternalServerError
+        }
       }
       "return the sequence of users when pattern must contain correct number of entries" taggedAs (Controller) in {
         val usersByEmailRequest: String = "someDomain.com"

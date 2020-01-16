@@ -1,7 +1,5 @@
 package cromwell.pipeline.utils.validator
 
-import cromwell.pipeline.datastorage.dto.User.UserEmail
-
 trait DomainValidation {
   def errorCode: String
   def errorMessage: String
@@ -38,8 +36,4 @@ object DomainValidation {
 
   val allErrorCodes: Seq[String] =
     Seq(incorrectEmailErrorCode, incorrectPasswordErrorCode, incorrectFirstNameErrorCode, incorrectLastNameErrorCode)
-
-  def checkEmail(userEmail: UserEmail): Boolean = userEmail.matches("^[^@]+@[^\\.]+\\..+$")
-  def checkFirstName(fName: String): Boolean = fName.matches("^[a-zA-Z]+$")
-  def checkLastName(lName: String): Boolean = lName.matches("^[a-zA-Z]+$")
 }

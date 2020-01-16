@@ -41,24 +41,6 @@ object TestUserUtils {
     )
   }
 
-  def getDummyUserWithWrongEmailPattern(
-    password: String = userPassword,
-    passwordSalt: String = "salt",
-    active: Boolean = true
-  ): User = {
-    val uuid = UUID.randomUUID().toString
-    val passwordHash = StringUtils.calculatePasswordHash(password, passwordSalt)
-    createDummyUser(
-      UserId(uuid),
-      s"JohnDoe-$uuid-cromwell.com",
-      passwordHash,
-      passwordSalt,
-      "FirstName",
-      "LastName",
-      active
-    )
-  }
-
   def createDummyUser(
     userId: UserId,
     email: String,
