@@ -2,7 +2,7 @@ package cromwell.pipeline.utils.auth
 
 import java.util.UUID
 
-import cromwell.pipeline.datastorage.dto.{ ProfilePicture, User, UserId }
+import cromwell.pipeline.datastorage.dto.{ User, UserId }
 import cromwell.pipeline.utils.StringUtils
 
 object TestUserUtils {
