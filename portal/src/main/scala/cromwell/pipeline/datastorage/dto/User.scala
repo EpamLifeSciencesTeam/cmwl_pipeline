@@ -17,7 +17,7 @@ final case class User(
   lastName: String,
   profilePicture: Option[ProfilePicture] = None,
   active: Boolean = true
-) {}
+)
 
 object User {
   implicit lazy val userFormat: OFormat[User] = Json.format[User]
@@ -33,14 +33,14 @@ object UserId {
 final case class ProfilePicture(value: Array[Byte]) extends MappedTo[Array[Byte]]
 
 object ProfilePicture {
-  implicit lazy val profilePictureFormat: OFormat[ProfilePicture] = OFormat(profilePictureReads, profilePictureWrites)
+  implicit lazy val profilePictureFormat: OFormat[ProfilePicture] = Json.format[ProfilePicture]
 
-  lazy val profilePictureWrites = new OWrites[ProfilePicture] {
-    def writes(profilePicture: ProfilePicture) = Json.obj(
-      "value" -> None
-    )
-  }
-
-  lazy val profilePictureReads: Reads[ProfilePicture] =
-    (JsPath \ "value").read(Reads.of[Array[Byte]]).map(ProfilePicture.apply _)
+//  lazy val profilePictureWrites = new OWrites[ProfilePicture] {
+//    def writes(profilePicture: ProfilePicture) = Json.obj(
+//      "value" -> None
+//    )
+//  }
+//
+//  lazy val profilePictureReads: Reads[ProfilePicture] =
+//    (JsPath \ "value").read(Reads.of[Array[Byte]]).map(ProfilePicture.apply _)
 }
