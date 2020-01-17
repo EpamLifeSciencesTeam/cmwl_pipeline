@@ -58,7 +58,10 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
         userRepository
           .addUser(newUser)
           .flatMap(
-            _ => userRepository.getUsersByEmail(newUser.email).map(repoResp => repoResp shouldBe Vector(newUser))
+            _ =>
+              userRepository
+                .getUsersByEmail(newUser.email)
+                .map(repoResp => repoResp should contain theSameElementsAs Vector(newUser))
           )
       }
     }

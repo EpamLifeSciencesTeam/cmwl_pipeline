@@ -57,9 +57,9 @@ class UserControllerTest
         val userId = dummyUser.userId
 
         val firstDummyUser: User =
-          TestUserUtils.getDummyUserWithCustomEmailDomain(active = false, emailDomain = usersByEmailRequest)
+          TestUserUtils.getDummyUser(emailOpt = usersByEmailRequest)
         val secondDummyUser: User =
-          TestUserUtils.getDummyUserWithCustomEmailDomain(active = false, emailDomain = usersByEmailRequest)
+          TestUserUtils.getDummyUser(emailOpt = usersByEmailRequest)
         val uEmailRespSeq: Seq[User] = Seq(firstDummyUser, secondDummyUser)
         val accessToken = AccessTokenContent(userId.value)
         when(userService.getUsersByEmail(usersByEmailRequest)).thenReturn(Future.successful(uEmailRespSeq))
