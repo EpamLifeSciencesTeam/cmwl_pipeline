@@ -4,7 +4,6 @@ import cromwell.pipeline.datastorage.dto.User.UserEmail
 import play.api.libs.json.{ Json, OFormat }
 import play.api.libs.json.Format
 import slick.lifted.MappedTo
-import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
 
@@ -34,13 +33,4 @@ final case class ProfilePicture(value: Array[Byte]) extends MappedTo[Array[Byte]
 
 object ProfilePicture {
   implicit lazy val profilePictureFormat: OFormat[ProfilePicture] = Json.format[ProfilePicture]
-
-//  lazy val profilePictureWrites = new OWrites[ProfilePicture] {
-//    def writes(profilePicture: ProfilePicture) = Json.obj(
-//      "value" -> None
-//    )
-//  }
-//
-//  lazy val profilePictureReads: Reads[ProfilePicture] =
-//    (JsPath \ "value").read(Reads.of[Array[Byte]]).map(ProfilePicture.apply _)
 }
