@@ -61,7 +61,7 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
             _ =>
               userRepository
                 .getUsersByEmail(newUser.email)
-                .map(repoResp => repoResp should contain theSameElementsAs Vector(newUser))
+                .map(repoResp => repoResp should contain theSameElementsAs Seq(newUser))
           )
       }
     }

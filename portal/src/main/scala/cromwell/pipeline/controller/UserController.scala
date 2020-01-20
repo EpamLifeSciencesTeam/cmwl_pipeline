@@ -8,12 +8,12 @@ import akka.http.scaladsl.server.Route
 import cromwell.pipeline.datastorage.dto.UserId
 import cromwell.pipeline.service.UserService
 import cromwell.pipeline.utils.auth.AccessTokenContent
-import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
+import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
 import scala.concurrent.ExecutionContext
 import scala.util.{ Failure, Success }
 
-class UserController(userService: UserService)(implicit executionContext: ExecutionContext) extends PlayJsonSupport {
+class UserController(userService: UserService)(implicit executionContext: ExecutionContext) {
 
   val route: AccessTokenContent => Route = accessToken =>
     path("users") {
