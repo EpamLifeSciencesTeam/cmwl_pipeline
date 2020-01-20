@@ -54,4 +54,11 @@
         <addForeignKeyConstraint constraintName="fk_project_user" baseTableName="project" baseColumnNames="owner_id" referencedTableName="user" referencedColumnNames="user_id"/>
     </changeSet>
 
+    <changeSet id="add_description_column" author="ysheiko">
+        <addColumn tableName="project">
+            <column name="project_description" type="${text.type}"/>
+        </addColumn>
+        <addNotNullConstraint constraintName="project_description_nn" tableName="project" columnName="project_description"/>
+    </changeSet>
+
 </databaseChangeLog>

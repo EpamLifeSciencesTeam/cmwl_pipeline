@@ -12,7 +12,7 @@ trait ProjectEntry {
     def projectId = column[ProjectId]("project_id", O.PrimaryKey)
     def ownerId = column[UserId]("owner_id")
     def name = column[String]("name")
-    def description = column[String]("description")
+    def description = column[String]("project_description")
     def repository = column[String]("repository")
     def active = column[Boolean]("active")
     def * = (projectId, ownerId, name, description, repository, active) <>
