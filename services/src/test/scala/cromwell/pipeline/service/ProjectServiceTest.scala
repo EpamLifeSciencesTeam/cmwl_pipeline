@@ -1,12 +1,11 @@
 package cromwell.pipeline.service
 
-import cromwell.pipeline.datastorage.dao.repository.{Dao, ProjectRepository}
-import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
+import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dto.{Project, ProjectAdditionRequest, ProjectId, UserId}
-import org.scalatest.{AsyncWordSpec, BeforeAndAfterAll, Matchers}
-import org.scalatestplus.mockito.MockitoSugar
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
+import org.scalatest.{AsyncWordSpec, Matchers}
+import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.Future
 
@@ -36,21 +35,33 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
       "return deactivated project" in {
 
         val projectId = ProjectId("projectId")
-        val userId = UserId("userId")
-        val project = TestProjectUtils.getDummyProject(projectId,userId)
+        val project =
+          Project(
+            projectId = projectId,
+            ownerId = UserId("userId"),
+            name = "projectName",
+            repository = "repositoryName",
+            active = false
+          )
 
         when(projectRepository.deactivateProjectById(projectId)).thenReturn(Future(0))
         when(projectRepository.getProjectById(projectId)).thenReturn(Future(Some(project)))
 
-        projectService.deactivateProjectById(projectId, userId).map { _ shouldBe Some(project) }
+        projectService.deactivateProjectById(projectId).map { _ shouldBe Some(project) }
       }
     }
 
     "getProjectById" should {
       "return project with corresponding id" in {
         val projectId = ProjectId("projectId")
-        val userId = UserId("userId")
-        val project = TestProjectUtils.getDummyProject(projectId,userId)
+        val project =
+          Project(
+            projectId = projectId,
+            ownerId = UserId("userId"),
+            name = "projectName",
+            repository = "repositoryName",
+            active = false
+          )
 
         when(projectRepository.getProjectById(projectId)).thenReturn(Future(Some(project)))
 

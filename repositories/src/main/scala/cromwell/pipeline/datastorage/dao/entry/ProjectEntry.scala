@@ -27,19 +27,13 @@ trait ProjectEntry {
     projects.filter(_.projectId === projectId).take(1)
   }
 
-  def getProjectByNameAction = Compiled { name: Rep[String] =>
+  def getProjectByName = Compiled { name: Rep[String] =>
     projects.filter(_.name === name).take(1)
   }
 
   def addProjectAction(project: Project) = projects.returning(projects.map(_.projectId)) += project
 
-  def deactivateProjectByIdAction(projectId: ProjectId) =
+  def deactivateProjectById(projectId: ProjectId) =
     projects.filter(_.projectId === projectId).map(_.active).update(false)
-
-  def updateProjectAction(updatedProject: Project) =
-    projects
-      .filter(_.projectId === updatedProject.projectId)
-      .map(project => (project.name, project.repository))
-      .update((updatedProject.name, updatedProject.repository))
 
 }
