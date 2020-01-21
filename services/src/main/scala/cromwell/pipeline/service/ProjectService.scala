@@ -25,9 +25,9 @@ class ProjectService(projectRepository: ProjectRepository)(implicit executionCon
     val project =
       Project(
         projectId = ProjectId(UUID.randomUUID().toString),
-        ownerId = userId,
+        ownerId = request.ownerId,
         name = request.name,
-        repository = "test_repo",
+        repository = request.repository,
         active = true
       )
     projectRepository.addProject(project)
