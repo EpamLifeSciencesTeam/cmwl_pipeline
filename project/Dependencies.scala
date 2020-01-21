@@ -11,7 +11,6 @@ object Dependencies {
     val akkaHttpJson = "1.29.1"
     val jwtCore = "4.1.0"
     val cats = "2.0.0"
-    val macwire = "2.3.3"
     val scalaCheck = "1.14.0"
     val mockito = "1.10.19"
     val scalaTest = "3.0.8"
@@ -31,8 +30,6 @@ object Dependencies {
   val akkaHttpJson = "de.heikoseeberger" %% "akka-http-play-json" % Version.akkaHttpJson
   val jwtCore = "com.pauldijou" %% "jwt-core" % Version.jwtCore
   val cats = "org.typelevel" %% "cats-core" % Version.cats
-  val macwireUtil = "com.softwaremill.macwire" %% "util" % Version.macwire
-  val macwireMacros = "com.softwaremill.macwire" %% "macros" % Version.macwire % Provided
   val scalaMock = "org.scalamock" %% "scalamock" % Version.scalaMock % Test
   val akkaTestKit = "com.typesafe.akka" %% "akka-testkit" % Version.akka % "test,it"
   val akkaHttpTestKit = "com.typesafe.akka" %% "akka-http-testkit" % Version.akkaHttp % "test,it"
@@ -48,6 +45,5 @@ object Dependencies {
   lazy val jsonDependencies = Seq(playJson, akkaHttpJson, jwtCore)
   lazy val dbDependencies = Seq(slick, hikariCP, liquibase, postgresql)
   lazy val testDependencies = Seq(mockito, akkaTestKit, akkaHttpTestKit, scalaCheck, scalaTest, scalaMock)
-  lazy val macwire = Seq(macwireMacros, macwireUtil)
   lazy val testContainers = Seq(tcCore, tcPostgres)
 }

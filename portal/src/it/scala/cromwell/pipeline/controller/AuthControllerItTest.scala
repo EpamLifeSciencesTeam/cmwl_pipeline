@@ -6,10 +6,11 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
 import cromwell.pipeline.controller.AuthController._
-import cromwell.pipeline.datastorage.dto.User
-import cromwell.pipeline.datastorage.dto.auth.{ SignInRequest, SignUpRequest }
-import cromwell.pipeline.utils.auth.{ TestContainersUtils, TestUserUtils }
 import cromwell.pipeline.ApplicationComponents
+import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
+import cromwell.pipeline.datastorage.dto.auth.{ SignInRequest, SignUpRequest }
+import cromwell.pipeline.datastorage.dto.{ User }
+import cromwell.pipeline.utils.TestContainersUtils
 import org.scalatest.compatible.Assertion
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.{ Matchers, WordSpec }
@@ -22,11 +23,14 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
   implicit val config: Config = TestContainersUtils.getConfigForPgContainer(container)
   private val components: ApplicationComponents = new ApplicationComponents()
 
+  import components.controllerModule.authController
+  import components.datastorageModule.userRepository
+
   override protected def beforeAll(): Unit =
     components.datastorageModule.pipelineDatabaseEngine.updateSchema()
 
-  import components.controllerModule.authController
-  import components.datastorageModule.userRepository
+  private val dummyUser: User = TestUserUtils.getDummyUser()
+  private val password: String = "-Pa$$w0rd-"
 
   "AuthController" when {
 
@@ -34,9 +38,8 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
 
       "return token headers if user exists" in {
         val dummyUser: User = TestUserUtils.getDummyUser()
-
         whenReady(userRepository.addUser(dummyUser)) { _ =>
-          val signInRequest = SignInRequest(dummyUser.email, TestUserUtils.userPassword)
+          val signInRequest = SignInRequest(dummyUser.email, password)
           val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signInRequest)))
 
           Post("/auth/signIn", httpEntity) ~> authController.route ~> check {
@@ -50,9 +53,8 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
     "signUp" should {
 
       "return token headers if user was successfully registered" in {
-        val dummyUser: User = TestUserUtils.getDummyUser()
         val signUpRequest =
-          SignUpRequest(dummyUser.email, TestUserUtils.userPassword, dummyUser.firstName, dummyUser.lastName)
+          SignUpRequest("AnotherJohnDoe-@cromwell.com", password, dummyUser.firstName, dummyUser.lastName)
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signUpRequest)))
 
         Post("/auth/signUp", httpEntity) ~> authController.route ~> check {
@@ -66,9 +68,8 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
 
       "return updated token headers if refresh token was valid and active" in {
         val dummyUser: User = TestUserUtils.getDummyUser()
-
         whenReady(userRepository.addUser(dummyUser)) { _ =>
-          val signInRequest = SignInRequest(dummyUser.email, TestUserUtils.userPassword)
+          val signInRequest = SignInRequest(dummyUser.email, password)
           val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signInRequest)))
 
           Post("/auth/signIn", httpEntity) ~> authController.route ~> check {
