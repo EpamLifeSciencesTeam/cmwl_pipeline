@@ -94,19 +94,5 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
           )
       }
     }
-
-    "getUsersByEmail" should {
-      "should find newly added user by email pattern" taggedAs (Dao) in {
-        val newUser: User = TestUserUtils.getDummyUser()
-        userRepository
-          .addUser(newUser)
-          .flatMap(
-            _ =>
-              userRepository
-                .getUsersByEmail(newUser.email)
-                .map(repoResp => repoResp should contain theSameElementsAs Seq(newUser))
-          )
-      }
-    }
   }
 }
