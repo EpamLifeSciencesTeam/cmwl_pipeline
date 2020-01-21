@@ -11,10 +11,11 @@ object TestUserUtils {
 
   def getDummyUser(
     uuid: String = UUID.randomUUID().toString,
-    emailOpt: UserEmail = "JohnDoe-@cromwell.com",
+    email: UserEmail = "JohnDoe-@cromwell.com",
     password: String = userPassword,
     passwordSalt: String = "salt",
     firstName: String = "FirstName",
+    lastName: String = "Lastname",
     active: Boolean = true
   ): User = {
     val passwordHash = StringUtils.calculatePasswordHash(password, passwordSalt)
@@ -23,8 +24,8 @@ object TestUserUtils {
       s"JohnDoe-$uuid@cromwell.com",
       passwordHash,
       passwordSalt,
-      "FirstName",
-      "LastName",
+      firstName,
+      lastName,
       None,
       active
     )
