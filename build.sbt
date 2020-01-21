@@ -33,7 +33,7 @@ lazy val root = (project in file("."))
     name := "Cromwell pipeline",
     commonSettings
   )
-  .aggregate(portal, datasource)
+  .aggregate(portal, datasource, womtool)
 
 lazy val IntegrationTest = config("it").extend(Test)
 
@@ -82,3 +82,13 @@ lazy val controllers =
   (project in file("controllers"))
     .settings(libraryDependencies ++= akkaDependencies ++ jsonDependencies :+ cats)
     .dependsOn(services, utils, repositories % "test->test")
+
+lazy val womtool = (project in file("womtool"))
+  .configs(IntegrationTest)
+  .settings(
+    resolvers += Resolver.bintrayRepo("scalalab", "pipeline"),
+    name := "WomTool",
+    commonSettings,
+    libraryDependencies ++= testDependencies ++ cromwellDependencies,
+    addCommandAlias("testAll", "; test ; it:test")
+  )
