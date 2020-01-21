@@ -37,21 +37,48 @@ lazy val root = (project in file("."))
 
 lazy val IntegrationTest = config("it").extend(Test)
 
-lazy val datasource = project.settings(
-  name := "Datasource",
-  commonSettings,
-  libraryDependencies ++= dbDependencies
-)
+lazy val datasource = project
+  .settings(
+    name := "Datasource",
+    commonSettings,
+    libraryDependencies ++= dbDependencies
+  )
+  .dependsOn(utils)
 
 lazy val portal = project
   .configs(IntegrationTest)
   .settings(
     name := "Portal",
     commonSettings,
+    libraryDependencies ++= akkaDependencies ++ jsonDependencies,
     Defaults.itSettings,
-    libraryDependencies ++= akkaDependencies ++ testDependencies ++ jsonDependencies ++ macwire ++ testContainers,
-    libraryDependencies += cats,
     //TODO need to check out parallel execution
     addCommandAlias("testAll", "; test ; it:test")
   )
-  .dependsOn(datasource)
+  .aggregate(repositories, services, controllers, utils)
+  .dependsOn(
+    datasource,
+    repositories % "compile->compile;test->test",
+    services,
+    controllers,
+    utils % "compile->compile;test->test"
+  )
+
+lazy val utils =
+  (project in file("utils")).settings(libraryDependencies ++= jsonDependencies ++ testContainers)
+
+lazy val repositories =
+  (project in file("repositories"))
+    .settings(libraryDependencies ++= akkaDependencies ++ testDependencies ++ jsonDependencies :+ cats)
+    .configs(IntegrationTest)
+    .dependsOn(datasource, utils % "compile->compile;test->test")
+
+lazy val services =
+  (project in file("services"))
+    .settings(libraryDependencies ++= jsonDependencies :+ cats)
+    .dependsOn(repositories % "compile->compile;test->test", utils % "compile->compile;test->test")
+
+lazy val controllers =
+  (project in file("controllers"))
+    .settings(libraryDependencies ++= akkaDependencies ++ jsonDependencies :+ cats)
+    .dependsOn(services, utils, repositories % "test->test")

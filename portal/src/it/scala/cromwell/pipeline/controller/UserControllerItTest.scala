@@ -4,12 +4,16 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
-import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
-import cromwell.pipeline.datastorage.dto.{ User, UserNoCredentials }
-import cromwell.pipeline.utils.auth.{ AccessTokenContent, TestContainersUtils, TestUserUtils }
 import cromwell.pipeline.ApplicationComponents
+import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
+import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
+import cromwell.pipeline.datastorage.dto.{ User, UserId, UserNoCredentials }
+import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
+import cromwell.pipeline.utils.{ TestContainersUtils }
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import org.scalatest.{ AsyncWordSpec, Matchers }
+
+import scala.concurrent.Future
 
 class UserControllerItTest
     extends AsyncWordSpec
@@ -23,18 +27,19 @@ class UserControllerItTest
   implicit val config: Config = TestContainersUtils.getConfigForPgContainer(container)
   private val components: ApplicationComponents = new ApplicationComponents()
 
+  import components.controllerModule.userController
+  import components.datastorageModule.userRepository
+
   override protected def beforeAll(): Unit =
     components.datastorageModule.pipelineDatabaseEngine.updateSchema()
 
-  import components.controllerModule.userController
-  import components.datastorageModule.userRepository
+  private val password: String = "-Pa$$w0rd-"
 
   "UserController" when {
 
     "getUsersByEmail" should {
 
       "should find newly added user by email pattern" in {
-
         val dummyUser: User = TestUserUtils.getDummyUser()
         val userByEmailRequest: String = dummyUser.email
         val seqUser: Seq[User] = Seq(dummyUser)
@@ -86,8 +91,7 @@ class UserControllerItTest
 
       "return status code NoContent if user's password was successfully updated" in {
         val dummyUser: User = TestUserUtils.getDummyUser()
-        val currentPassword = TestUserUtils.userPassword
-        val request = PasswordUpdateRequest(currentPassword, "newPassword", "newPassword")
+        val request = PasswordUpdateRequest(password, "newPassword", "newPassword")
         userRepository
           .addUser(dummyUser)
           .flatMap(

@@ -4,7 +4,6 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
-import com.softwaremill.macwire._
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContextExecutor
@@ -16,12 +15,11 @@ object CromwellPipelineApp extends App {
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
   val log = LoggerFactory.getLogger(CromwellPipelineApp.getClass)
-  val components = wire[ApplicationComponents]
+  val components = new ApplicationComponents()
 
   import components.applicationConfig.webServiceConfig
   import components.controllerModule._
   import components.datastorageModule._
-  import components.utilsModule._
 
   pipelineDatabaseEngine.updateSchema()
 
