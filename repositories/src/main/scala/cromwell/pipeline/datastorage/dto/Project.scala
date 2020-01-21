@@ -1,6 +1,8 @@
 package cromwell.pipeline.datastorage.dto
 
+import play.api.libs.json.{ Format, Json, OFormat }
 import slick.lifted.MappedTo
+import play.api.libs.functional.syntax._
 
 final case class Project(
   projectId: ProjectId,
@@ -10,6 +12,18 @@ final case class Project(
   active: Boolean
 )
 
+object Project {
+  implicit lazy val projectFormat: OFormat[Project] = Json.format[Project]
+}
+
 final case class ProjectId(value: String) extends MappedTo[String]
 
-final case class ProjectAdditionRequest(ownerId: UserId, name: String, repository: String)
+object ProjectId {
+  implicit lazy val projectIdFormat: Format[ProjectId] = implicitly[Format[String]].inmap(ProjectId.apply, _.value)
+}
+
+final case class ProjectAdditionRequest(name: String)
+
+object ProjectAdditionRequest {
+  implicit lazy val projectAdditionFormat: OFormat[ProjectAdditionRequest] = Json.format[ProjectAdditionRequest]
+}
