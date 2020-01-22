@@ -12,8 +12,8 @@ class ProjectService(projectRepository: ProjectRepository)(implicit executionCon
   def getProjectById(projectId: ProjectId): Future[Option[Project]] =
     projectRepository.getProjectById(projectId)
 
-  def getProjectByName(projectName: String): Future[Option[Project]] =
-    projectRepository.getProjectByName(projectName)
+  def getProjectByName(namePattern: String): Future[Option[Project]] =
+    projectRepository.getProjectByName(namePattern)
 
   def addProject(request: ProjectAdditionRequest): Future[ProjectId] = {
     val project =
