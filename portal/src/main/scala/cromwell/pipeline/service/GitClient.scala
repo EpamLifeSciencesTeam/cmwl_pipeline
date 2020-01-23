@@ -1,15 +1,25 @@
 package cromwell.pipeline.service
 
-import java.io.File
+import java.nio.file.Path
 
-import cromwell.pipeline.datastorage.dto.Project
+import cromwell.pipeline.datastorage.dto.{ Project, Version }
 
 import scala.concurrent.Future
 
-trait GitClient {
+trait ProjectVersioning[E >: VersioningException] {
 
-  def updateFile(project: Project, file: File): Future[Option[File]]
-  def updateListOfFiles(project: Project, files: List[File]): Future[Option[List[File]]]
-  def createRepository(project: Project): Future[Option[Project]]
-  def getListOfFiles(project: Project, file: List[File]): Future[Option[List[File]]]
+  type AsyncResult[T] = Future[Either[E, T]]
+
+  def updateFile(project: Project, path: Path, content: String): AsyncResult[String]
+  def updateListOfFiles(project: Project, path: Path, content: List[String]): AsyncResult[List[String]]
+  def createRepository(project: Project, path: Path): AsyncResult[Project]
+  def getListOfFiles(project: Project, path: Path): AsyncResult[List[String]]
+  def getVersionsOfProject(project: Project): AsyncResult[Project]
+  def getVersionsOfFiles(project: Project, path: Path): AsyncResult[List[Version]]
+
+  def getFileTree(project: Project, version: Option[Version] = None): AsyncResult[List[String]]
+
+  def getFile(project: Project, path: Path, version: Option[Version] = None): AsyncResult[String]
 }
+
+case class VersioningException(message: String) extends Exception(message)

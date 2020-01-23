@@ -14,3 +14,5 @@ final case class Project(
 final case class ProjectId(value: String) extends MappedTo[String]
 
 final case class ProjectAdditionRequest(ownerId: UserId, name: String, description: String, repository: String)
+
+final case class Version(value: String) extends AnyVal
