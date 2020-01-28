@@ -2,10 +2,10 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dto.{ Project, ProjectAdditionRequest, ProjectId, UserId }
-import org.mockito.Matchers.any
-import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.Matchers.any
+import org.mockito.Mockito.when
 
 import scala.concurrent.Future
 

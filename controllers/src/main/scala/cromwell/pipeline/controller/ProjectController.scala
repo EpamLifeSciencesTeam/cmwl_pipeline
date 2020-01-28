@@ -1,13 +1,15 @@
 package cromwell.pipeline.controller
 
 import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.Directives._
+import cromwell.pipeline.datastorage.dto.project.ProjectAdditionRequest
 import cromwell.pipeline.service.ProjectService
+import cromwell.pipeline.utils.auth.AccessTokenContent
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
 import scala.concurrent.ExecutionContext
-import scala.util.{Failure, Success}
+import scala.util.{ Failure, Success }
 
 class ProjectController(projectService: ProjectService)(
   implicit executionContext: ExecutionContext
