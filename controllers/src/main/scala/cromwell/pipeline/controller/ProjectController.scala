@@ -1,11 +1,11 @@
 package cromwell.pipeline.controller
 
 import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import cromwell.pipeline.datastorage.dto.{ ProjectAdditionRequest, UserId }
-import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
-import cromwell.pipeline.service.{ ProjectAccessDeniedException, ProjectNotFoundException, ProjectService }
+import akka.http.scaladsl.server.Directives._
+import cromwell.pipeline.datastorage.dto.project.ProjectAdditionRequest
+import cromwell.pipeline.service.ProjectService
+import cromwell.pipeline.utils.auth.AccessTokenContent
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
 import scala.concurrent.ExecutionContext
@@ -18,19 +18,16 @@ class ProjectController(projectService: ProjectService)(
     path("projects") {
       concat(
         get {
-          parameter('name.as[String]) {
-            name =>
-              onComplete(projectService.getProjectByName(name, UserId(accessToken.userId))) {
-                case Success(project)                         => complete(project)
-                case Failure(e: ProjectNotFoundException)     => complete(StatusCodes.NotFound, e.getMessage)
-                case Failure(e: ProjectAccessDeniedException) => complete(StatusCodes.Forbidden, e.getMessage)
-                case Failure(e)                               => complete(StatusCodes.InternalServerError, e.getMessage)
-              }
+          parameter('name.as[String]) { name =>
+            onComplete(projectService.getProjectByName(name)) {
+              case Success(project) => complete(project)
+              case Failure(e)       => complete(StatusCodes.InternalServerError, e.getMessage)
+            }
           }
         },
         post {
           entity(as[ProjectAdditionRequest]) { request =>
-            onComplete(projectService.addProject(request, UserId(accessToken.userId))) {
+            onComplete(projectService.addProject(request)) {
               case Success(_) => complete(StatusCodes.OK)
               case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
             }
