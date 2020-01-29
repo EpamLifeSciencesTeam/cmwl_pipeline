@@ -14,17 +14,25 @@ import scala.util.{ Failure, Success }
 class ProjectController(projectService: ProjectService)(
   implicit executionContext: ExecutionContext
 ) {
-
   val route: AccessTokenContent => Route = accessToken =>
     path("projects") {
-      get {
-        parameter('name.as[String]) { name =>
-          onComplete(projectService.getProjectByName(name)) {
-            case Success(value) => complete(value)
-            case Failure(e)     => complete(StatusCodes.InternalServerError, e.getMessage)
+      concat(
+        get {
+          parameter('name.as[String]) { name =>
+            onComplete(projectService.getProjectByName(name)) {
+              case Success(value) => complete(value)
+              case Failure(e)     => complete(StatusCodes.InternalServerError, e.getMessage)
+            }
+          }
+        },
+        post {
+          entity(as[ProjectAdditionRequest]) { request =>
+            onComplete(projectService.addProject(request)) {
+              case Success(_) => complete(StatusCodes.OK)
+              case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
+            }
           }
         }
-      }
+      )
     }
-
 }

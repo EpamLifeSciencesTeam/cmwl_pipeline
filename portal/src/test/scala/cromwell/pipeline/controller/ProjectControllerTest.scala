@@ -28,10 +28,9 @@ class ProjectControllerTest
       "return a object of project type" taggedAs (Controller) in {
         val projectByName: String = "dummyProject"
         val dummyProject: Project = TestProjectUtils.getDummyProject()
-        val projectId = dummyProject.projectId
         val getProjectByNameResponse: Option[Project] = Option(dummyProject)
 
-        val accessToken = AccessTokenContent(projectId.value)
+        val accessToken = AccessTokenContent(dummyProject.projectId.value)
         when(projectService.getProjectByName(projectByName)).thenReturn(Future.successful(getProjectByNameResponse))
 
         Get("/projects?name=" + projectByName) ~> projectController.route(accessToken) ~> check {
