@@ -20,8 +20,8 @@ class ProjectController(projectService: ProjectService)(
         get {
           parameter('name.as[String]) { name =>
             onComplete(projectService.getProjectByName(name)) {
-              case Success(value) => complete(value)
-              case Failure(e)     => complete(StatusCodes.InternalServerError, e.getMessage)
+              case Success(project) => complete(project)
+              case Failure(e)       => complete(StatusCodes.InternalServerError, e.getMessage)
             }
           }
         },
