@@ -2,8 +2,10 @@ package cromwell.pipeline.service
 
 import java.util.UUID
 
+import akka.actor.FSM.Failure
 import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectAdditionRequest, ProjectId, UserId }
+import cromwell.pipeline.datastorage.dto.project.ProjectAdditionRequest
+import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, UserId }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -12,16 +14,19 @@ class ProjectService(projectRepository: ProjectRepository)(implicit executionCon
   def getProjectById(projectId: ProjectId): Future[Option[Project]] =
     projectRepository.getProjectById(projectId)
 
-  def getProjectByName(namePattern: String, userId: UserId): Future[Option[Project]] = {
-    val result = projectRepository.getProjectByName(namePattern)
-    result.flatMap {
-      case Some(project) if project.ownerId == userId => result
-      case Some(_)                                    => Future.failed(new ProjectAccessDeniedException)
-      case None                                       => Future.failed(new ProjectNotFoundException)
+  def getProjectByName(namePattern: String, userId: UserId): Future[Option[Project]] =
+    projectRepository.getProjectByName(namePattern).flatMap {
+      case Some(project) =>
+        project match {
+          case project if (project.ownerId == userId) => {
+            projectRepository.getProjectByName(namePattern)
+          }
+          case _ => Future.failed(new RuntimeException("Access denied"))
+        }
+      case None => Future.failed(new RuntimeException("Project does not exist"))
     }
-  }
 
-  def addProject(request: ProjectAdditionRequest, userId: UserId): Future[ProjectId] = {
+  def addProject(request: ProjectAdditionRequest): Future[ProjectId] = {
     val project =
       Project(
         projectId = ProjectId(UUID.randomUUID().toString),
@@ -40,6 +45,3 @@ class ProjectService(projectRepository: ProjectRepository)(implicit executionCon
     } yield getProject
 
 }
-
-case class ProjectNotFoundException(message: String = "Project not found") extends RuntimeException(message)
-case class ProjectAccessDeniedException(message: String = "Access denied") extends RuntimeException(message)
