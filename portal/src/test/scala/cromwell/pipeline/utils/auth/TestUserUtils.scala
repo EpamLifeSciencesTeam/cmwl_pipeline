@@ -1,27 +1,26 @@
 package cromwell.pipeline.utils.auth
 
-import java.util.UUID
-
-import cromwell.pipeline.datastorage.dto.User.UserEmail
-import cromwell.pipeline.datastorage.dto.{ User, UserId }
+import cromwell.pipeline.datastorage.dto.{ Name, UUID, User, UserEmail }
 import cromwell.pipeline.utils.StringUtils
+import cats.implicits._
+import cromwell.pipeline.datastorage.dto.auth.Password
 
 object TestUserUtils {
-  val userPassword = "-Pa$$w0rd-"
+  val userPassword: Password = Password("-Pa$$w0rd-")
 
   def getDummyUser(
-    uuid: String = UUID.randomUUID().toString,
-    email: UserEmail = "JohnDoe-@cromwell.com",
+    uuid: UUID = UUID.random,
+    email: UserEmail = UserEmail("JohnDoe-@cromwell.com"),
     password: String = userPassword,
     passwordSalt: String = "salt",
-    firstName: String = "FirstName",
-    lastName: String = "Lastname",
+    firstName: Name = Name("FirstName"),
+    lastName: Name = Name("LastName"),
     active: Boolean = true
   ): User = {
     val passwordHash = StringUtils.calculatePasswordHash(password, passwordSalt)
     User(
-      UserId(uuid),
-      s"JohnDoe-$uuid@cromwell.com",
+      uuid,
+      UserEmail(s"JohnDoe-${uuid.unwrap}@cromwell.com"),
       passwordHash,
       passwordSalt,
       firstName,

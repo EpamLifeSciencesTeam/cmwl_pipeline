@@ -3,7 +3,6 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import cromwell.pipeline.datastorage.dto.UserId
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
 import cromwell.pipeline.service.UserService
 import cromwell.pipeline.utils.auth.AccessTokenContent
@@ -27,7 +26,7 @@ class UserController(userService: UserService)(implicit executionContext: Execut
           }
         },
         delete {
-          onComplete(userService.deactivateUserById(UserId(accessToken.userId))) {
+          onComplete(userService.deactivateUserById(accessToken.userId)) {
             case Success(Some(idResponse)) => complete(idResponse)
             case Success(None)             => complete(StatusCodes.NotFound, "User not found")
             case Failure(_)                => complete(StatusCodes.InternalServerError, "Internal error")

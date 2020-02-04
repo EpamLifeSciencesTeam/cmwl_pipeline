@@ -2,6 +2,7 @@ package cromwell.pipeline.utils.auth
 
 import java.time.Instant
 
+import cromwell.pipeline.datastorage.dto.UUID
 import cromwell.pipeline.datastorage.dto.auth.AuthResponse
 import cromwell.pipeline.{ AuthConfig, ExpirationTimeInSeconds }
 import org.scalatest.{ Assertion, Matchers, WordSpec }
@@ -17,7 +18,7 @@ class AuthUtilsTest extends WordSpec with Matchers {
     expirationTimeInSeconds = ExpirationTimeInSeconds(accessToken = 300, refreshToken = 900, userSession = 3600)
   )
   private val authUtils = new AuthUtils(authConfig)
-  private val userId = "userId"
+  private val userId = UUID.random
 
   "AuthUtils" when {
 

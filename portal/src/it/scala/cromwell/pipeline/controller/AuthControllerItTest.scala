@@ -5,11 +5,11 @@ import akka.http.scaladsl.model.{ HttpEntity, StatusCodes }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
+import cromwell.pipeline.ApplicationComponents
 import cromwell.pipeline.controller.AuthController._
 import cromwell.pipeline.datastorage.dto.User
 import cromwell.pipeline.datastorage.dto.auth.{ SignInRequest, SignUpRequest }
 import cromwell.pipeline.utils.auth.{ TestContainersUtils, TestUserUtils }
-import cromwell.pipeline.ApplicationComponents
 import org.scalatest.compatible.Assertion
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.{ Matchers, WordSpec }
@@ -82,10 +82,8 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
         }
       }
     }
-
   }
 
   private def checkAuthTokens: Assertion =
     Seq(AccessTokenHeader, RefreshTokenHeader, AccessTokenExpirationHeader).forall(header(_).isDefined) shouldBe true
-
 }

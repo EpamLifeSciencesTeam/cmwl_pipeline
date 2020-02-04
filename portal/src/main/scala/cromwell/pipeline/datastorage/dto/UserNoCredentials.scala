@@ -3,10 +3,10 @@ package cromwell.pipeline.datastorage.dto
 import play.api.libs.json.{ Json, OFormat }
 
 final case class UserNoCredentials(
-  userId: UserId,
-  email: String,
-  firstName: String,
-  lastName: String,
+  userId: UUID,
+  email: UserEmail,
+  firstName: Name,
+  lastName: Name,
   active: Boolean
 )
 

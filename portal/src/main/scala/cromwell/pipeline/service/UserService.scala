@@ -2,26 +2,26 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
-import cromwell.pipeline.datastorage.dto.{ User, UserId, UserNoCredentials }
+import cromwell.pipeline.datastorage.dto.{ UUID, User, UserNoCredentials }
 import cromwell.pipeline.utils.StringUtils._
 
 import scala.concurrent.{ ExecutionContext, Future }
-import scala.util.{ Random }
+import scala.util.Random
 
 class UserService(userRepository: UserRepository)(implicit executionContext: ExecutionContext) {
 
   def getUsersByEmail(emailPattern: String): Future[Seq[User]] =
     userRepository.getUsersByEmail(emailPattern)
 
-  def deactivateUserById(userId: UserId): Future[Option[UserNoCredentials]] =
+  def deactivateUserById(userId: UUID): Future[Option[UserNoCredentials]] =
     for {
       _ <- userRepository.deactivateUserById(userId)
       user <- userRepository.getUserById(userId)
     } yield user.map(UserNoCredentials.fromUser)
 
-  def updateUser(userId: String, request: UserUpdateRequest): Future[Int] =
+  def updateUser(userId: UUID, request: UserUpdateRequest): Future[Int] =
     userRepository
-      .getUserById(UserId(userId))
+      .getUserById(userId)
       .flatMap(
         userOpt =>
           userOpt.map(
@@ -36,15 +36,15 @@ class UserService(userRepository: UserRepository)(implicit executionContext: Exe
       )
 
   def updatePassword(
-    userId: String,
+    userId: UUID,
     request: PasswordUpdateRequest,
     salt: String = Random.nextLong().toHexString
   ): Future[Int] =
     if (request.newPassword == request.repeatPassword) {
-      userRepository.getUserById(UserId(userId)).flatMap {
+      userRepository.getUserById(userId).flatMap {
         case Some(user) =>
           user match {
-            case user if (user.passwordHash == calculatePasswordHash(request.currentPassword, user.passwordSalt)) => {
+            case user if user.passwordHash == calculatePasswordHash(request.currentPassword, user.passwordSalt) => {
               val passwordSalt = salt
               val passwordHash = calculatePasswordHash(request.newPassword, passwordSalt)
               userRepository.updatePassword(user.copy(passwordSalt = passwordSalt, passwordHash = passwordHash))

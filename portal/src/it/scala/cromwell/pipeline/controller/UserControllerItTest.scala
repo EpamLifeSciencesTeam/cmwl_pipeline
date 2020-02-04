@@ -39,7 +39,7 @@ class UserControllerItTest
         val userByEmailRequest: String = dummyUser.email
         val seqUser: Seq[User] = Seq(dummyUser)
         userRepository.addUser(dummyUser).map { _ =>
-          val accessToken = AccessTokenContent(dummyUser.userId.value)
+          val accessToken = AccessTokenContent(dummyUser.userId)
           Get("/users?email=" + userByEmailRequest) ~> userController.route(accessToken) ~> check {
             status shouldBe StatusCodes.OK
             responseAs[Seq[User]] shouldEqual seqUser
@@ -54,7 +54,7 @@ class UserControllerItTest
         val dummyUser: User = TestUserUtils.getDummyUser()
         val deactivatedUserResponse = UserNoCredentials.fromUser(dummyUser.copy(active = false))
         userRepository.addUser(dummyUser).map { _ =>
-          val accessToken = AccessTokenContent(dummyUser.userId.value)
+          val accessToken = AccessTokenContent(dummyUser.userId)
           Delete("/users") ~> userController.route(accessToken) ~> check {
             responseAs[UserNoCredentials] shouldBe deactivatedUserResponse
             status shouldBe StatusCodes.OK
@@ -73,7 +73,7 @@ class UserControllerItTest
           .flatMap(
             _ =>
               userRepository.updateUser(dummyUser).map { _ =>
-                val accessToken = AccessTokenContent(dummyUser.userId.value)
+                val accessToken = AccessTokenContent(dummyUser.userId)
                 Put("/users", request) ~> userController.route(accessToken) ~> check {
                   status shouldBe StatusCodes.NoContent
                 }
@@ -93,7 +93,7 @@ class UserControllerItTest
           .flatMap(
             _ =>
               userRepository.updatePassword(dummyUser).map { _ =>
-                val accessToken = AccessTokenContent(dummyUser.userId.value)
+                val accessToken = AccessTokenContent(dummyUser.userId)
                 Put("/users", request) ~> userController.route(accessToken) ~> check {
                   status shouldBe StatusCodes.NoContent
                 }

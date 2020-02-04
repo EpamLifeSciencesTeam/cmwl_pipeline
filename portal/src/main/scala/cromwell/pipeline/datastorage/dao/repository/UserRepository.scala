@@ -2,8 +2,7 @@ package cromwell.pipeline.datastorage.dao.repository
 
 import cromwell.pipeline.database.PipelineDatabaseEngine
 import cromwell.pipeline.datastorage.dao.entry.UserEntry
-import cromwell.pipeline.datastorage.dto.User.UserEmail
-import cromwell.pipeline.datastorage.dto.{ User, UserId }
+import cromwell.pipeline.datastorage.dto.{ UUID, User, UserEmail }
 
 import scala.concurrent.Future
 
@@ -12,7 +11,7 @@ class UserRepository(pipelineDatabaseEngine: PipelineDatabaseEngine, userEntry: 
   import pipelineDatabaseEngine._
   import pipelineDatabaseEngine.profile.api._
 
-  def getUserById(userId: UserId): Future[Option[User]] =
+  def getUserById(userId: UUID): Future[Option[User]] =
     database.run(userEntry.getUserByIdAction(userId).result.headOption)
 
   def getUserByEmail(email: UserEmail): Future[Option[User]] =
@@ -21,11 +20,11 @@ class UserRepository(pipelineDatabaseEngine: PipelineDatabaseEngine, userEntry: 
   def getUsersByEmail(emailPattern: String): Future[Seq[User]] =
     database.run(userEntry.getUsersByEmailAction(emailPattern))
 
-  def addUser(user: User): Future[UserId] = database.run(userEntry.addUserAction(user))
+  def addUser(user: User): Future[UUID] = database.run(userEntry.addUserAction(user))
 
   def deactivateUserByEmail(email: UserEmail): Future[Int] = database.run(userEntry.deactivateUserByEmail(email))
 
-  def deactivateUserById(userId: UserId): Future[Int] = database.run(userEntry.deactivateUserById(userId))
+  def deactivateUserById(userId: UUID): Future[Int] = database.run(userEntry.deactivateUserById(userId))
 
   def updateUser(updatedUser: User): Future[Int] = database.run(userEntry.updateUser(updatedUser))
 

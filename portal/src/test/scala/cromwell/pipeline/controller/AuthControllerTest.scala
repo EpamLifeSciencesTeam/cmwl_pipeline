@@ -3,10 +3,13 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.ContentTypes.`application/json`
 import akka.http.scaladsl.model.{ HttpEntity, StatusCodes }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
+import cats.implicits._
 import cromwell.pipeline.controller.AuthController._
-import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, SignInRequest, SignUpRequest }
+import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, Password, SignInRequest, SignUpRequest }
+import cromwell.pipeline.datastorage.dto.{ Name, UserEmail }
 import cromwell.pipeline.service.AuthService
-import cromwell.pipeline.utils.validator.DomainValidation
+import cromwell.pipeline.utils.auth.TestUserUtils
+import cromwell.pipeline.utils.validator.Enable.Unsafe
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ Assertion, Matchers, WordSpec }
 import play.api.libs.json.Json
@@ -20,13 +23,14 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
   private val accessToken = "access-token"
   private val refreshToken = "refresh-token"
   private val accessTokenExpiration = 300
+  private val password = TestUserUtils.userPassword
 
   "AuthController" when {
 
     "signIn" should {
 
       "return token headers if user exists" in {
-        val signInRequest = SignInRequest("email@cromwell.com", "password")
+        val signInRequest = SignInRequest(UserEmail("email@cromwell.com"), password)
         val authResponse = AuthResponse(accessToken, refreshToken, accessTokenExpiration)
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signInRequest)))
         (authService.signIn _ when signInRequest).returns(Future(Option(authResponse)))
@@ -38,7 +42,7 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
       }
 
       "return Unauthorized status if user doesn't exist" in {
-        val signInRequest = SignInRequest("email@cromwell.com", "password")
+        val signInRequest = SignInRequest(UserEmail("email@cromwell.com"), password)
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signInRequest)))
         (authService.signIn _ when signInRequest).returns(Future(None))
 
@@ -51,7 +55,12 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
     "signUp" should {
 
       "return token headers if user was successfully registered" in {
-        val signUpRequest = SignUpRequest("JohnDoe@cromwell.com", "Password213", "FirstName", "LastName")
+        val signUpRequest = SignUpRequest(
+          UserEmail("JohnDoe@cromwell.com"),
+          Password("Password213"),
+          Name("FirstName"),
+          Name("LastName")
+        )
         val authResponse = AuthResponse(accessToken, refreshToken, accessTokenExpiration)
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signUpRequest)))
         (authService.signUp _ when signUpRequest).returns(Future(Some(authResponse)))
@@ -62,23 +71,37 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
         }
       }
 
-      "return BadRequest with fields validation errors" in {
-        val signUpRequest = SignUpRequest("email", "password", "First-name", "Last-name")
+      // Info: Create custom exception handlers for an invalid user's field.
+      // So far StatusCodes.BadRequest is returned but we want a returned entity
+      // to be in Json format.
+      // You can find this task in Jira with ticket: EPMLSTRCMW-124.
+
+      "return BadRequest with fields validation errors" ignore {
+        val signUpRequest = SignUpRequest(
+          UserEmail("JohnDoe@cromwell.com"),
+          Password("Password213"),
+          Name("FirstName"),
+          Name("LastName")
+        )
+        val signUpJson = Json.stringify(Json.toJson(signUpRequest))
         val authResponse = AuthResponse(accessToken, refreshToken, accessTokenExpiration)
-        val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signUpRequest)))
+
+        val httpEntity = HttpEntity(`application/json`, signUpJson)
         (authService.signUp _ when signUpRequest).returns(Future(Some(authResponse)))
 
         Post("/auth/signUp", httpEntity) ~> authController.route ~> check {
-          val errors = Json.parse(responseAs[String]).as[List[Map[String, String]]]
-          val errorCodes = errors.map(_("errorCode")).toSet
 
           status shouldBe StatusCodes.BadRequest
-          DomainValidation.allErrorCodes.forall(errorCodes.contains) shouldBe true
         }
       }
 
       "return BadRequest status if user registration was failed" in {
-        val signUpRequest = SignUpRequest("email@cromwell.com", "password", "First-name", "Last-name")
+        val signUpRequest = SignUpRequest(
+          UserEmail("JohnDoe@cromwell.com"),
+          Password("Password213"),
+          Name("FirstName"),
+          Name("LastName")
+        )
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signUpRequest)))
         (authService.signUp _ when signUpRequest).returns(Future(throw new RuntimeException("Something wrong.")))
 
