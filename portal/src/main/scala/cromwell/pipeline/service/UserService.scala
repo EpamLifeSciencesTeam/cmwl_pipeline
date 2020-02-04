@@ -6,7 +6,7 @@ import cromwell.pipeline.datastorage.dto.{ User, UserId, UserNoCredentials }
 import cromwell.pipeline.utils.StringUtils._
 
 import scala.concurrent.{ ExecutionContext, Future }
-import scala.util.{ Random }
+import scala.util.Random
 
 class UserService(userRepository: UserRepository)(implicit executionContext: ExecutionContext) {
 
@@ -19,9 +19,9 @@ class UserService(userRepository: UserRepository)(implicit executionContext: Exe
       user <- userRepository.getUserById(userId)
     } yield user.map(UserNoCredentials.fromUser)
 
-  def updateUser(userId: String, request: UserUpdateRequest): Future[Int] =
+  def updateUser(userId: UserId, request: UserUpdateRequest): Future[Int] =
     userRepository
-      .getUserById(UserId(userId))
+      .getUserById(userId)
       .flatMap(
         userOpt =>
           userOpt.map(
@@ -36,15 +36,15 @@ class UserService(userRepository: UserRepository)(implicit executionContext: Exe
       )
 
   def updatePassword(
-    userId: String,
+    userId: UserId,
     request: PasswordUpdateRequest,
     salt: String = Random.nextLong().toHexString
   ): Future[Int] =
     if (request.newPassword == request.repeatPassword) {
-      userRepository.getUserById(UserId(userId)).flatMap {
+      userRepository.getUserById(userId).flatMap {
         case Some(user) =>
           user match {
-            case user if (user.passwordHash == calculatePasswordHash(request.currentPassword, user.passwordSalt)) => {
+            case user if user.passwordHash == calculatePasswordHash(request.currentPassword, user.passwordSalt) => {
               val passwordSalt = salt
               val passwordHash = calculatePasswordHash(request.newPassword, passwordSalt)
               userRepository.updatePassword(user.copy(passwordSalt = passwordSalt, passwordHash = passwordHash))

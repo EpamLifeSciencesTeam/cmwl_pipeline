@@ -4,12 +4,14 @@ import akka.http.scaladsl.model.ContentTypes.`application/json`
 import akka.http.scaladsl.model.{ HttpEntity, StatusCodes }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.controller.AuthController._
-import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, SignInRequest, SignUpRequest }
+import cromwell.pipeline.datastorage.dto.{ FirstName, LastName, UserEmail }
+import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, Password, SignInRequest, SignUpRequest }
 import cromwell.pipeline.service.AuthService
 import cromwell.pipeline.utils.validator.DomainValidation
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ Assertion, Matchers, WordSpec }
 import play.api.libs.json.Json
+import cats.implicits._
 
 import scala.concurrent.Future
 
@@ -26,7 +28,7 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
     "signIn" should {
 
       "return token headers if user exists" in {
-        val signInRequest = SignInRequest("email@cromwell.com", "password")
+        val signInRequest = SignInRequest(UserEmail("email@cromwell.com"), Password("password"))
         val authResponse = AuthResponse(accessToken, refreshToken, accessTokenExpiration)
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signInRequest)))
         (authService.signIn _ when signInRequest).returns(Future(Option(authResponse)))
@@ -38,7 +40,7 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
       }
 
       "return Unauthorized status if user doesn't exist" in {
-        val signInRequest = SignInRequest("email@cromwell.com", "password")
+        val signInRequest = SignInRequest(UserEmail("email@cromwell.com"), Password("password"))
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signInRequest)))
         (authService.signIn _ when signInRequest).returns(Future(None))
 
@@ -51,7 +53,12 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
     "signUp" should {
 
       "return token headers if user was successfully registered" in {
-        val signUpRequest = SignUpRequest("JohnDoe@cromwell.com", "Password213", "FirstName", "LastName")
+        val signUpRequest = SignUpRequest(
+          UserEmail("JohnDoe@cromwell.com"),
+          Password("Password213"),
+          FirstName("FirstName"),
+          LastName("LastName")
+        )
         val authResponse = AuthResponse(accessToken, refreshToken, accessTokenExpiration)
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signUpRequest)))
         (authService.signUp _ when signUpRequest).returns(Future(Some(authResponse)))
@@ -63,7 +70,12 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
       }
 
       "return BadRequest with fields validation errors" in {
-        val signUpRequest = SignUpRequest("email", "password", "First-name", "Last-name")
+        val signUpRequest = SignUpRequest(
+          UserEmail("JohnDoe@cromwell.com"),
+          Password("Password213"),
+          FirstName("FirstName"),
+          LastName("LastName")
+        )
         val authResponse = AuthResponse(accessToken, refreshToken, accessTokenExpiration)
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signUpRequest)))
         (authService.signUp _ when signUpRequest).returns(Future(Some(authResponse)))
@@ -78,7 +90,12 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
       }
 
       "return BadRequest status if user registration was failed" in {
-        val signUpRequest = SignUpRequest("email@cromwell.com", "password", "First-name", "Last-name")
+        val signUpRequest = SignUpRequest(
+          UserEmail("JohnDoe@cromwell.com"),
+          Password("Password213"),
+          FirstName("FirstName"),
+          LastName("LastName")
+        )
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signUpRequest)))
         (authService.signUp _ when signUpRequest).returns(Future(throw new RuntimeException("Something wrong.")))
 

@@ -19,6 +19,7 @@ class DatastorageModule(config: Config) {
 
 trait Profile {
   val profile: JdbcProfile
+
 }
 
 // https://books.underscore.io/essential-slick/essential-slick-3.html#scaling-to-larger-codebases

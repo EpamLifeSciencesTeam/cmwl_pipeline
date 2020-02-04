@@ -1,6 +1,7 @@
 package cromwell.pipeline.service
 
 import java.time.Instant
+import java.util.UUID
 
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dto.UserId
@@ -12,6 +13,7 @@ import org.scalatest.{ Matchers, WordSpec }
 import pdi.jwt.algorithms.JwtHmacAlgorithm
 import pdi.jwt.{ Jwt, JwtAlgorithm, JwtClaim }
 import play.api.libs.json.Json
+import cats.implicits._
 
 import scala.concurrent.ExecutionContext
 
@@ -30,7 +32,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
   private val userRepository: UserRepository = stub[UserRepository]
   private val authUtils: AuthUtils = stub[AuthUtils]
   private val authService: AuthService = new AuthService(userRepository, authUtils)
-  private val userId = UserId("userId")
+  private val userId = UserId(UUID.fromString("123e4567-e89b-12d3-a456-426655440000"))
 
   "AuthServiceTest" when {
 
