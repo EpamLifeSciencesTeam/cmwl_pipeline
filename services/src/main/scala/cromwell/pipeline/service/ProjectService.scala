@@ -14,23 +14,25 @@ class ProjectService(projectRepository: ProjectRepository)(implicit executionCon
   def getProjectById(projectId: ProjectId): Future[Option[Project]] =
     projectRepository.getProjectById(projectId)
 
-  def getProjectByName(namePattern: String, userId: UserId): Future[Option[Project]] =
-    projectRepository.getProjectByName(namePattern).flatMap {
+  def getProjectByName(namePattern: String, userId: UserId): Future[Option[Project]] = {
+    val result = projectRepository.getProjectByName(namePattern)
+    result.flatMap {
       case Some(project) =>
         project match {
           case project if (project.ownerId == userId) => {
-            projectRepository.getProjectByName(namePattern)
+            result
           }
           case _ => Future.failed(new RuntimeException("Access denied"))
         }
       case None => Future.failed(new RuntimeException("Project does not exist"))
     }
+  }
 
-  def addProject(request: ProjectAdditionRequest): Future[ProjectId] = {
+  def addProject(request: ProjectAdditionRequest, userId: UserId): Future[ProjectId] = {
     val project =
       Project(
         projectId = ProjectId(UUID.randomUUID().toString),
-        ownerId = request.ownerId,
+        ownerId = userId,
         name = request.name,
         repository = request.repository,
         active = true
