@@ -23,10 +23,11 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
             name = "projectName"
           )
         val projectId = ProjectId("projectId")
+        val ownerId = UserId("ownerId")
 
         when(projectRepository.addProject(any[Project])).thenReturn(Future(projectId))
 
-        projectService.addProject(request, request.ownerId).map { _ shouldBe projectId }
+        projectService.addProject(request, ownerId).map { _ shouldBe projectId }
       }
     }
 

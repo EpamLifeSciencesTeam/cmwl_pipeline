@@ -34,7 +34,7 @@ class ProjectService(projectRepository: ProjectRepository)(implicit executionCon
         projectId = ProjectId(UUID.randomUUID().toString),
         ownerId = userId,
         name = request.name,
-        repository = request.repository,
+        repository = "test_repo",
         active = true
       )
     projectRepository.addProject(project)

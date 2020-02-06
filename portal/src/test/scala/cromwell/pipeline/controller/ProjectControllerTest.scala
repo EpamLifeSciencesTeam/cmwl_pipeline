@@ -2,7 +2,7 @@ package cromwell.pipeline.controller
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import cromwell.pipeline.datastorage.dto.{ Project, User }
+import cromwell.pipeline.datastorage.dto.{ Project, User, UserId }
 import cromwell.pipeline.service.ProjectService
 import cromwell.pipeline.tag.Controller
 import cromwell.pipeline.utils.auth.{ AccessTokenContent, TestProjectUtils, TestUserUtils }
@@ -32,7 +32,7 @@ class ProjectControllerTest
         val getProjectByNameResponse: Option[Project] = Option(dummyProject)
 
         val accessToken = AccessTokenContent(dummyProject.projectId.value)
-        when(projectService.getProjectByName(projectByName, dummyUser.userId))
+        when(projectService.getProjectByName(projectByName, new UserId(accessToken.userId)))
           .thenReturn(Future.successful(getProjectByNameResponse))
 
         Get("/projects?name=" + projectByName) ~> projectController.route(accessToken) ~> check {
