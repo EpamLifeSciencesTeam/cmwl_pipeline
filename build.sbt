@@ -30,6 +30,8 @@ addCommandAlias("check", "all scalafmtSbtCheck scalafmtCheck test:scalafmtCheck"
 
 lazy val root = (project in file("."))
   .settings(
+    unmanagedJars in Compile += file(Path.userHome + "/projects/cmwlppl/cmwl_pipeline/lib/wdltool-0.14.jar"),
+    unmanagedJars in Compile += file(Path.userHome + "/projects/cmwlppl/cmwl_pipeline/lib/womtool-48-787cf8b-SNAP.jar"),
     name := "Cromwell pipeline",
     commonSettings
   )
@@ -46,7 +48,6 @@ lazy val datasource = project.settings(
 lazy val portal = project
   .configs(IntegrationTest)
   .settings(
-    name := "Portal",
     commonSettings,
     Defaults.itSettings,
     libraryDependencies ++= akkaDependencies ++ testDependencies ++ jsonDependencies ++ macwire ++ testContainers,
@@ -55,3 +56,17 @@ lazy val portal = project
     addCommandAlias("testAll", "; test ; it:test")
   )
   .dependsOn(datasource)
+
+lazy val womtool = project
+  .settings(
+    unmanagedJars in Compile += file(Path.userHome + "/projects/cmwlppl/cmwl_pipeline/lib/wdltool-0.14.jar"),
+    unmanagedJars in Compile += file(Path.userHome + "/projects/cmwlppl/cmwl_pipeline/lib/womtool-48-787cf8b-SNAP.jar"),
+    unmanagedJars in Compile += file(
+      Path.userHome + "/projects/cmwlppl/cmwl_pipeline/lib/womtool_2.12-48-787cf8b-SNAP-javadoc"
+    ),
+    unmanagedJars in Compile += file(
+      Path.userHome + "/projects/cmwlppl/cmwl_pipeline/lib/wdl-biscayne_2.12-48-787cf8b-SNAP-javadoc.jar"
+    ),
+    name := "womTool"
+  )
+  .dependsOn()
