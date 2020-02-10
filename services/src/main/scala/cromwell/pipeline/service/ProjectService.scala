@@ -2,7 +2,6 @@ package cromwell.pipeline.service
 
 import java.util.UUID
 
-import akka.actor.FSM.Failure
 import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dto.project.ProjectAdditionRequest
 import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, UserId }
@@ -17,14 +16,9 @@ class ProjectService(projectRepository: ProjectRepository)(implicit executionCon
   def getProjectByName(namePattern: String, userId: UserId): Future[Option[Project]] = {
     val result = projectRepository.getProjectByName(namePattern)
     result.flatMap {
-      case Some(project) =>
-        project match {
-          case project if (project.ownerId == userId) => {
-            result
-          }
-          case _ => Future.failed(new RuntimeException("Access denied"))
-        }
-      case None => Future.failed(new RuntimeException("Project does not exist"))
+      case Some(project) if project.ownerId == userId => result
+      case Some(_)                                    => Future.failed(new IllegalArgumentException("Access denied"))
+      case None                                       => Future.failed(new IllegalArgumentException("Project does not exist"))
     }
   }
 
