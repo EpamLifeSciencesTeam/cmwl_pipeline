@@ -4,7 +4,7 @@ import slick.lifted.MappedTo
 
 final case class Project(
   projectId: ProjectId,
-  ownerId: UserId,
+  ownerId: UUID,
   name: String,
   repository: String,
   active: Boolean
@@ -12,4 +12,4 @@ final case class Project(
 
 final case class ProjectId(value: String) extends MappedTo[String]
 
-final case class ProjectAdditionRequest(ownerId: UserId, name: String, repository: String)
+final case class ProjectAdditionRequest(ownerId: UUID, name: String, repository: String)

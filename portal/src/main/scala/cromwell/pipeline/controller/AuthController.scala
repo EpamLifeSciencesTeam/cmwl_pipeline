@@ -28,21 +28,11 @@ class AuthController(authService: AuthService)(implicit executionContext: Execut
       },
       path("signUp") {
         post {
-          entity(as[SignUpRequest]) {
-            request =>
-//            FormValidatorNel.validateForm(request) match {
-//              case Valid(validatedRequest) =>
-//                onComplete(authService.signUp(validatedRequest)) {
-//                  case Success(Some(authResponse)) => setSuccessAuthRoute(authResponse)
-//                  case _                           => complete(StatusCodes.BadRequest)
-//                }
-//              case Invalid(errors) =>
-//                complete(StatusCodes.BadRequest -> errors.toList.map(_.toMap))
-//            }
-              onComplete(authService.signUp(request)) {
-                case Success(Some(authResponse)) => setSuccessAuthRoute(authResponse)
-                case _                           => complete(StatusCodes.BadRequest)
-              }
+          entity(as[SignUpRequest]) { request =>
+            onComplete(authService.signUp(request)) {
+              case Success(Some(authResponse)) => setSuccessAuthRoute(authResponse)
+              case _                           => complete(StatusCodes.BadRequest)
+            }
           }
         }
       },

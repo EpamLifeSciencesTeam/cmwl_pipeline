@@ -22,7 +22,8 @@ lazy val commonSettings = Seq(
     (scalafmtCheck in Test).value
   },
   compile in Compile := (compile in Compile).dependsOn(checkFormat).value,
-  test in Test := (test in Test).dependsOn(checkFormat).value
+  test in Test := (test in Test).dependsOn(checkFormat).value,
+  testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports")
 )
 
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")

@@ -2,7 +2,7 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
-import cromwell.pipeline.datastorage.dto.{ User, UserId, UserNoCredentials }
+import cromwell.pipeline.datastorage.dto.{ UUID, User, UserNoCredentials }
 import cromwell.pipeline.utils.StringUtils._
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -13,13 +13,13 @@ class UserService(userRepository: UserRepository)(implicit executionContext: Exe
   def getUsersByEmail(emailPattern: String): Future[Seq[User]] =
     userRepository.getUsersByEmail(emailPattern)
 
-  def deactivateUserById(userId: UserId): Future[Option[UserNoCredentials]] =
+  def deactivateUserById(userId: UUID): Future[Option[UserNoCredentials]] =
     for {
       _ <- userRepository.deactivateUserById(userId)
       user <- userRepository.getUserById(userId)
     } yield user.map(UserNoCredentials.fromUser)
 
-  def updateUser(userId: UserId, request: UserUpdateRequest): Future[Int] =
+  def updateUser(userId: UUID, request: UserUpdateRequest): Future[Int] =
     userRepository
       .getUserById(userId)
       .flatMap(
@@ -36,7 +36,7 @@ class UserService(userRepository: UserRepository)(implicit executionContext: Exe
       )
 
   def updatePassword(
-    userId: UserId,
+    userId: UUID,
     request: PasswordUpdateRequest,
     salt: String = Random.nextLong().toHexString
   ): Future[Int] =

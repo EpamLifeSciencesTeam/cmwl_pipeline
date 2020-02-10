@@ -1,13 +1,12 @@
 package cromwell.pipeline.service
 
 import java.time.Instant
-import java.util.UUID
 
 import cats.data.OptionT
 import cats.implicits._
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, SignInRequest, SignUpRequest }
-import cromwell.pipeline.datastorage.dto.{ User, UserId }
+import cromwell.pipeline.datastorage.dto.{ UUID, User }
 import cromwell.pipeline.utils.StringUtils
 import cromwell.pipeline.utils.auth.{ AccessTokenContent, AuthContent, AuthUtils, RefreshTokenContent }
 import play.api.libs.json.Json
@@ -23,8 +22,8 @@ class AuthService(userRepository: UserRepository, authUtils: AuthUtils)(implicit
     OptionT(userRepository.getUserByEmail(request.email))
       .filter(user => user.passwordHash == StringUtils.calculatePasswordHash(request.password.value, user.passwordSalt))
       .map { user =>
-        val accessTokenContent = AccessTokenContent(user.userId.value)
-        val refreshTokenContent = RefreshTokenContent(user.userId.value, None)
+        val accessTokenContent = AccessTokenContent(user.userId)
+        val refreshTokenContent = RefreshTokenContent(user.userId, None)
         getAuthResponse(accessTokenContent, refreshTokenContent, Instant.now.getEpochSecond)
       }
       .value
@@ -34,7 +33,7 @@ class AuthService(userRepository: UserRepository, authUtils: AuthUtils)(implicit
     val passwordSalt = Random.nextLong().toHexString
     val passwordHash = StringUtils.calculatePasswordHash(request.password.value, passwordSalt)
     val newUser = User(
-      userId = UserId(UUID.randomUUID()),
+      userId = UUID.random,
       email = request.email,
       passwordSalt = passwordSalt,
       passwordHash = passwordHash,
@@ -43,8 +42,8 @@ class AuthService(userRepository: UserRepository, authUtils: AuthUtils)(implicit
     )
 
     userRepository.addUser(newUser).map { userId =>
-      val accessTokenContent = AccessTokenContent(userId.value)
-      val refreshTokenContent = RefreshTokenContent(userId.value, None)
+      val accessTokenContent = AccessTokenContent(userId)
+      val refreshTokenContent = RefreshTokenContent(userId, None)
       getAuthResponse(accessTokenContent, refreshTokenContent, Instant.now.getEpochSecond)
     }
   }
