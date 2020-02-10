@@ -22,7 +22,7 @@ class ProjectController(projectService: ProjectService)(
           parameter('name.as[String]) { name =>
             onComplete(projectService.getProjectByName(name, UserId(accessToken.userId))) {
               case Success(project) => complete(project)
-              case Failure(e)       => complete(StatusCodes.InternalServerError, e.getMessage)
+              case Failure(e)       => complete(StatusCodes.NotFound, e.getMessage)
             }
           }
         },

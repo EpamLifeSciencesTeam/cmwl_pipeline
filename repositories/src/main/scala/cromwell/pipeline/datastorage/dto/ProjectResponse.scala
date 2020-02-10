@@ -4,9 +4,7 @@ import play.api.libs.json.{Json, OFormat}
 
 final case class ProjectResponse(
   projectId: ProjectId,
-  ownerId: UserId,
   name: String,
-  repository: String,
   active: Boolean
 )
 
