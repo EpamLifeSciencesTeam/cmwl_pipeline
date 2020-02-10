@@ -16,6 +16,7 @@ import wom.ResolvedImportRecord
 import wom.executable.WomBundle
 import wom.expression.NoIoFunctionSet
 import wom.graph._
+import womtool.validate.Validate
 
 import scala.collection.JavaConverters._
 //import scala.reflect.io.Path
@@ -65,24 +66,29 @@ object ValidationFromFileContents extends App {
 //    }
 //  }
 
-  private def runAppTestValid(mainFileContentsPath: String): Unit = {
-
-    lazy val importResolvers: List[ImportResolver] = List()
-
-    readFile(mainFileContentsPath).flatMap { mainFileContents =>
-      val languageFactory =
-        List(
-          new WdlDraft3LanguageFactory(ConfigFactory.empty()),
-          new WdlBiscayneLanguageFactory(ConfigFactory.empty()),
-          new CwlV1_0LanguageFactory(ConfigFactory.empty())
-        ).find(_.looksParsable(mainFileContents)).getOrElse(new WdlDraft2LanguageFactory(ConfigFactory.empty()))
-
-      val bundle = languageFactory.getWomBundle(mainFileContents, None, "{}", importResolvers, List(languageFactory))
-      // Return the pair with the languageFactory
-      bundle.map((_, languageFactory))
-    }
-  }
-
-  runAppTestValid("/home/benderbej/WDL/workflows/hello.wdl");
+//  private def runAppTestValid(mainFileContentsPath: String): Unit = {
+//
+//    Validate.validate(v.workflowSource, v.inputs, v.listDependencies)
+//
+////    lazy val importResolvers: List[ImportResolver] = List()
+//
+////    lazy val importResolvers: List[ImportResolver] =
+////      DirectoryResolver.localFilesystemResolvers(Some(mainFile)) :+ HttpResolver(relativeTo = None)
+//
+//    readFile(mainFileContentsPath).flatMap { mainFileContents =>
+//      val languageFactory =
+//        List(
+//          new WdlDraft3LanguageFactory(ConfigFactory.empty()),
+//          new WdlBiscayneLanguageFactory(ConfigFactory.empty()),
+//          new CwlV1_0LanguageFactory(ConfigFactory.empty())
+//        ).find(_.looksParsable(mainFileContents)).getOrElse(new WdlDraft2LanguageFactory(ConfigFactory.empty()))
+//
+//      val bundle = languageFactory.getWomBundle(mainFileContents, None, "{}", importResolvers, List(languageFactory))
+//      // Return the pair with the languageFactory
+//      bundle.map((_, languageFactory))
+//    }
+//  }
+//
+//  runAppTestValid("/home/benderbej/WDL/workflows/hello.wdl");
 
 }
