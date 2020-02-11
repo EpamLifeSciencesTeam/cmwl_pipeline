@@ -57,16 +57,18 @@ lazy val portal = project
   )
   .dependsOn(datasource)
 
-lazy val womtool = project
+lazy val womtool = (project in file("."))
   .settings(
-    unmanagedJars in Compile += file(Path.userHome + "/projects/cmwlppl/cmwl_pipeline/lib/wdltool-0.14.jar"),
-    unmanagedJars in Compile += file(Path.userHome + "/projects/cmwlppl/cmwl_pipeline/lib/womtool-48-787cf8b-SNAP.jar"),
-    unmanagedJars in Compile += file(
-      Path.userHome + "/projects/cmwlppl/cmwl_pipeline/lib/womtool_2.12-48-787cf8b-SNAP-javadoc"
-    ),
-    unmanagedJars in Compile += file(
-      Path.userHome + "/projects/cmwlppl/cmwl_pipeline/lib/wdl-biscayne_2.12-48-787cf8b-SNAP-javadoc.jar"
-    ),
+//    unmanagedJars in Compile += file(Path.userHome + "/projects/cmwlppl/cmwl_pipeline/lib/womtool-48.jar"),
+    unmanagedJars in Compile += file("./lib/womtool-48.jar"),
+//    unmanagedJars in Compile += file(Path.userHome + "/projects/cmwlppl/cmwl_pipeline/lib/wdltool-0.14.jar"),
+//    unmanagedJars in Compile += file(Path.userHome + "/projects/cmwlppl/cmwl_pipeline/lib/womtool-48-787cf8b-SNAP.jar"),
+//    unmanagedJars in Compile += file(
+//      Path.userHome + "/projects/cmwlppl/cmwl_pipeline/lib/womtool_2.12-48-787cf8b-SNAP-javadoc"
+//    ),
+//    unmanagedJars in Compile += file(
+//      Path.userHome + "/projects/cmwlppl/cmwl_pipeline/lib/wdl-biscayne_2.12-48-787cf8b-SNAP-javadoc.jar"
+//    ),
     name := "womTool"
   )
   .dependsOn()
