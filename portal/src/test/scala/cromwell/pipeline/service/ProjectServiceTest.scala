@@ -47,7 +47,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         when(projectRepository.deactivateProjectById(projectId)).thenReturn(Future(0))
         when(projectRepository.getProjectById(projectId)).thenReturn(Future(Some(project)))
 
-        projectService.deactivateProjectById(projectId).map { _ shouldBe Some(project) }
+        projectService.deactivateProjectById(projectId, project.ownerId).map { _ shouldBe Some(project) }
       }
     }
 
