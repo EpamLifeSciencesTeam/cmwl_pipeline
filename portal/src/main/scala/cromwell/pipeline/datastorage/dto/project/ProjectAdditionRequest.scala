@@ -1,6 +1,5 @@
 package cromwell.pipeline.datastorage.dto.project
 
-import cromwell.pipeline.datastorage.dto.UserId
 import play.api.libs.json.{ Json, OFormat }
 
 final case class ProjectAdditionRequest(name: String)
