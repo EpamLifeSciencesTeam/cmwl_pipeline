@@ -17,8 +17,8 @@ class ProjectService(projectRepository: ProjectRepository)(implicit executionCon
     val result = projectRepository.getProjectByName(namePattern)
     result.flatMap {
       case Some(project) if project.ownerId == userId => result
-      case Some(_)                                    => Future.failed(new ProjectAccessDeniedException)
-      case None                                       => Future.failed(new ProjectNotFoundException)
+      case Some(_)                                    => Future.failed(new IllegalArgumentException("Access denied"))
+      case None                                       => Future.failed(new IllegalArgumentException("Project does not exist"))
     }
   }
 
@@ -34,21 +34,10 @@ class ProjectService(projectRepository: ProjectRepository)(implicit executionCon
     projectRepository.addProject(project)
   }
 
-  def deactivateProjectById(projectId: ProjectId, userId: UserId): Future[Option[Project]] =
-    projectRepository.getProjectById(projectId).flatMap {
-      case Some(project) if project.ownerId != userId =>
-        throw new ProjectDeactivationForbiddenException
-      case Some(_) =>
-        for {
-          _ <- projectRepository.deactivateProjectById(projectId)
-          getProject <- projectRepository.getProjectById(projectId)
-        } yield getProject
-      case None => throw new ProjectNotFoundException
-      case _    => throw new RuntimeException
-    }
+  def deactivateProjectById(projectId: ProjectId): Future[Option[Project]] =
+    for {
+      _ <- projectRepository.deactivateProjectById(projectId)
+      getProject <- projectRepository.getProjectById(projectId)
+    } yield getProject
 
 }
-
-class ProjectNotFoundException extends RuntimeException
-class ProjectDeactivationForbiddenException extends RuntimeException
-class ProjectAccessDeniedException extends RuntimeException

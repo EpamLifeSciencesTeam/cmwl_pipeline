@@ -2,8 +2,8 @@ package cromwell.pipeline.controller
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, User, UserId }
-import cromwell.pipeline.service.{ ProjectDeactivationForbiddenException, ProjectNotFoundException, ProjectService }
+import cromwell.pipeline.datastorage.dto.{ Project, User, UserId }
+import cromwell.pipeline.service.ProjectService
 import cromwell.pipeline.tag.Controller
 import cromwell.pipeline.utils.auth.{ AccessTokenContent, TestProjectUtils, TestUserUtils }
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
@@ -22,6 +22,7 @@ class ProjectControllerTest
 
   private val projectService = mock[ProjectService]
   private val projectController = new ProjectController(projectService)
+
   "Project controller" when {
     "get project by name" should {
       "return a object of project type" taggedAs (Controller) in {
