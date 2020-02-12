@@ -5,7 +5,7 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives._
 import cromwell.pipeline.datastorage.dto.UserId
 import cromwell.pipeline.datastorage.dto.project.ProjectAdditionRequest
-import cromwell.pipeline.service.ProjectService
+import cromwell.pipeline.service.{ ProjectAccessDeniedException, ProjectNotFoundException, ProjectService }
 import cromwell.pipeline.utils.auth.AccessTokenContent
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
@@ -19,11 +19,17 @@ class ProjectController(projectService: ProjectService)(
     path("projects") {
       concat(
         get {
-          parameter('name.as[String]) { name =>
-            onComplete(projectService.getProjectByName(name, UserId(accessToken.userId))) {
-              case Success(project) => complete(project)
-              case Failure(e)       => complete(StatusCodes.NotFound, e.getMessage)
-            }
+          parameter('name.as[String]) {
+            name =>
+              onComplete(projectService.getProjectByName(name, UserId(accessToken.userId))) {
+                case Success(project) => complete(project)
+                case Failure(e) =>
+                  e match {
+                    case ProjectNotFoundException("Project not found") => complete(StatusCodes.NotFound, e.getMessage)
+                    case ProjectAccessDeniedException("Access denied") => complete(StatusCodes.Forbidden, e.getMessage)
+                  }
+                case _ => complete(StatusCodes.InternalServerError)
+              }
           }
         },
         post {
@@ -37,3 +43,4 @@ class ProjectController(projectService: ProjectService)(
       )
     }
 }
+
