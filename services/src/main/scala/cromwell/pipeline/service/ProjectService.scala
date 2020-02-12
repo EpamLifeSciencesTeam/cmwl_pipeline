@@ -17,8 +17,8 @@ class ProjectService(projectRepository: ProjectRepository)(implicit executionCon
     val result = projectRepository.getProjectByName(namePattern)
     result.flatMap {
       case Some(project) if project.ownerId == userId => result
-      case Some(_)                                    => Future.failed(new IllegalArgumentException("Access denied"))
-      case None                                       => Future.failed(new IllegalArgumentException("Project does not exist"))
+      case Some(_)                                    => Future.failed(new ProjectAccessDeniedException)
+      case None                                       => Future.failed(new ProjectNotFoundException)
     }
   }
 
@@ -41,3 +41,6 @@ class ProjectService(projectRepository: ProjectRepository)(implicit executionCon
     } yield getProject
 
 }
+
+case class ProjectNotFoundException(private val message: String = "Project not found") extends RuntimeException(message)
+case class ProjectAccessDeniedException(private val message: String = "Access denied") extends RuntimeException(message)
