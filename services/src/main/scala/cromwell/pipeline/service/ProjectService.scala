@@ -42,5 +42,5 @@ class ProjectService(projectRepository: ProjectRepository)(implicit executionCon
 
 }
 
-case class ProjectNotFoundException(private val message: String = "Project not found") extends RuntimeException(message)
-case class ProjectAccessDeniedException(private val message: String = "Access denied") extends RuntimeException(message)
+case class ProjectNotFoundException(message: String = "Project not found") extends RuntimeException(message)
+case class ProjectAccessDeniedException(message: String = "Access denied") extends RuntimeException(message)
