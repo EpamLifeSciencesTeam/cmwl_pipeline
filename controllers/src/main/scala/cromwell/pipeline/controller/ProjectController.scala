@@ -24,7 +24,7 @@ class ProjectController(projectService: ProjectService)(
               case Success(project)                         => complete(project)
               case Failure(e: ProjectNotFoundException)     => complete(StatusCodes.NotFound, e.getMessage)
               case Failure(e: ProjectAccessDeniedException) => complete(StatusCodes.Forbidden, e.getMessage)
-              case Failure(e)                               => complete(e.getMessage)
+              case Failure(e)                               => complete(StatusCodes.InternalServerError, e.getMessage)
             }
           }
         },
