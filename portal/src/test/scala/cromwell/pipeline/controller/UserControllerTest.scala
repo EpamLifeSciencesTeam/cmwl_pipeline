@@ -141,7 +141,7 @@ class UserControllerTest
       "return InternalServerError status if user's id doesn't match" in {
         val dummyUser: User = TestUserUtils.getDummyUser()
         val userId = dummyUser.userId
-        val accessToken = AccessTokenContent(UUID.random)
+        val accessToken = AccessTokenContent(userId)
         val request = UserUpdateRequest(dummyUser.email, dummyUser.firstName, dummyUser.lastName)
 
         when(userService.updateUser(userId, request))

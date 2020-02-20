@@ -51,10 +51,7 @@ class SecurityDirectiveTest extends WordSpec with Matchers with ScalatestRouteTe
       }
     }
 
-    //Info: We need to provide a custom ExceptionHandler,
-    // to change default exception handling behavior.
-
-    "not block secured content with active access token" ignore {
+    "not block secured content with active access token" in {
       val accessToken = getAccessToken(lifetimeInSeconds = 3600)
       val header = RawHeader(AuthorizationHeader, accessToken)
       Get(s"/$securedPath").withHeaders(header) ~> testRoute ~> check {
