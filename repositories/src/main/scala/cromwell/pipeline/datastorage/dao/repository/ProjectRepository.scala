@@ -17,9 +17,13 @@ class ProjectRepository(pipelineDatabaseEngine: PipelineDatabaseEngine, projectE
   def getProjectByName(name: String): Future[Option[Project]] =
     database.run(projectEntry.getProjectByName(name).result.headOption)
 
-  def addProject(project: Project): Future[ProjectId] = database.run(projectEntry.addProjectAction(project))
+  def addProject(project: Project): Future[ProjectId] =
+    database.run(projectEntry.addProjectAction(project))
 
   def deactivateProjectById(projectId: ProjectId): Future[Int] =
     database.run(projectEntry.deactivateProjectById(projectId))
+
+  def updateProject(updatedProject: Project): Future[Int] =
+    database.run(projectEntry.updateProject(updatedProject))
 
 }

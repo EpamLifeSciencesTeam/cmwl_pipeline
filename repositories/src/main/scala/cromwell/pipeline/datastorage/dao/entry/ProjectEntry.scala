@@ -36,4 +36,10 @@ trait ProjectEntry {
   def deactivateProjectById(projectId: ProjectId) =
     projects.filter(_.projectId === projectId).map(_.active).update(false)
 
+  def updateProject(updatedProject: Project) =
+    projects
+      .filter(_.projectId === updatedProject.projectId)
+      .map(project => (project.name, project.repository))
+      .update((updatedProject.name, updatedProject.repository))
+
 }
