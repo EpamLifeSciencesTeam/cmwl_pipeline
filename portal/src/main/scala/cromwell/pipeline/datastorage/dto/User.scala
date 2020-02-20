@@ -53,7 +53,7 @@ object Name extends Wrapped.Companion {
     Validated.cond(
       value.matches("^[a-zA-Z]+$"),
       value,
-      NonEmptyChain.one("Name can contain only latin letters.")
+      NonEmptyChain.one("Name can contain only latin letters")
     )
 }
 
