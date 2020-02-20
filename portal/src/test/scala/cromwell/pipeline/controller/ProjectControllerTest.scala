@@ -44,20 +44,20 @@ class ProjectControllerTest
   }
 
   "delete project by id" should {
+
     "return deactivated project entity" in {
       val dummyProject = TestProjectUtils.getDummyProject()
-      val response = dummyProject.copy(active = false)
-      val userId = TestUserUtils.getDummyUser().userId
-      val accessToken = AccessTokenContent(userId.value)
+      val accessToken = AccessTokenContent(TestUserUtils.getDummyUser().userId.value)
+      val deactivatedProject = dummyProject.copy(active = false)
       val request = ProjectDeleteRequest(dummyProject.projectId)
 
-      when(projectService.deactivateProjectById(request.projectId, userId))
-        .thenReturn(Future.successful(Some(response)))
+      when(projectService.deactivateProjectById(dummyProject.projectId, UserId(accessToken.userId)))
+        .thenReturn(Future.successful(Some(deactivatedProject)))
 
       Delete("/projects", request) ~> projectController.route(accessToken) ~> check {
-        responseAs[Option[Project]] shouldBe response
-        status shouldBe StatusCodes.OK
+        responseAs[Project] shouldBe deactivatedProject
       }
+
     }
 
     "return server error if project deactivation was failed" taggedAs (Controller) in {
