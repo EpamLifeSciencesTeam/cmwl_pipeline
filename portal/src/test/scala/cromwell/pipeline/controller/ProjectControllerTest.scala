@@ -2,6 +2,7 @@ package cromwell.pipeline.controller
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
+import cromwell.pipeline.datastorage.dto.project.{ ProjectDeleteRequest, ProjectUpdateRequest }
 import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, User, UserId }
 import cromwell.pipeline.service.{ ProjectAccessDeniedException, ProjectNotFoundException, ProjectService }
 import cromwell.pipeline.tag.Controller
@@ -42,21 +43,66 @@ class ProjectControllerTest
     }
   }
 
-  "DELETE project by id" should {
+  "delete project by id" should {
     "return deactivated project entity" in {
-      val dummyUser: User = TestUserUtils.getDummyUser()
-      val dummyProject: Project = TestProjectUtils.getDummyProject()
-      val accessToken = AccessTokenContent(dummyUser.userId.value)
-      val deactivatedProject = dummyProject.copy(active = false)
+      val dummyProject = TestProjectUtils.getDummyProject()
+      val response = dummyProject.copy(active = false)
+      val userId = TestUserUtils.getDummyUser().userId
+      val accessToken = AccessTokenContent(userId.value)
+      val request = ProjectDeleteRequest(dummyProject.projectId)
 
-      when(projectService.deactivateProjectById(dummyProject.projectId, UserId(accessToken.userId)))
-        .thenReturn(Future.successful(Some(deactivatedProject)))
+      when(projectService.deactivateProjectById(request.projectId, userId))
+        .thenReturn(Future.successful(Some(response)))
 
-      Delete("/projects") ~> projectController.route(accessToken) ~> check {
+      Delete("/projects", request) ~> projectController.route(accessToken) ~> check {
+        responseAs[Option[Project]] shouldBe response
         status shouldBe StatusCodes.OK
-        responseAs[Project] shouldBe deactivatedProject
       }
     }
+
+    "return server error if project deactivation was failed" taggedAs (Controller) in {
+      val userId = TestUserUtils.getDummyUser().userId
+      val request = ProjectDeleteRequest(TestProjectUtils.getDummyProject().projectId)
+      val accessToken = AccessTokenContent(userId.value)
+
+      when(projectService.deactivateProjectById(request.projectId, userId))
+        .thenReturn(Future.failed(new RuntimeException("Something wrong")))
+
+      Delete("/projects", request) ~> projectController.route(accessToken) ~> check {
+        status shouldBe StatusCodes.InternalServerError
+      }
+    }
+
+  }
+
+  "update project" should {
+    "return status code NoContent if " in {
+      val userId = TestUserUtils.getDummyUser().userId
+      val accessToken = AccessTokenContent(userId.value)
+      val dummyProject = TestProjectUtils.getDummyProject()
+      val request = ProjectUpdateRequest(dummyProject.projectId, dummyProject.name, dummyProject.repository)
+
+      when(projectService.updateProject(request, userId)).thenReturn(Future.successful(1))
+
+      Put("/projects", request) ~> projectController.route(accessToken) ~> check {
+        status shouldBe StatusCodes.NoContent
+      }
+    }
+
+    "return InternalServerError status if projects's id doesn't match" in {
+      val userId = TestUserUtils.getDummyUser().userId
+      val accessToken = AccessTokenContent("0")
+      val dummyProject = TestProjectUtils.getDummyProject()
+      val request = ProjectUpdateRequest(dummyProject.projectId, dummyProject.name, dummyProject.repository)
+
+      when(projectService.updateProject(request, userId))
+        .thenReturn(Future.failed(new RuntimeException("Something wrong")))
+
+      Put("/projects", request) ~> projectController.route(accessToken) ~> check {
+        status shouldBe StatusCodes.InternalServerError
+      }
+    }
+
   }
 
 }
