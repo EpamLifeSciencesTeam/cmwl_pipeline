@@ -45,9 +45,9 @@ class UserControllerTest
         }
       }
       "return the internal server error if service fails" taggedAs Controller in {
-        val usersByEmailRequest: UserEmail = UserEmail("someDomain@mail.com")
-        val dummyUser: User = TestUserUtils.getDummyUser()
-        val accessToken = AccessTokenContent(dummyUser.userId)
+        val usersByEmailRequest = "someDomain@mail.com"
+        val userId = UUID.random
+        val accessToken = AccessTokenContent(userId)
         when(userService.getUsersByEmail(usersByEmailRequest))
           .thenReturn(Future.failed(new RuntimeException("something went wrong")))
 
