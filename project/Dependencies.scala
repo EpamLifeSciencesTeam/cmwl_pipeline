@@ -19,7 +19,7 @@ object Dependencies {
     val scalaMock = "4.4.0"
     val tcCore = "0.34.0"
     val tcPostgres = "1.12.2"
-    val liquibase = "3.8.0"
+    val liquibase = "3.8.6"
     val postgresql = "42.2.8"
   }
 
