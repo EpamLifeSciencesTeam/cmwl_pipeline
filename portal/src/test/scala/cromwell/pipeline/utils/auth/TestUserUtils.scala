@@ -10,7 +10,6 @@ object TestUserUtils {
 
   def getDummyUser(
     uuid: UUID = UUID.random,
-    email: UserEmail = UserEmail("JohnDoe-@cromwell.com"),
     password: String = userPassword,
     passwordSalt: String = "salt",
     firstName: Name = Name("FirstName"),
