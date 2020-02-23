@@ -37,7 +37,6 @@ lazy val root = (project in file("."))
   .aggregate(portal, datasource)
 
 lazy val IntegrationTest = config("it").extend(Test)
-parallelExecution in IntegrationTest := false
 
 lazy val datasource = project.settings(
   name := "Datasource",
@@ -51,6 +50,7 @@ lazy val portal = project
     name := "Portal",
     commonSettings,
     Defaults.itSettings,
+    Seq(parallelExecution in Test := false),
     libraryDependencies ++= akkaDependencies ++ testDependencies ++ jsonDependencies ++ macwire ++ testContainers,
     libraryDependencies += cats,
     //TODO need to check out parallel execution
