@@ -3,6 +3,7 @@ package cromwell.pipeline.womtool
 import cats.data.NonEmptyList
 import cromwell.languages.util.ImportResolver.{ DirectoryResolver, HttpResolver }
 import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.EitherValues._
 import wom.executable.WomBundle
 
 class WomToolTest extends WordSpec with Matchers {
@@ -73,15 +74,14 @@ class WomToolTest extends WordSpec with Matchers {
         val res: Either[NonEmptyList[String], WomBundle] =
           womTool.validate(correctWdl)
 
-        res.right.get.allCallables("hello").toString.stripMargin should be(correctValidateAnswer)
-
+        res.right.value.allCallables("hello").toString.stripMargin should be(correctValidateAnswer)
       }
       "return the error message" in {
 
         val res: Either[NonEmptyList[String], WomBundle] =
           womTool.validate(inCorrectWdl)
 
-        res.left.get.head.slice(0, 5) should be("ERROR")
+        res.left.value.head.slice(0, 5) should be("ERROR")
       }
     }
 
@@ -92,7 +92,7 @@ class WomToolTest extends WordSpec with Matchers {
         val res: Either[NonEmptyList[String], String] =
           womTool.inputs(correctWdl)
 
-        res.right.get should be(correctInputsAnswer)
+        res.right.value should be(correctInputsAnswer)
       }
 
       "return the ERROR" in {
@@ -100,7 +100,7 @@ class WomToolTest extends WordSpec with Matchers {
         val res: Either[NonEmptyList[String], String] =
           womTool.inputs(inCorrectWdl)
 
-        res.left.get.toString.stripMargin should be(inCorrectInputs)
+        res.left.value.toString.stripMargin should be(inCorrectInputs)
       }
     }
   }
