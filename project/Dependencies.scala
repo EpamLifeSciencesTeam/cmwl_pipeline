@@ -17,7 +17,8 @@ object Dependencies {
     val scalaMock = "4.4.0"
     val tcCore = "0.34.0"
     val tcPostgres = "1.12.2"
-    val liquibase = "3.8.0"
+    val yaml = "1.23"
+    val liquibase = "3.8.6"
     val postgresql = "42.2.8"
     val womtool = "48"
   }
@@ -39,13 +40,14 @@ object Dependencies {
   val mockito = "org.mockito" % "mockito-all" % Version.mockito % Test
   val tcCore = "com.dimafeng" %% "testcontainers-scala" % Version.tcCore % Test
   val tcPostgres = "org.testcontainers" % "postgresql" % Version.tcPostgres % Test
+  val yaml = "org.yaml" % "snakeyaml" % Version.yaml
   val liquibase = "org.liquibase" % "liquibase-core" % Version.liquibase
   val postgresql = "org.postgresql" % "postgresql" % Version.postgresql
   val womtool = "pipeline" % "womtool" % Version.womtool
 
   lazy val akkaDependencies = Seq(akkaActor, akkaStreams, akkaHttp)
   lazy val jsonDependencies = Seq(playJson, akkaHttpJson, jwtCore)
-  lazy val dbDependencies = Seq(slick, hikariCP, liquibase, postgresql)
+  lazy val dbDependencies = Seq(slick, hikariCP, postgresql, liquibase, yaml)
   lazy val testDependencies = Seq(mockito, akkaTestKit, akkaHttpTestKit, scalaCheck, scalaTest, scalaMock)
   lazy val testContainers = Seq(tcCore, tcPostgres)
   lazy val cromwellDependencies = Seq(womtool)

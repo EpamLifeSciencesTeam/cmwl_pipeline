@@ -52,7 +52,7 @@ lazy val portal = project
     commonSettings,
     libraryDependencies ++= akkaDependencies ++ jsonDependencies,
     Defaults.itSettings,
-    //TODO need to check out parallel execution
+    Seq(parallelExecution in Test := false),
     addCommandAlias("testAll", "; test ; it:test")
   )
   .aggregate(repositories, services, controllers, utils)
