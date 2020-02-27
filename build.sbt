@@ -89,6 +89,6 @@ lazy val womtool = (project in file("womtool"))
     resolvers += Resolver.bintrayRepo("scalalab", "pipeline"),
     name := "WomTool",
     commonSettings,
-    libraryDependencies ++= testContainers ++ testDependencies ++ cromwellDependencies,
+    libraryDependencies ++= testDependencies ++ cromwellDependencies,
     addCommandAlias("testAll", "; test ; it:test")
   )
