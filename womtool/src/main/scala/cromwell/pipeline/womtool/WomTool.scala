@@ -29,22 +29,15 @@ class WomTool(val importResolvers: List[ImportResolver]) extends WomToolAPI {
     new CwlV1_0LanguageFactory(ConfigFactory.empty())
   )
 
-  def validate(
-    content: String
-  ): Either[NonEmptyList[String], WomBundle] = {
-    val languageFactory = languageFactories.find(_.looksParsable(content)).getOrElse(defaultLanguageFactory)
+  def validate(content: String): Either[NonEmptyList[String], WomBundle] = read(content)
 
-    languageFactory.getWomBundle(content, None, "{}", importResolvers, List(languageFactory))
-  }
-
-  def inputs(content: String): Either[NonEmptyList[String], String] = {
-    val languageFactory = languageFactories.find(_.looksParsable(content)).getOrElse(defaultLanguageFactory)
+  def inputs(content: String): Either[NonEmptyList[String], String] =
     for {
-      bundle <- languageFactory.getWomBundle(content, None, "{}", importResolvers, List(languageFactory))
+      bundle <- read(content)
       callable <- bundle.toExecutableCallable
       wdl = WomGraphWithResolvedImports(callable.graph, bundle.resolvedImportRecords)
     } yield wdl.graph.externalInputNodes.toJson(inputNodeWriter).prettyPrint + System.lineSeparator
-  }
+
   private def inputNodeWriter: JsonWriter[Set[ExternalGraphInputNode]] = set => {
     val valueMap: Seq[(String, JsValue)] = set.toList.collect {
       case RequiredGraphInputNode(_, womType, nameInInputSet, _) => nameInInputSet -> womTypeToJson(womType, None)
@@ -55,13 +48,17 @@ class WomTool(val importResolvers: List[ImportResolver]) extends WomToolAPI {
     }
     valueMap.toMap.toJson
   }
+
   private def womTypeToJson(womType: WomType, default: Option[WomExpression]): JsValue = (womType, default) match {
     case (WomCompositeType(typeMap, _), _) =>
-      JsObject(
-        typeMap.map { case (name, wt) => name -> womTypeToJson(wt, None) }
-      )
+      JsObject(typeMap.map { case (name, wt) => name -> womTypeToJson(wt, None) })
     case (_, Some(d))            => JsString(s"${womType.stableName} (optional, default = ${d.sourceString})")
     case (_: WomOptionalType, _) => JsString(s"${womType.stableName} (optional)")
     case (_, _)                  => JsString(s"${womType.stableName}")
+  }
+
+  private def read(content: String): Either[NonEmptyList[String], WomBundle] = {
+    val languageFactory = languageFactories.find(_.looksParsable(content)).getOrElse(defaultLanguageFactory)
+    languageFactory.getWomBundle(content, None, "{}", importResolvers, List(languageFactory))
   }
 }
