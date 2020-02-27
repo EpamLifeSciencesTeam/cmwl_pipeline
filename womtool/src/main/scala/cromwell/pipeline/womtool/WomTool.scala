@@ -1,78 +1,67 @@
 package cromwell.pipeline.womtool
 
-import java.nio.file.{ Files, Paths }
-
 import cats.data.NonEmptyList
 import com.typesafe.config.ConfigFactory
-import common.Checked
-import cromwell.core.path.{ DefaultPath, DefaultPathBuilder, Path }
-import cromwell.languages.LanguageFactory
 import cromwell.languages.util.ImportResolver.ImportResolver
 import languages.cwl.CwlV1_0LanguageFactory
 import languages.wdl.biscayne.WdlBiscayneLanguageFactory
 import languages.wdl.draft2.WdlDraft2LanguageFactory
 import languages.wdl.draft3.WdlDraft3LanguageFactory
+import spray.json._
+import spray.json.DefaultJsonProtocol._
 import wom.executable.WomBundle
-import womtool.WomtoolMain.{ BadUsageTermination, SuccessfulTermination, Termination, UnsuccessfulTermination }
-import womtool.inputs.Inputs
+import wom.expression.WomExpression
+import wom.graph.{
+  ExternalGraphInputNode,
+  OptionalGraphInputNode,
+  OptionalGraphInputNodeWithDefault,
+  RequiredGraphInputNode
+}
+import wom.types.{ WomCompositeType, WomOptionalType, WomType }
+import womtool.input.WomGraphWithResolvedImports
 
-import scala.util.Try
+class WomTool(val importResolvers: List[ImportResolver]) extends WomToolAPI {
 
-class WomTool extends WomToolAPI {
+  private val defaultLanguageFactory = new WdlDraft2LanguageFactory(ConfigFactory.empty())
+  private val languageFactories = List(
+    new WdlDraft3LanguageFactory(ConfigFactory.empty()),
+    new WdlBiscayneLanguageFactory(ConfigFactory.empty()),
+    new CwlV1_0LanguageFactory(ConfigFactory.empty())
+  )
 
   def validate(
-    content: String,
-    importResolvers: List[ImportResolver]
-  ): Either[NonEmptyList[String], (WomBundle, LanguageFactory)] = {
+    content: String
+  ): Either[NonEmptyList[String], WomBundle] = {
+    val languageFactory = languageFactories.find(_.looksParsable(content)).getOrElse(defaultLanguageFactory)
 
-    val languageFactory: LanguageFactory =
-      List(
-        new WdlDraft3LanguageFactory(ConfigFactory.empty()),
-        new WdlBiscayneLanguageFactory(ConfigFactory.empty()),
-        new CwlV1_0LanguageFactory(ConfigFactory.empty())
-      ).find(_.looksParsable(content)).getOrElse(new WdlDraft2LanguageFactory(ConfigFactory.empty()))
-
-    val bundle: Checked[WomBundle] =
-      languageFactory.getWomBundle(content, None, "{}", importResolvers, List(languageFactory))
-
-    def getBundleAndFactory(womBundle: Checked[WomBundle]): Either[NonEmptyList[String], (WomBundle, LanguageFactory)] =
-      womBundle match {
-        case Right(w) => Right(w, languageFactory)
-        case Left(l)  => Left(l)
-      }
-    getBundleAndFactory(bundle)
+    languageFactory.getWomBundle(content, None, "{}", importResolvers, List(languageFactory))
   }
 
   def inputs(content: String): Either[NonEmptyList[String], String] = {
-
-    def createTmpFile(wdlFileContent: String): Try[java.nio.file.Path] =
-      Try(Files.createTempFile("tmp", ".wdl"))
-
-    def writeTmpFile(path: java.nio.file.Path): Try[java.nio.file.Path] =
-      Try(Files.write(path, content.getBytes()))
-
-    def deleteTmpFile(tempFile: java.nio.file.Path): Unit =
-      Files.delete(tempFile)
-
-    def getTryiedPath(tmpPath: java.nio.file.Path): Try[DefaultPath] =
-      DefaultPathBuilder.build(tmpPath.toString)
-
-    def getTermination(path: Path): Termination = Inputs.inputsJson(path, false)
-
-    def getEither(term: Termination): Either[NonEmptyList[String], String] = term match {
-      case SuccessfulTermination(x)   => new Right(x)
-      case UnsuccessfulTermination(x) => new Left(NonEmptyList(x, Nil))
-      case BadUsageTermination(x)     => new Left(NonEmptyList(x, Nil))
+    val languageFactory = languageFactories.find(_.looksParsable(content)).getOrElse(defaultLanguageFactory)
+    for {
+      bundle <- languageFactory.getWomBundle(content, None, "{}", importResolvers, List(languageFactory))
+      callable <- bundle.toExecutableCallable
+      wdl = WomGraphWithResolvedImports(callable.graph, bundle.resolvedImportRecords)
+    } yield wdl.graph.externalInputNodes.toJson(inputNodeWriter).prettyPrint + System.lineSeparator
+  }
+  private def inputNodeWriter: JsonWriter[Set[ExternalGraphInputNode]] = set => {
+    val valueMap: Seq[(String, JsValue)] = set.toList.collect {
+      case RequiredGraphInputNode(_, womType, nameInInputSet, _) => nameInInputSet -> womTypeToJson(womType, None)
+      case OptionalGraphInputNode(_, womOptionalType, nameInInputSet, _) =>
+        nameInInputSet -> womTypeToJson(womOptionalType, None)
+      case OptionalGraphInputNodeWithDefault(_, womType, default, nameInInputSet, _) =>
+        nameInInputSet -> womTypeToJson(womType, Option(default))
     }
-
-    val tmpPath: Try[DefaultPath] = for {
-      created <- createTmpFile(content)
-      written <- writeTmpFile(created)
-      tPath <- getTryiedPath(written)
-    } yield (tPath)
-
-    val either = getEither(getTermination(tmpPath.get))
-    deleteTmpFile(Paths.get(tmpPath.get.pathAsString))
-    either
+    valueMap.toMap.toJson
+  }
+  private def womTypeToJson(womType: WomType, default: Option[WomExpression]): JsValue = (womType, default) match {
+    case (WomCompositeType(typeMap, _), _) =>
+      JsObject(
+        typeMap.map { case (name, wt) => name -> womTypeToJson(wt, None) }
+      )
+    case (_, Some(d))            => JsString(s"${womType.stableName} (optional, default = ${d.sourceString})")
+    case (_: WomOptionalType, _) => JsString(s"${womType.stableName} (optional)")
+    case (_, _)                  => JsString(s"${womType.stableName}")
   }
 }

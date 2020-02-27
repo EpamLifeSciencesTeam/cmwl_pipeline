@@ -1,35 +1,34 @@
 package cromwell.pipeline.womtool
 
 import cats.data.NonEmptyList
-import cromwell.languages.LanguageFactory
-import cromwell.languages.util.ImportResolver.{ DirectoryResolver, HttpResolver, ImportResolver }
+import cromwell.languages.util.ImportResolver.{ DirectoryResolver, HttpResolver }
 import org.scalatest.{ Matchers, WordSpec }
 import wom.executable.WomBundle
 
 class WomToolTest extends WordSpec with Matchers {
 
-  val womTool: WomToolAPI = new WomTool
+  private lazy val importResolvers = DirectoryResolver.localFilesystemResolvers(None) :+ HttpResolver(relativeTo = None)
 
-  lazy val importResolvers: List[ImportResolver] =
-    DirectoryResolver.localFilesystemResolvers(None) :+ HttpResolver(relativeTo = None)
+  private val womTool = new WomTool(importResolvers)
 
-  val correctInputsAnswer =
+  private val correctInputsAnswer =
     """{
       |  "test.hello.name": "String"
       |}
       |""".stripMargin
 
-  val correctValidateAnswer = """[Task name=hello commandTemplate=Vector(
-                                |    echo 'Hello world!'
-                                |  )]""".stripMargin
+  private val correctValidateAnswer = """[Task name=hello commandTemplate=Vector(
+                                        |    echo 'Hello world!'
+                                        |  )]""".stripMargin
 
-  val inCorrectInputs = """NonEmptyList(ERROR: Call references a task (hello) that doesn't exist (line 14, col 8)
-                          |
-                          |  call hello
-                          |       ^
-                          |     )""".stripMargin
+  private val inCorrectInputs =
+    """NonEmptyList(ERROR: Call references a task (hello) that doesn't exist (line 14, col 8)
+      |
+      |  call hello
+      |       ^
+      |     )""".stripMargin
 
-  val correctWdl =
+  private val correctWdl =
     """
       |task hello {
       |  String name
@@ -47,7 +46,7 @@ class WomToolTest extends WordSpec with Matchers {
       |}
       |""".stripMargin
 
-  val inCorrectWdl =
+  private val inCorrectWdl =
     """
       |task hessllo {
       |  String name
@@ -71,16 +70,16 @@ class WomToolTest extends WordSpec with Matchers {
 
       "return the correct bundle" in {
 
-        val res: Either[NonEmptyList[String], (WomBundle, LanguageFactory)] =
-          womTool.validate(correctWdl, importResolvers)
+        val res: Either[NonEmptyList[String], WomBundle] =
+          womTool.validate(correctWdl)
 
-        res.right.get._1.allCallables("hello").toString.stripMargin should be(correctValidateAnswer)
+        res.right.get.allCallables("hello").toString.stripMargin should be(correctValidateAnswer)
 
       }
       "return the error message" in {
 
-        val res: Either[NonEmptyList[String], (WomBundle, LanguageFactory)] =
-          womTool.validate(inCorrectWdl, importResolvers)
+        val res: Either[NonEmptyList[String], WomBundle] =
+          womTool.validate(inCorrectWdl)
 
         res.left.get.head.slice(0, 5) should be("ERROR")
       }
