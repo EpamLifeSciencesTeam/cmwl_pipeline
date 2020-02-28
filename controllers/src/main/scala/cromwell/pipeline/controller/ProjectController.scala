@@ -3,14 +3,13 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives._
-import cromwell.pipeline.datastorage.dto.UserId
-import cromwell.pipeline.datastorage.dto.project.{ ProjectAdditionRequest, ProjectDeleteRequest, ProjectUpdateRequest }
-import cromwell.pipeline.service.{ ProjectAccessDeniedException, ProjectNotFoundException, ProjectService }
-import cromwell.pipeline.utils.auth.AccessTokenContent
+import cromwell.pipeline.datastorage.dto.{ProjectAdditionRequest, ProjectDeleteRequest, ProjectUpdateRequest, UserId}
+import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
+import cromwell.pipeline.service.{ProjectAccessDeniedException, ProjectNotFoundException, ProjectService}
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
 import scala.concurrent.ExecutionContext
-import scala.util.{ Failure, Success }
+import scala.util.{Failure, Success}
 
 class ProjectController(projectService: ProjectService)(
   implicit executionContext: ExecutionContext

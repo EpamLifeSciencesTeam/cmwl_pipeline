@@ -3,7 +3,7 @@ package cromwell.pipeline.service
 import java.util.UUID
 
 import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
-import cromwell.pipeline.datastorage.dto.project.{ ProjectAdditionRequest, ProjectUpdateRequest }
+import cromwell.pipeline.datastorage.dto.{ ProjectAdditionRequest, ProjectUpdateRequest }
 import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, UserId }
 
 import scala.concurrent.{ ExecutionContext, Future }
