@@ -7,14 +7,15 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.dimafeng.testcontainers.{ForAllTestContainer, PostgreSQLContainer}
 import com.typesafe.config.Config
 import cromwell.pipeline.ApplicationComponents
-import cromwell.pipeline.datastorage.dto.{Project, ProjectId}
-import cromwell.pipeline.datastorage.dto.project.{ProjectDeleteRequest, ProjectUpdateRequest}
-import cromwell.pipeline.utils.auth.{AccessTokenContent, TestContainersUtils, TestProjectUtils, TestUserUtils}
+import cromwell.pipeline.datastorage.dao.repository.utils.{TestProjectUtils, TestUserUtils}
+import cromwell.pipeline.datastorage.dto.{Project, ProjectDeleteRequest, ProjectId, ProjectUpdateRequest, UserId}
+import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
+import cromwell.pipeline.utils.TestContainersUtils
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import org.scalatest.{AsyncWordSpec, Matchers}
 
 class ProjectControllerItTest
-    extends AsyncWordSpec
+  extends AsyncWordSpec
     with Matchers
     with ScalatestRouteTest
     with PlayJsonSupport
@@ -34,7 +35,7 @@ class ProjectControllerItTest
   "ProjectController" when {
     "getProjectByName" should {
       "return a project with the same name" in {
-        val dummyProject = TestProjectUtils.getDummyProject(UUID.randomUUID().toString,ownerId)
+        val dummyProject = TestProjectUtils.getDummyProject()
         val projectByNameRequest = dummyProject.name
         userRepository
           .addUser(dummyUser)
@@ -54,23 +55,23 @@ class ProjectControllerItTest
 
   "updateProject" should {
     "return status code NoContend if project was successfully updated" in {
-      val dummyProject = TestProjectUtils.getDummyProject(UUID.randomUUID().toString,ownerId)
+      val dummyProject = TestProjectUtils.getDummyProject()
       val request = ProjectUpdateRequest(dummyProject.projectId, dummyProject.name, dummyProject.repository)
       projectRepository
         .addProject(dummyProject)
         .flatMap( _ =>
-        projectRepository.updateProject(dummyProject).map{ _ =>
-          val accessToken = AccessTokenContent(dummyUser.userId.value)
-          Put("/projects", request) ~> projectController.route(accessToken) ~> check {
-            status shouldBe StatusCodes.NoContent
-          }
-        })
+          projectRepository.updateProject(dummyProject).map{ _ =>
+            val accessToken = AccessTokenContent(dummyUser.userId.value)
+            Put("/projects", request) ~> projectController.route(accessToken) ~> check {
+              status shouldBe StatusCodes.NoContent
+            }
+          })
     }
   }
 
   "deleteProjectById" should {
     "return project's entity with false value if project was successfully deactivated" in {
-      val dummyProject = TestProjectUtils.getDummyProject(UUID.randomUUID().toString,ownerId)
+      val dummyProject = TestProjectUtils.getDummyProject()
       val request = ProjectDeleteRequest(dummyProject.projectId)
       val deactivatedProjectResponse = dummyProject.copy(active = false)
       projectRepository.addProject(dummyProject).map{ _ =>
