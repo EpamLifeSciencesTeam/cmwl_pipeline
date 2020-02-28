@@ -43,11 +43,12 @@ object Dependencies {
   val tcPostgres = "org.testcontainers" % "postgresql" % Version.tcPostgres % Test
   val liquibase = "org.liquibase" % "liquibase-core" % Version.liquibase
   val postgresql = "org.postgresql" % "postgresql" % Version.postgresql
+  val catsLaws = "org.typelevel" %% "cats-laws" % Version.cats % Test
 
   lazy val akkaDependencies = Seq(akkaActor, akkaStreams, akkaHttp)
   lazy val jsonDependencies = Seq(playJson, akkaHttpJson, jwtCore)
   lazy val dbDependencies = Seq(slick, hikariCP, liquibase, postgresql)
-  lazy val testDependencies = Seq(mockito, akkaTestKit, akkaHttpTestKit, scalaCheck, scalaTest, scalaMock)
+  lazy val testDependencies = Seq(mockito, akkaTestKit, akkaHttpTestKit, scalaCheck, scalaTest, scalaMock, catsLaws)
   lazy val macwire = Seq(macwireMacros, macwireUtil)
   lazy val testContainers = Seq(tcCore, tcPostgres)
 }
