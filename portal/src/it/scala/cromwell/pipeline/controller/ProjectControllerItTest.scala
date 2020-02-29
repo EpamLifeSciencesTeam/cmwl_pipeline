@@ -35,7 +35,7 @@ class ProjectControllerItTest
   "ProjectController" when {
     "getProjectByName" should {
       "return a project with the same name" in {
-        val dummyProject = TestProjectUtils.getDummyProject()
+        val dummyProject = TestProjectUtils.getDummyProject(ProjectId(UUID.randomUUID().toString),UserId(ownerId))
         val projectByNameRequest = dummyProject.name
         userRepository
           .addUser(dummyUser)
@@ -55,7 +55,7 @@ class ProjectControllerItTest
 
   "updateProject" should {
     "return status code NoContend if project was successfully updated" in {
-      val dummyProject = TestProjectUtils.getDummyProject()
+      val dummyProject = TestProjectUtils.getDummyProject(ProjectId(UUID.randomUUID().toString),UserId(ownerId))
       val request = ProjectUpdateRequest(dummyProject.projectId, dummyProject.name, dummyProject.repository)
       projectRepository
         .addProject(dummyProject)
@@ -71,7 +71,7 @@ class ProjectControllerItTest
 
   "deleteProjectById" should {
     "return project's entity with false value if project was successfully deactivated" in {
-      val dummyProject = TestProjectUtils.getDummyProject()
+      val dummyProject = TestProjectUtils.getDummyProject(ProjectId(UUID.randomUUID().toString),UserId(ownerId))
       val request = ProjectDeleteRequest(dummyProject.projectId)
       val deactivatedProjectResponse = dummyProject.copy(active = false)
       projectRepository.addProject(dummyProject).map{ _ =>
