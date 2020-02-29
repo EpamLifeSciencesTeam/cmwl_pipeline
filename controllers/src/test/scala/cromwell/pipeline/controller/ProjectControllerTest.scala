@@ -43,7 +43,6 @@ class ProjectControllerTest
   }
 
   "delete project by id" should {
-
     "return deactivated project entity" in {
       val dummyProject = TestProjectUtils.getDummyProject()
       val accessToken = AccessTokenContent(TestUserUtils.getDummyUser().userId.value)
