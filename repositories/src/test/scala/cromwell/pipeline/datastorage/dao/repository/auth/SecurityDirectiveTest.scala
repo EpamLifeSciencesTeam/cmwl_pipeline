@@ -97,5 +97,4 @@ class SecurityDirectiveTest extends WordSpec with Matchers with ScalatestRouteTe
 
     Jwt.encode(claims, authConfig.secretKey, authConfig.hmacAlgorithm)
   }
-
 }

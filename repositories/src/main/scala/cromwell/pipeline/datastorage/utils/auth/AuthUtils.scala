@@ -55,7 +55,6 @@ class AuthUtils(authConfig: AuthConfig) {
       expiration = Some(currentTimestamp + lifetime),
       issuedAt = Some(currentTimestamp)
     )
-
     Jwt.encode(claims, secretKey, hmacAlgorithm)
   }
 
