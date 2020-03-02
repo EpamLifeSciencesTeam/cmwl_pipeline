@@ -88,5 +88,4 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
     (authUtils.getOptJwtClaims _ when refreshToken).returns(Some(refreshTokenClaims))
     (authUtils.getAuthResponse _ when (*, *, *)).returns(Some(authResponse))
   }
-
 }

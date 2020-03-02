@@ -26,10 +26,12 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
     "signIn" should {
 
       "return token headers if user exists" taggedAs Controller in {
-        val signInRequest = SignInRequest("email@cromwell.com", "password")
+        val email = "email@cromwell.com"
+        val password = "password"
         val authResponse = AuthResponse(accessToken, refreshToken, accessTokenExpiration)
-        val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signInRequest)))
-        (authService.signIn _ when signInRequest).returns(Future(Option(authResponse)))
+        val signInRequestStr = s"""{"email":"${email}","password":"${password}"}"""
+        val httpEntity = HttpEntity(`application/json`, signInRequestStr)
+        (authService.signIn _ when SignInRequest(email, password)).returns(Future(Option(authResponse)))
 
         Post("/auth/signIn", httpEntity) ~> authController.route ~> check {
           status shouldBe StatusCodes.OK
@@ -38,9 +40,11 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
       }
 
       "return Unauthorized status if user doesn't exist" taggedAs Controller in {
-        val signInRequest = SignInRequest("email@cromwell.com", "password")
-        val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signInRequest)))
-        (authService.signIn _ when signInRequest).returns(Future(None))
+        val email = "email@cromwell.com"
+        val password = "password"
+        val signInRequestStr = s"""{"email":"${email}","password":"${password}"}"""
+        val httpEntity = HttpEntity(`application/json`, signInRequestStr)
+        (authService.signIn _ when SignInRequest(email, password)).returns(Future(None))
 
         Post("/auth/signIn", httpEntity) ~> authController.route ~> check {
           status shouldBe StatusCodes.Unauthorized
@@ -51,10 +55,16 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
     "signUp" should {
 
       "return token headers if user was successfully registered" taggedAs Controller in {
-        val signUpRequest = SignUpRequest("JohnDoe@cromwell.com", "Password213", "FirstName", "LastName")
+        val email = "JohnDoe@cromwell.com"
+        val password = "Password213"
+        val firstName = "FirstName"
+        val lastName = "LastName"
+        val signInRequestStr =
+          s"""{"email":"${email}","password":"${password}","firstName":"${firstName}","lastName":"${lastName}"}"""
         val authResponse = AuthResponse(accessToken, refreshToken, accessTokenExpiration)
-        val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signUpRequest)))
-        (authService.signUp _ when signUpRequest).returns(Future(Some(authResponse)))
+        val httpEntity = HttpEntity(`application/json`, signInRequestStr)
+        (authService.signUp _ when SignUpRequest(email, password, firstName, lastName))
+          .returns(Future(Some(authResponse)))
 
         Post("/auth/signUp", httpEntity) ~> authController.route ~> check {
           status shouldBe StatusCodes.OK
@@ -63,10 +73,17 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
       }
 
       "return BadRequest with fields validation errors" taggedAs Controller in {
-        val signUpRequest = SignUpRequest("email", "password", "First-name", "Last-name")
+        val email = "email"
+        val password = "password"
+        val firstName = "First-name"
+        val lastName = "Last-name"
+        val signUpRequestStr =
+          s"""{"email":"${email}","password":"${password}","firstName":"${firstName}","lastName":"${lastName}"}"""
         val authResponse = AuthResponse(accessToken, refreshToken, accessTokenExpiration)
-        val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signUpRequest)))
-        (authService.signUp _ when signUpRequest).returns(Future(Some(authResponse)))
+
+        val httpEntity = HttpEntity(`application/json`, signUpRequestStr)
+        (authService.signUp _ when SignUpRequest(email, password, firstName, lastName))
+          .returns(Future(Some(authResponse)))
 
         Post("/auth/signUp", httpEntity) ~> authController.route ~> check {
           val errors = Json.parse(responseAs[String]).as[List[Map[String, String]]]
@@ -78,9 +95,15 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
       }
 
       "return BadRequest status if user registration was failed" taggedAs Controller in {
-        val signUpRequest = SignUpRequest("email@cromwell.com", "password", "First-name", "Last-name")
-        val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signUpRequest)))
-        (authService.signUp _ when signUpRequest).returns(Future(throw new RuntimeException("Something wrong.")))
+        val email = "email@cromwell.com"
+        val password = "password"
+        val firstName = "First-name"
+        val lastName = "Last-name"
+        val signUpRequestStr =
+          s"""{"email":"${email}","password":"${password}","firstName":"${firstName}","lastName":"${lastName}"}"""
+        val httpEntity = HttpEntity(`application/json`, signUpRequestStr)
+        (authService.signUp _ when SignUpRequest(email, password, firstName, lastName))
+          .returns(Future(throw new RuntimeException("Something wrong.")))
 
         Post("/auth/signUp", httpEntity) ~> authController.route ~> check {
           status shouldBe StatusCodes.BadRequest
@@ -108,7 +131,6 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
         }
       }
     }
-
   }
 
   private def checkAuthTokens: Assertion = {
@@ -118,5 +140,4 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
   }
 
   private def getOptHeaderValue(name: String): Option[String] = header(name).map(_.value)
-
 }
