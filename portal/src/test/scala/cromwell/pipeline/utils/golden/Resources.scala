@@ -23,14 +23,11 @@ object Resources {
     resourceDir
   }
 
-  def inferPackage[A](implicit A: TypeTag[A]): List[String] = {
+  def inferPackage[A](implicit A: TypeTag[A]): List[String] =
     A.tpe.typeSymbol.fullName.split('.').init.toList
-  }
 
-  def inferClassName[A](implicit A: TypeTag[A]): String = {
+  def inferClassName[A](implicit A: TypeTag[A]): String =
     A.tpe.typeSymbol.name.decodedName.toString
-  }
-
 
   def open(path: String): Try[Source] = Try(
     Source.fromInputStream(getClass.getResourceAsStream(path))

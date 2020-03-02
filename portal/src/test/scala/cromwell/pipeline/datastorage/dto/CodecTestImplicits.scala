@@ -1,7 +1,7 @@
 package cromwell.pipeline.datastorage.dto
 
-import cats.{Applicative, Eq}
-import org.scalacheck.{Arbitrary, Gen}
+import cats.{ Applicative, Eq }
+import org.scalacheck.{ Arbitrary, Gen }
 import play.api.libs.json.JsResult
 import play.api.libs.json.JsResult.applicativeJsResult
 
@@ -9,21 +9,21 @@ trait CodecTestImplicits {
   implicit val userArbitrary: Arbitrary[User] = Arbitrary {
     for {
       userId <- Gen.identifier
-      email <- Gen.alphaStr.suchThat(
-        _.matches( """([\w\.!#$%&*+/=?^_`{|}~-]+)@([\w]+)([\.]{1}[\w]+)+"""))
+      email <- Gen.alphaStr.suchThat(_.matches("""([\w\.!#$%&*+/=?^_`{|}~-]+)@([\w]+)([\.]{1}[\w]+)+"""))
       passwordHash <- Gen.alphaStr
       passwordSalt <- Gen.alphaStr
       firstName <- Gen.alphaStr
       lastName <- Gen.alphaStr
       profilePicture <- Gen.containerOf[Array, Byte](0.toByte)
     } yield User(
-        UserId(userId),
-        email,
-        passwordHash,
-        passwordSalt,
-        firstName,
-        lastName,
-        Some(ProfilePicture(profilePicture)))
+      UserId(userId),
+      email,
+      passwordHash,
+      passwordSalt,
+      firstName,
+      lastName,
+      Some(ProfilePicture(profilePicture))
+    )
   }
 
   implicit val jsResultApplicative: Applicative[JsResult] = new Applicative[JsResult] {

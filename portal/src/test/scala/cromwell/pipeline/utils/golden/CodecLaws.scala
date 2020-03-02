@@ -5,9 +5,9 @@ import cats.instances.list._
 import cats.instances.try_._
 import cats.syntax.traverse._
 import cats.laws._
-import play.api.libs.json.{JsError, Json, JsResult, JsSuccess, JsValue}
+import play.api.libs.json.{ JsError, JsResult, JsSuccess, JsValue, Json }
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 trait CodecLaws[A] {
   protected def goldenSamples: Try[List[(A, String)]]
@@ -31,10 +31,8 @@ trait CodecLaws[A] {
       case (value, encoded) =>
         deserialize(Json.parse(encoded)) match {
           case JsSuccess(decoded, _) => Success(decoded <-> value)
-          case error: JsError => Failure(error.get)
+          case error: JsError        => Failure(error.get)
         }
     }
   }
 }
-
-

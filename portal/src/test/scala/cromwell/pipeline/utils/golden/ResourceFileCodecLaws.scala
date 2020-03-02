@@ -7,25 +7,25 @@ import cats.syntax.traverse._
 import java.io.File
 import java.io.PrintWriter
 
-import org.scalacheck.{Arbitrary, Gen}
-import play.api.libs.json.{Format, JsResult, JsValue}
+import org.scalacheck.{ Arbitrary, Gen }
+import play.api.libs.json.{ Format, JsResult, JsValue }
 import scala.reflect.runtime.universe.TypeTag
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 abstract class ResourceFileCodecLaws[A](
-                                         name: String,
-                                         resourceRootDir: File,
-                                         resourcePackage: List[String],
-                                         val size: Int = 100,
-                                         count: Int = 1
-                                       ) extends CodecLaws[A]
-                                        with SampleGeneration[A] {
+  name: String,
+  resourceRootDir: File,
+  resourcePackage: List[String],
+  val size: Int = 100,
+  count: Int = 1
+) extends CodecLaws[A]
+    with SampleGeneration[A] {
 
   protected lazy val goldenObjects: Try[List[(A, String)]] =
     loadGoldenFiles match {
       case Success(value) if value.isEmpty => generateGoldenFiles
-      case Failure(_) => generateGoldenFiles
-      case _ => loadGoldenFiles
+      case Failure(_)                      => generateGoldenFiles
+      case _                               => loadGoldenFiles
     }
 
   private val rootPath = "/" + resourcePackage.mkString("/") + "/"
@@ -36,18 +36,18 @@ abstract class ResourceFileCodecLaws[A](
 
   private lazy val loadGoldenFiles = {
     Resources.open(resourceDir.getAbsolutePath).flatMap { dirSource =>
-       val files = dirSource.getLines.flatMap {
+      val files = dirSource.getLines.flatMap {
         case fileName @ goldenFileNamePattern(seed) => Some((seed, fileName))
-        case _ => None
+        case _                                      => None
       }.toList.traverse[Try, (A, String)] {
-         case (seed, name) =>
-           val contents = Resources.open(rootPath + name).map { source =>
-             val lines = source.getLines.mkString("\n")
-             source.close()
-             lines
-           }
-           (getValueFromBase64Seed(seed), contents).tupled
-       }
+        case (seed, name) =>
+          val contents = Resources.open(rootPath + name).map { source =>
+            val lines = source.getLines.mkString("\n")
+            source.close()
+            lines
+          }
+          (getValueFromBase64Seed(seed), contents).tupled
+      }
       dirSource.close()
 
       files.flatMap { values =>
@@ -74,8 +74,11 @@ abstract class ResourceFileCodecLaws[A](
 }
 
 object ResourceFileCodecLaws {
-  def apply[A](name: String, resourceRootDir: File, resourcePackage: List[String])
-              (implicit arbitraryA: Arbitrary[A], format: Format[A], typeTag: TypeTag[A]): CodecLaws[A] =
+  def apply[A](
+    name: String,
+    resourceRootDir: File,
+    resourcePackage: List[String]
+  )(implicit arbitraryA: Arbitrary[A], format: Format[A], typeTag: TypeTag[A]): CodecLaws[A] =
     new ResourceFileCodecLaws[A](name, resourceRootDir, resourcePackage) {
       override protected def goldenSamples: Try[List[(A, String)]] = goldenObjects
 
