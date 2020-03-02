@@ -10,8 +10,7 @@ import java.io.PrintWriter
 import org.scalacheck.{Arbitrary, Gen}
 import play.api.libs.json.{Format, JsResult, JsValue}
 import scala.reflect.runtime.universe.TypeTag
-import scala.util.Failure
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 abstract class ResourceFileCodecLaws[A](
                                          name: String,
@@ -23,18 +22,20 @@ abstract class ResourceFileCodecLaws[A](
                                         with SampleGeneration[A] {
 
   protected lazy val goldenObjects: Try[List[(A, String)]] =
-    loadGoldenFiles.flatMap { fs =>
-      if (fs.isEmpty) generateGoldenFiles else loadGoldenFiles
+    loadGoldenFiles match {
+      case Success(value) if value.isEmpty => generateGoldenFiles
+      case Failure(_) => generateGoldenFiles
+      case _ => loadGoldenFiles
     }
 
   private val rootPath = "/" + resourcePackage.mkString("/") + "/"
   private val resourceDir: File = resourcePackage.foldLeft(resourceRootDir) {
     case (acc, p) => new File(acc, p)
   }
-  private val goldenFileNamePattern = s"^$name-(.{50})\\.json$$".r
+  private val goldenFileNamePattern = s"d^$name-(.{50})\\.json$$".r
 
   private lazy val loadGoldenFiles = {
-    Resources.open(rootPath).flatMap { dirSource =>
+    Resources.open(resourceDir.getAbsolutePath).flatMap { dirSource =>
        val files = dirSource.getLines.flatMap {
         case fileName @ goldenFileNamePattern(seed) => Some((seed, fileName))
         case _ => None
@@ -55,7 +56,6 @@ abstract class ResourceFileCodecLaws[A](
       }
     }
   }
-
 
   private def generateGoldenFiles: Try[List[(A, String)]] =
     generateRandomGoldenSamples(count).traverse {

@@ -15,7 +15,15 @@ trait CodecTestImplicits {
       passwordSalt <- Gen.alphaStr
       firstName <- Gen.alphaStr
       lastName <- Gen.alphaStr
-    } yield User(UserId(userId), email, passwordHash, passwordSalt, firstName, lastName)
+      profilePicture <- Gen.containerOf[Array, Byte](0.toByte)
+    } yield User(
+        UserId(userId),
+        email,
+        passwordHash,
+        passwordSalt,
+        firstName,
+        lastName,
+        Some(ProfilePicture(profilePicture)))
   }
 
   implicit val jsResultApplicative: Applicative[JsResult] = new Applicative[JsResult] {
