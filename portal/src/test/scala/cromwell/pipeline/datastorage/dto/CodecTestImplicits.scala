@@ -6,23 +6,30 @@ import play.api.libs.json.JsResult
 import play.api.libs.json.JsResult.applicativeJsResult
 
 trait CodecTestImplicits {
+  implicit def emailGen: Gen[String] = {
+    for {
+      name <- Gen.alphaStr.filter(s => s.nonEmpty)
+      at = "@"
+      domain <- Gen.alphaStr.filter(s => s.nonEmpty)
+      dotCom = ".com"
+    } yield List(name, at, domain, dotCom).mkString
+  }
+
   implicit val userArbitrary: Arbitrary[User] = Arbitrary {
     for {
       userId <- Gen.identifier
-      email <- Gen.alphaStr.suchThat(_.matches("""([\w\.!#$%&*+/=?^_`{|}~-]+)@([\w]+)([\.]{1}[\w]+)+"""))
+      email <- emailGen
       passwordHash <- Gen.alphaStr
       passwordSalt <- Gen.alphaStr
       firstName <- Gen.alphaStr
       lastName <- Gen.alphaStr
-      profilePicture <- Gen.containerOf[Array, Byte](0.toByte)
     } yield User(
       UserId(userId),
       email,
       passwordHash,
       passwordSalt,
       firstName,
-      lastName,
-      Some(ProfilePicture(profilePicture))
+      lastName
     )
   }
 

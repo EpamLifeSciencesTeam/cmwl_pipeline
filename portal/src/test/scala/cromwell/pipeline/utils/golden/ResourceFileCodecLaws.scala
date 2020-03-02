@@ -86,7 +86,7 @@ object ResourceFileCodecLaws {
 
       override def deserialize: JsValue => JsResult[A] = format.reads
 
-      override def gen: Gen[A] = arbitraryA.arbitrary
+      override def gen: Gen[A] = Arbitrary.arbitrary(arbitraryA)
     }
 
   def apply[A](implicit arbitraryA: Arbitrary[A], format: Format[A], typeTag: TypeTag[A]): CodecLaws[A] =

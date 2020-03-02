@@ -16,7 +16,7 @@ trait SampleGeneration[A] { self: CodecLaws[A] =>
   final def getValueFromBase64Seed(seed: String): Try[A] = Seed.fromBase64(seed).map(getValue)
 
   final def generateRandomGoldenSamples(count: Int): List[(Seed, A, JsValue)] =
-    (0 to count).map { _ =>
+    (0 until  count).map { _ =>
       val seed = Seed.random()
       val value = getValue(seed)
 
