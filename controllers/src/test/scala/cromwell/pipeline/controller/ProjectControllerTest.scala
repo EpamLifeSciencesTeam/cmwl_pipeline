@@ -87,7 +87,7 @@ class ProjectControllerTest
       }
     }
 
-    "return InternalServerError status if projects's id doesn't match" in {
+    "return InternalServerError status if project id doesn't match" in {
       val userId = TestUserUtils.getDummyUser().userId
       val accessToken = AccessTokenContent("0")
       val dummyProject = TestProjectUtils.getDummyProject()
