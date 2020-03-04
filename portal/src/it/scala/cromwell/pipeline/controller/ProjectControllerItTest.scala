@@ -28,6 +28,7 @@ class ProjectControllerItTest
   override protected def beforeAll(): Unit = components.datastorageModule.pipelineDatabaseEngine.updateSchema()
   private val ownerId = "1"
   private val dummyUser = TestUserUtils.getDummyUser(ownerId)
+  private def projectId = ProjectId(UUID.randomUUID().toString)
   import components.controllerModule.projectController
   import components.datastorageModule.projectRepository
   import components.datastorageModule.userRepository
@@ -35,15 +36,14 @@ class ProjectControllerItTest
   "ProjectController" when {
     "getProjectByName" should {
       "return a project with the same name" in {
-        val dummyProject = TestProjectUtils.getDummyProject(ProjectId(UUID.randomUUID().toString),UserId(ownerId))
-        val projectByNameRequest = dummyProject.name
+        val dummyProject = TestProjectUtils.getDummyProject(projectId, UserId(ownerId))
         userRepository
           .addUser(dummyUser)
           .flatMap(
             _ =>
               projectRepository.addProject(dummyProject).map { _ =>
                 val accessToken = AccessTokenContent(dummyProject.ownerId.value)
-                Get("/projects?name=" + projectByNameRequest) ~> projectController.route(accessToken) ~> check {
+                Get("/projects?name=" + dummyProject.name) ~> projectController.route(accessToken) ~> check {
                   status shouldBe StatusCodes.OK
                   responseAs[Option[Project]] shouldEqual Option(dummyProject)
                 }
@@ -55,7 +55,7 @@ class ProjectControllerItTest
 
   "updateProject" should {
     "return status code NoContend if project was successfully updated" in {
-      val dummyProject = TestProjectUtils.getDummyProject(ProjectId(UUID.randomUUID().toString),UserId(ownerId))
+      val dummyProject = TestProjectUtils.getDummyProject(projectId, UserId(ownerId))
       val request = ProjectUpdateRequest(dummyProject.projectId, dummyProject.name, dummyProject.repository)
       projectRepository
         .addProject(dummyProject)
@@ -71,7 +71,7 @@ class ProjectControllerItTest
 
   "deleteProjectById" should {
     "return project's entity with false value if project was successfully deactivated" in {
-      val dummyProject = TestProjectUtils.getDummyProject(ProjectId(UUID.randomUUID().toString),UserId(ownerId))
+      val dummyProject = TestProjectUtils.getDummyProject(projectId, UserId(ownerId))
       val request = ProjectDeleteRequest(dummyProject.projectId)
       val deactivatedProjectResponse = dummyProject.copy(active = false)
       projectRepository.addProject(dummyProject).map{ _ =>
