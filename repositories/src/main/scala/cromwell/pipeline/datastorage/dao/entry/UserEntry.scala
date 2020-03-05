@@ -36,17 +36,17 @@ trait UserEntry {
 
   def addUserAction(user: User) = (users.returning(users.map(_.userId))) += user
 
-  def deactivateUserByEmail(email: String) = users.filter(_.email === email).map(_.active).update(false)
+  def deactivateUserByEmailAction(email: String) = users.filter(_.email === email).map(_.active).update(false)
 
-  def deactivateUserById(userId: UserId) = users.filter(_.userId === userId).map(_.active).update(false)
+  def deactivateUserByIdAction(userId: UserId) = users.filter(_.userId === userId).map(_.active).update(false)
 
-  def updateUser(updatedUser: User) =
+  def updateUserAction(updatedUser: User) =
     users
       .filter(_.userId === updatedUser.userId)
       .map(user => (user.email, user.firstName, user.lastName))
       .update((updatedUser.email, updatedUser.firstName, updatedUser.lastName))
 
-  def updatePassword(updatedUser: User) =
+  def updatePasswordAction(updatedUser: User) =
     users
       .filter(_.userId === updatedUser.userId)
       .map(user => (user.passwordHash, user.passwordSalt))

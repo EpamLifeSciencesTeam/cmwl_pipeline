@@ -23,11 +23,11 @@ class UserRepository(pipelineDatabaseEngine: PipelineDatabaseEngine, userEntry: 
 
   def addUser(user: User): Future[UserId] = database.run(userEntry.addUserAction(user))
 
-  def deactivateUserByEmail(email: UserEmail): Future[Int] = database.run(userEntry.deactivateUserByEmail(email))
+  def deactivateUserByEmail(email: UserEmail): Future[Int] = database.run(userEntry.deactivateUserByEmailAction(email))
 
-  def deactivateUserById(userId: UserId): Future[Int] = database.run(userEntry.deactivateUserById(userId))
+  def deactivateUserById(userId: UserId): Future[Int] = database.run(userEntry.deactivateUserByIdAction(userId))
 
-  def updateUser(updatedUser: User): Future[Int] = database.run(userEntry.updateUser(updatedUser))
+  def updateUser(updatedUser: User): Future[Int] = database.run(userEntry.updateUserAction(updatedUser))
 
-  def updatePassword(updatedUser: User): Future[Int] = database.run(userEntry.updatePassword(updatedUser))
+  def updatePassword(updatedUser: User): Future[Int] = database.run(userEntry.updatePasswordAction(updatedUser))
 }
