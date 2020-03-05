@@ -6,7 +6,7 @@ import play.api.libs.json.JsResult
 import play.api.libs.json.JsResult.applicativeJsResult
 
 trait CodecTestImplicits {
-  implicit def emailGen: Gen[String] = {
+  val emailGen: Gen[String] = {
     for {
       name <- Gen.alphaStr.filter(s => s.nonEmpty)
       at = "@"

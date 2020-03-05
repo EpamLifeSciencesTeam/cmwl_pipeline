@@ -35,7 +35,7 @@ abstract class ResourceFileCodecLaws[A](
   private val goldenFileNamePattern = s"d^$name-(.{50})\\.json$$".r
 
   private lazy val loadGoldenFiles = {
-    Resources.open(resourceDir.getAbsolutePath).flatMap { dirSource =>
+    Resources.open(rootPath).flatMap { dirSource =>
       val files = dirSource.getLines.flatMap {
         case fileName @ goldenFileNamePattern(seed) => Some((seed, fileName))
         case _                                      => None

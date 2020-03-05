@@ -11,13 +11,10 @@ object Resources {
    * Guess the resources directory in the test directory of the project.
    */
   lazy val inferRootDir: File = {
-    var current = new File(getClass.getResource("/").toURI)
+    val current = new File(getClass.getResource("/").toURI)
 
-    while (current.getName != "target" && current.ne(null)) {
-      current = current.getParentFile
-    }
-
-    val resourceDir = new File(new File(new File(current.getParentFile, "src"), "test"), "resources")
+    val parentFile = getParentFile(current)
+    val resourceDir = new File(new File(new File(parentFile, "src"), "test"), "resources")
 
     resourceDir.mkdirs()
     resourceDir
@@ -32,4 +29,12 @@ object Resources {
   def open(path: String): Try[Source] = Try(
     Source.fromInputStream(getClass.getResourceAsStream(path))
   )
+
+  @scala.annotation.tailrec
+  private def getParentFile(file: File): File = file match {
+    case parentFile if isParentFileCorrect(parentFile)  => parentFile
+    case _ => getParentFile(file.getParentFile)
+  }
+
+  private val isParentFileCorrect = (file: File) => file.getName == "target" && file.ne(null)
 }
