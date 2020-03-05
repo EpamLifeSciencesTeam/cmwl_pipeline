@@ -22,6 +22,7 @@ object Dependencies {
     val postgresql = "42.2.8"
     val womtool = "48"
     val logback = "1.2.3"
+
   }
 
   val akkaActor = "com.typesafe.akka" %% "akka-actor" % Version.akka
@@ -47,10 +48,10 @@ object Dependencies {
   val womtool = "pipeline" % "womtool" % Version.womtool
   val logback = "ch.qos.logback" % "logback-classic" % Version.logback
 
-  lazy val akkaDependencies = Seq(akkaActor, akkaStreams, akkaHttp, logback)
+  lazy val akkaDependencies = Seq(akkaActor, akkaStreams, akkaHttp)
   lazy val jsonDependencies = Seq(playJson, akkaHttpJson, jwtCore)
   lazy val dbDependencies = Seq(slick, hikariCP, postgresql, liquibase, yaml)
-  lazy val testDependencies = Seq(mockito, akkaTestKit, akkaHttpTestKit, scalaCheck, scalaTest, scalaMock)
+  lazy val testDependencies = Seq(mockito, akkaTestKit, akkaHttpTestKit, scalaCheck, scalaTest, scalaMock, logback)
   lazy val testContainers = Seq(tcCore, tcPostgres)
   lazy val cromwellDependencies = Seq(womtool)
 }
