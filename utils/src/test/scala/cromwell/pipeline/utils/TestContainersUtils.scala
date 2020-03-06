@@ -9,20 +9,22 @@ object TestContainersUtils {
   private val user = dbConfig.getString("user")
   private val databaseName = dbConfig.getString("databaseName")
   private val password = dbConfig.getString("password")
+  private val port = dbConfig.getInt("portNumber")
 
   def getPostgreSQLContainer(postgresImageName: String = "postgres:12"): PostgreSQLContainer =
-    PostgreSQLContainer(postgresImageName).configure { c =>
-      c.withDatabaseName(s"$databaseName")
-      c.withUsername(s"$user")
-      c.withPassword(s"$password")
-    }
+    PostgreSQLContainer(
+      dockerImageNameOverride = postgresImageName,
+      databaseName = databaseName,
+      username = user,
+      password = password
+    )
 
   import scala.collection.JavaConverters._
 
   def getConfigForPgContainer(container: PostgreSQLContainer): Config = ConfigFactory
     .parseMap(
       Map(
-        "database.postgres_dc.db.properties.portNumber" -> container.mappedPort(5432)
+        "database.postgres_dc.db.properties.portNumber" -> container.mappedPort(port)
       ).asJava
     )
     .withFallback(ConfigFactory.load())
