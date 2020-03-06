@@ -4,23 +4,20 @@ import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
 import cromwell.pipeline.datastorage.DatastorageModule
 import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
-import cromwell.pipeline.datastorage.dto.{ User, UserId }
 import cromwell.pipeline.utils.{ ApplicationConfig, StringUtils, TestContainersUtils }
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
-
-import scala.concurrent.Future
 
 class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfterAll with ForAllTestContainer {
 
   override val container: PostgreSQLContainer = TestContainersUtils.getPostgreSQLContainer()
-  container.start()
-
-  implicit val config: Config = TestContainersUtils.getConfigForPgContainer(container)
-  private val datastorageModule: DatastorageModule = new DatastorageModule(ApplicationConfig.load(config))
+  private lazy val config: Config = TestContainersUtils.getConfigForPgContainer(container)
+  private lazy val datastorageModule: DatastorageModule = new DatastorageModule(ApplicationConfig.load(config))
   import datastorageModule.userRepository
 
-  override protected def beforeAll(): Unit =
+  override protected def beforeAll(): Unit = {
+    super.beforeAll()
     datastorageModule.pipelineDatabaseEngine.updateSchema()
+  }
 
   private val newPasswordHash: String = StringUtils.calculatePasswordHash("newPassword", "salt")
 
@@ -28,7 +25,7 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
 
     "getUserById" should {
 
-      "find newly added user by id" taggedAs (Dao) in {
+      "find newly added user by id" taggedAs Dao in {
         val dummyUser = TestUserUtils.getDummyUser()
         val result = for {
           _ <- userRepository.addUser(dummyUser)
@@ -41,7 +38,7 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
 
     "getUserByEmail" should {
 
-      "find newly added user by email" taggedAs (Dao) in {
+      "find newly added user by email" taggedAs Dao in {
         val dummyUser = TestUserUtils.getDummyUser()
         val result = for {
           _ <- userRepository.addUser(dummyUser)
@@ -54,22 +51,17 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
 
     "getUsersByEmail" should {
 
-      "should find newly added user by email pattern" taggedAs (Dao) in {
+      "should find newly added user by email pattern" taggedAs Dao in {
         val dummyUser = TestUserUtils.getDummyUser()
-        userRepository
-          .addUser(dummyUser)
-          .flatMap(
-            _ =>
-              userRepository
-                .getUsersByEmail(dummyUser.email)
-                .map(repoResp => repoResp should contain theSameElementsAs Seq(dummyUser))
-          )
+        userRepository.addUser(dummyUser).flatMap { _ =>
+          userRepository.getUsersByEmail(dummyUser.email).map(_ should contain theSameElementsAs Seq(dummyUser))
+        }
       }
     }
 
     "updateUser" should {
 
-      "update email, firstName and lastName" taggedAs (Dao) in {
+      "update email, firstName and lastName" taggedAs Dao in {
         val dummyUser = TestUserUtils.getDummyUser()
         userRepository.addUser(dummyUser)
         val updatedUser =
@@ -84,7 +76,7 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
 
     "updatePassword" should {
 
-      "update password" taggedAs (Dao) in {
+      "update password" taggedAs Dao in {
         val dummyUser = TestUserUtils.getDummyUser()
         userRepository.addUser(dummyUser)
         val updatedUser = dummyUser.copy(passwordHash = newPasswordHash)

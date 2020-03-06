@@ -1,6 +1,5 @@
 package cromwell.pipeline.datastorage
 
-import com.typesafe.config.Config
 import cromwell.pipeline.database.PipelineDatabaseEngine
 import cromwell.pipeline.datastorage.dao.ProjectEntry
 import cromwell.pipeline.datastorage.dao.entry.UserEntry

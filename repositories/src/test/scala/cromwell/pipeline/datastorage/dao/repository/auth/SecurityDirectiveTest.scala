@@ -6,13 +6,13 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
+import cromwell.pipeline.datastorage.utils.auth.SecurityDirective._
 import cromwell.pipeline.datastorage.utils.auth.{ AccessTokenContent, AuthContent, SecurityDirective }
+import cromwell.pipeline.utils.{ AuthConfig, ExpirationTimeInSeconds }
 import org.scalatest.{ Matchers, WordSpec }
 import pdi.jwt.algorithms.JwtHmacAlgorithm
 import pdi.jwt.{ Jwt, JwtAlgorithm, JwtClaim }
 import play.api.libs.json.Json
-import cromwell.pipeline.utils.{ AuthConfig, ExpirationTimeInSeconds }
-import SecurityDirective._
 
 class SecurityDirectiveTest extends WordSpec with Matchers with ScalatestRouteTest {
 

@@ -1,11 +1,10 @@
 package cromwell.pipeline.datastorage.dto
 
 import cromwell.pipeline.datastorage.dto.User.UserEmail
-import play.api.libs.json.{ Json, OFormat }
-import play.api.libs.json.Format
-import slick.lifted.MappedTo
-import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
+import play.api.libs.json.Reads._
+import play.api.libs.json.{ Format, Json, OFormat }
+import slick.lifted.MappedTo
 
 final case class User(
   userId: UserId,

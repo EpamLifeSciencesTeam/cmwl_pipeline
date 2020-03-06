@@ -5,8 +5,8 @@ import akka.http.scaladsl.model.{ HttpEntity, StatusCodes }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.controller.AuthController._
 import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, SignInRequest, SignUpRequest }
-import cromwell.pipeline.service.AuthService
 import cromwell.pipeline.datastorage.utils.validator.DomainValidation
+import cromwell.pipeline.service.AuthService
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ Assertion, Matchers, WordSpec }
 import play.api.libs.json.Json
@@ -25,7 +25,7 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
 
     "signIn" should {
 
-      "return token headers if user exists" taggedAs (Controller) in {
+      "return token headers if user exists" taggedAs Controller in {
         val signInRequest = SignInRequest("email@cromwell.com", "password")
         val authResponse = AuthResponse(accessToken, refreshToken, accessTokenExpiration)
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signInRequest)))
@@ -37,7 +37,7 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
         }
       }
 
-      "return Unauthorized status if user doesn't exist" taggedAs (Controller) in {
+      "return Unauthorized status if user doesn't exist" taggedAs Controller in {
         val signInRequest = SignInRequest("email@cromwell.com", "password")
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signInRequest)))
         (authService.signIn _ when signInRequest).returns(Future(None))
@@ -50,7 +50,7 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
 
     "signUp" should {
 
-      "return token headers if user was successfully registered" taggedAs (Controller) in {
+      "return token headers if user was successfully registered" taggedAs Controller in {
         val signUpRequest = SignUpRequest("JohnDoe@cromwell.com", "Password213", "FirstName", "LastName")
         val authResponse = AuthResponse(accessToken, refreshToken, accessTokenExpiration)
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signUpRequest)))
@@ -62,7 +62,7 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
         }
       }
 
-      "return BadRequest with fields validation errors" taggedAs (Controller) in {
+      "return BadRequest with fields validation errors" taggedAs Controller in {
         val signUpRequest = SignUpRequest("email", "password", "First-name", "Last-name")
         val authResponse = AuthResponse(accessToken, refreshToken, accessTokenExpiration)
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signUpRequest)))
@@ -77,7 +77,7 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
         }
       }
 
-      "return BadRequest status if user registration was failed" taggedAs (Controller) in {
+      "return BadRequest status if user registration was failed" taggedAs Controller in {
         val signUpRequest = SignUpRequest("email@cromwell.com", "password", "First-name", "Last-name")
         val httpEntity = HttpEntity(`application/json`, Json.stringify(Json.toJson(signUpRequest)))
         (authService.signUp _ when signUpRequest).returns(Future(throw new RuntimeException("Something wrong.")))
@@ -90,7 +90,7 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
 
     "refresh" should {
 
-      "return updated token headers if refresh token was valid and active" taggedAs (Controller) in {
+      "return updated token headers if refresh token was valid and active" taggedAs Controller in {
         val authResponse = AuthResponse(accessToken, refreshToken, accessTokenExpiration)
         (authService.refreshTokens _ when refreshToken).returns(Some(authResponse))
 
@@ -100,7 +100,7 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
         }
       }
 
-      "return BadRequest status if something was wrong with refresh token" taggedAs (Controller) in {
+      "return BadRequest status if something was wrong with refresh token" taggedAs Controller in {
         (authService.refreshTokens _ when refreshToken).returns(None)
 
         Get(s"/auth/refresh?refreshToken=$refreshToken") ~> authController.route ~> check {

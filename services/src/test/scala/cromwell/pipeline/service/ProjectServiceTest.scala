@@ -1,79 +1,63 @@
 package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
-import cromwell.pipeline.datastorage.dto.{Project, ProjectAdditionRequest, ProjectId, UserId}
+import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
+import cromwell.pipeline.datastorage.dto.{ Project, ProjectAdditionRequest }
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
-import org.scalatest.{AsyncWordSpec, Matchers}
+import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.Future
 
-class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
+class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar with BeforeAndAfterAll {
 
   private val projectRepository = mock[ProjectRepository]
   private val projectService = new ProjectService(projectRepository)
+  private val dummyProject: Project = TestProjectUtils.getDummyProject()
 
   "ProjectServiceTest" when {
 
     "addProject" should {
-      "return id of a new project" in {
+      "return id of a new project" taggedAs Service in {
         val request =
           ProjectAdditionRequest(
-            name = "projectName"
+            ownerId = dummyProject.ownerId,
+            name = dummyProject.name,
+            repository = dummyProject.repository
           )
-        val projectId = ProjectId("projectId")
-        val ownerId = UserId("ownerId")
 
-        when(projectRepository.addProject(any[Project])).thenReturn(Future(projectId))
+        when(projectRepository.addProject(any[Project])).thenReturn(Future(dummyProject.projectId))
 
-        projectService.addProject(request, ownerId).map { _ shouldBe projectId }
+        projectService.addProject(request).map { _ shouldBe dummyProject.projectId }
       }
     }
 
     "deactivateProjectById" should {
-      "return deactivated project" in {
+      "return deactivated project" taggedAs Service in {
+        val project = dummyProject.copy(active = false)
 
-        val projectId = ProjectId("projectId")
-        val project =
-          Project(
-            projectId = projectId,
-            ownerId = UserId("userId"),
-            name = "projectName",
-            repository = "repositoryName",
-            active = false
-          )
+        when(projectRepository.deactivateProjectById(dummyProject.projectId)).thenReturn(Future(0))
+        when(projectRepository.getProjectById(dummyProject.projectId)).thenReturn(Future(Some(project)))
 
-        when(projectRepository.deactivateProjectById(projectId)).thenReturn(Future(0))
-        when(projectRepository.getProjectById(projectId)).thenReturn(Future(Some(project)))
-
-        projectService.deactivateProjectById(projectId).map { _ shouldBe Some(project) }
+        projectService.deactivateProjectById(dummyProject.projectId).map { _ shouldBe Some(project) }
       }
     }
 
     "getProjectById" should {
-      "return project with corresponding id" in {
-        val projectId = ProjectId("projectId")
-        val project =
-          Project(
-            projectId = projectId,
-            ownerId = UserId("userId"),
-            name = "projectName",
-            repository = "repositoryName",
-            active = false
-          )
+      "return project with corresponding id" taggedAs Service in {
+        val project = dummyProject.copy(active = false)
 
-        when(projectRepository.getProjectById(projectId)).thenReturn(Future(Some(project)))
+        when(projectRepository.getProjectById(dummyProject.projectId)).thenReturn(Future(Some(project)))
 
-        projectService.getProjectById(projectId).map { _ shouldBe Some(project) }
+        projectService.getProjectById(dummyProject.projectId).map { _ shouldBe Some(project) }
       }
 
-      "return none if project not found" in {
-        val projectId = ProjectId("projectId")
+      "return none if project not found" taggedAs Service in {
 
-        when(projectRepository.getProjectById(projectId)).thenReturn(Future(None))
+        when(projectRepository.getProjectById(dummyProject.projectId)).thenReturn(Future(None))
 
-        projectService.getProjectById(projectId).map { _ shouldBe None }
+        projectService.getProjectById(dummyProject.projectId).map { _ shouldBe None }
       }
     }
   }

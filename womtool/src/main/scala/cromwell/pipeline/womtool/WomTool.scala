@@ -7,8 +7,8 @@ import languages.cwl.CwlV1_0LanguageFactory
 import languages.wdl.biscayne.WdlBiscayneLanguageFactory
 import languages.wdl.draft2.WdlDraft2LanguageFactory
 import languages.wdl.draft3.WdlDraft3LanguageFactory
-import spray.json._
 import spray.json.DefaultJsonProtocol._
+import spray.json._
 import wom.executable.WomBundle
 import wom.expression.WomExpression
 import wom.graph.{
