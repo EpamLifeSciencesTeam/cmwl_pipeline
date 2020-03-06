@@ -31,7 +31,7 @@ trait CodecLaws[A] {
       case (value, encoded) =>
         deserialize(Json.parse(encoded)) match {
           case JsSuccess(decoded, _) => Success(decoded <-> value)
-          case error: JsError        => Failure(error.get)
+          case _: JsError        => Failure(new NoSuchElementException("Failed to deserialize golden sample"))
         }
     }
   }
