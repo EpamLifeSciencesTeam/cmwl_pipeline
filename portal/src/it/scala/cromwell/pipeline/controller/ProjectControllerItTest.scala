@@ -8,7 +8,7 @@ import com.dimafeng.testcontainers.{ForAllTestContainer, PostgreSQLContainer}
 import com.typesafe.config.Config
 import cromwell.pipeline.ApplicationComponents
 import cromwell.pipeline.datastorage.dao.repository.utils.{TestProjectUtils, TestUserUtils}
-import cromwell.pipeline.datastorage.dto.{Project, ProjectId, UserId}
+import cromwell.pipeline.datastorage.dto.{Project, ProjectDeleteRequest, ProjectId, ProjectUpdateRequest, UserId}
 import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
 import cromwell.pipeline.utils.TestContainersUtils
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
@@ -26,7 +26,9 @@ class ProjectControllerItTest
   implicit val config: Config = TestContainersUtils.getConfigForPgContainer(container)
   private val components: ApplicationComponents = new ApplicationComponents()
   override protected def beforeAll(): Unit = components.datastorageModule.pipelineDatabaseEngine.updateSchema()
-
+  private val ownerId = "1"
+  private val dummyUser = TestUserUtils.getDummyUser(ownerId)
+  private def projectId = ProjectId(UUID.randomUUID().toString)
   import components.controllerModule.projectController
   import components.datastorageModule.projectRepository
   import components.datastorageModule.userRepository
@@ -34,23 +36,51 @@ class ProjectControllerItTest
   "ProjectController" when {
     "getProjectByName" should {
       "return a project with the same name" in {
-        val dummyUser = TestUserUtils.getDummyUser("1")
-        val dummyProject = TestProjectUtils.getDummyProject(ProjectId(UUID.randomUUID().toString), UserId("1"))
-        val projectByNameRequest = dummyProject.name
-
+        val dummyProject = TestProjectUtils.getDummyProject(projectId, UserId(ownerId))
         userRepository
           .addUser(dummyUser)
           .flatMap(
             _ =>
               projectRepository.addProject(dummyProject).map { _ =>
                 val accessToken = AccessTokenContent(dummyProject.ownerId.value)
-                Get("/projects?name=" + projectByNameRequest) ~> projectController.route(accessToken) ~> check {
+                Get("/projects?name=" + dummyProject.name) ~> projectController.route(accessToken) ~> check {
                   status shouldBe StatusCodes.OK
-                  responseAs[Option[Project]] shouldEqual Option(dummyProject)
+                  responseAs[Option[Project]] shouldEqual Some(dummyProject)
                 }
               }
           )
       }
     }
   }
+
+  "updateProject" should {
+    "return status code NoContend if project was successfully updated" in {
+      val dummyProject = TestProjectUtils.getDummyProject(projectId, UserId(ownerId))
+      val request = ProjectUpdateRequest(dummyProject.projectId, dummyProject.name, dummyProject.repository)
+      projectRepository
+        .addProject(dummyProject)
+        .flatMap( _ =>
+          projectRepository.updateProject(dummyProject).map{ _ =>
+            val accessToken = AccessTokenContent(dummyUser.userId.value)
+            Put("/projects", request) ~> projectController.route(accessToken) ~> check {
+              status shouldBe StatusCodes.NoContent
+            }
+          })
+    }
+  }
+
+  "deleteProjectById" should {
+    "return project's entity with a field active equal to false if project was successfully deactivated" in {
+      val dummyProject = TestProjectUtils.getDummyProject(projectId, UserId(ownerId))
+      val request = ProjectDeleteRequest(dummyProject.projectId)
+      val deactivatedProjectResponse = dummyProject.copy(active = false)
+      projectRepository.addProject(dummyProject).map{ _ =>
+        val accessToken = AccessTokenContent(dummyUser.userId.value)
+        Delete("/projects", request) ~> projectController.route(accessToken) ~> check {
+          responseAs[Project] shouldBe deactivatedProjectResponse
+        }
+      }
+    }
+  }
+
 }

@@ -17,13 +17,13 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
   "ProjectServiceTest" when {
 
     "addProject" should {
-      "return id of a new project" in {
+      "return id of a new project" taggedAs (Service) in {
         val request =
           ProjectAdditionRequest(
             name = "projectName"
           )
-        val projectId = ProjectId("projectId")
-        val ownerId = UserId("ownerId")
+        val projectId = TestProjectUtils.getDummyProject().projectId
+        val ownerId = TestProjectUtils.getDummyProject().ownerId
 
         when(projectRepository.addProject(any[Project])).thenReturn(Future(projectId))
 
