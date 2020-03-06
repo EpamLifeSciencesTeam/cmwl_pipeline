@@ -36,17 +36,17 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
 
     "refreshTokens" should {
 
-      "return Auth response for active refresh token" taggedAs (Service) in new RefreshTokenContext(
+      "return Auth response for active refresh token" taggedAs Service in new RefreshTokenContext(
         expirationTimeInSeconds.refreshToken
       ) {
         authService.refreshTokens(refreshToken) shouldBe Some(authResponse)
       }
 
-      "return None for outdated refresh token" taggedAs (Service) in new RefreshTokenContext(lifetime = 0) {
+      "return None for outdated refresh token" taggedAs Service in new RefreshTokenContext(lifetime = 0) {
         authService.refreshTokens(refreshToken) shouldBe None
       }
 
-      "return None for another type of token" taggedAs (Service) in {
+      "return None for another type of token" taggedAs Service in {
         val currentTimestamp = Instant.now.getEpochSecond
         val accessTokenContent: AuthContent = AccessTokenContent(userId = userId.value)
         val accessTokenClaims = JwtClaim(
@@ -61,7 +61,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
         authService.refreshTokens(accessToken) shouldBe None
       }
 
-      "return None for wrong token" taggedAs (Service) in {
+      "return None for wrong token" taggedAs Service in {
         val wrongToken = "wrongToken"
 
         (authUtils.getOptJwtClaims _ when wrongToken).returns(None)

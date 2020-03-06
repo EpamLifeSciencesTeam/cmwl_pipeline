@@ -21,8 +21,7 @@ object LiquibaseUtils {
       val liquibase = new Liquibase(changeLogResourcePath, new ClassLoaderResourceAccessor(), database)
 
       liquibase.update(DefaultContexts, DefaultLabelExpression)
-    }.foreach { _ =>
-      liquibaseConnection.close()
     }
+    liquibaseConnection.close()
   }
 }

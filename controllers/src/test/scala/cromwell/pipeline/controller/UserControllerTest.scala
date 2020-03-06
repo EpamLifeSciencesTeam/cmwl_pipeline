@@ -30,7 +30,7 @@ class UserControllerTest
 
     "get users by email" should {
 
-      "return the sequence of users" taggedAs (Controller) in {
+      "return the sequence of users" taggedAs Controller in {
         val usersByEmailRequest: String = "@mail"
         val userId = dummyUser.userId
         val uEmailRespSeq: Seq[User] = Seq(dummyUser)
@@ -44,7 +44,7 @@ class UserControllerTest
           responseAs[Seq[User]].size shouldEqual 1
         }
       }
-      "return the internal server error if service fails" taggedAs (Controller) in {
+      "return the internal server error if service fails" taggedAs Controller in {
         val usersByEmailRequest: String = "@mail"
         val accessToken = AccessTokenContent(dummyUser.userId.value)
         when(userService.getUsersByEmail(usersByEmailRequest))
@@ -54,7 +54,7 @@ class UserControllerTest
           status shouldBe StatusCodes.InternalServerError
         }
       }
-      "return the sequence of users when pattern must contain correct number of entries" taggedAs (Controller) in {
+      "return the sequence of users when pattern must contain correct number of entries" taggedAs Controller in {
         val usersByEmailRequest: String = "someDomain.com"
         val userId = dummyUser.userId
 
@@ -75,7 +75,7 @@ class UserControllerTest
     }
 
     "deactivateUserById" should {
-      "return user's entity with false value if user was successfully deactivated" taggedAs (Controller) in {
+      "return user's entity with false value if user was successfully deactivated" taggedAs Controller in {
         val userId = dummyUser.copy(active = false).userId
         val response = UserNoCredentials.fromUser(dummyUser)
         val accessToken = AccessTokenContent(userId.value)
@@ -87,7 +87,7 @@ class UserControllerTest
           status shouldBe StatusCodes.OK
         }
       }
-      "return server error if user deactivation was failed" taggedAs (Controller) in {
+      "return server error if user deactivation was failed" taggedAs Controller in {
         val userId = dummyUser.userId.value
         val accessToken = AccessTokenContent(userId)
         when(userService.deactivateUserById(UserId(userId)))
@@ -97,7 +97,7 @@ class UserControllerTest
           status shouldBe StatusCodes.InternalServerError
         }
       }
-      "return NotFound status if user deactivation was failed" taggedAs (Controller) in {
+      "return NotFound status if user deactivation was failed" taggedAs Controller in {
         val userId = dummyUser.userId.value
         val accessToken = AccessTokenContent(userId)
         when(userService.deactivateUserById(UserId(userId))).thenReturn(Future(None))
@@ -109,7 +109,7 @@ class UserControllerTest
     }
 
     "update" should {
-      "return NoContent status if user was amended" taggedAs (Controller) in {
+      "return NoContent status if user was amended" taggedAs Controller in {
         val userId = dummyUser.userId.value
         val accessToken = AccessTokenContent(userId)
         val request = UserUpdateRequest(dummyUser.email, dummyUser.firstName, dummyUser.lastName)
@@ -121,7 +121,7 @@ class UserControllerTest
         }
       }
 
-      "return NoContent status if user's password was amended" taggedAs (Controller) in {
+      "return NoContent status if user's password was amended" taggedAs Controller in {
         val userId = dummyUser.userId.value
         val accessToken = AccessTokenContent(userId)
         val userPassword = "-Pa$$w0rd-"
@@ -134,7 +134,7 @@ class UserControllerTest
         }
       }
 
-      "return InternalServerError status if user's id doesn't match" taggedAs (Controller) in {
+      "return InternalServerError status if user's id doesn't match" taggedAs Controller in {
         val userId = dummyUser.userId.value
         val accessToken = AccessTokenContent("0")
         val request = UserUpdateRequest(dummyUser.email, dummyUser.firstName, dummyUser.lastName)
@@ -147,7 +147,7 @@ class UserControllerTest
         }
       }
 
-      "return BadRequest status if user's passwords don't match" taggedAs (Controller) in {
+      "return BadRequest status if user's passwords don't match" taggedAs Controller in {
         val userId = dummyUser.userId.value
         val accessToken = AccessTokenContent(userId)
         val userPassword = "-Pa$$w0rd-"

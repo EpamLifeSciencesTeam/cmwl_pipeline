@@ -7,13 +7,11 @@ import com.typesafe.config.Config
 import cromwell.pipeline.ApplicationComponents
 import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
-import cromwell.pipeline.datastorage.dto.{ User, UserId, UserNoCredentials }
+import cromwell.pipeline.datastorage.dto.{ User, UserNoCredentials }
 import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
-import cromwell.pipeline.utils.{ TestContainersUtils }
+import cromwell.pipeline.utils.TestContainersUtils
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import org.scalatest.{ AsyncWordSpec, Matchers }
-
-import scala.concurrent.Future
 
 class UserControllerItTest
     extends AsyncWordSpec
@@ -23,15 +21,16 @@ class UserControllerItTest
     with ForAllTestContainer {
 
   override val container: PostgreSQLContainer = TestContainersUtils.getPostgreSQLContainer()
-  container.start()
-  implicit val config: Config = TestContainersUtils.getConfigForPgContainer(container)
-  private val components: ApplicationComponents = new ApplicationComponents()
+  private implicit lazy val config: Config = TestContainersUtils.getConfigForPgContainer(container)
+  private lazy val components: ApplicationComponents = new ApplicationComponents()
 
   import components.controllerModule.userController
   import components.datastorageModule.userRepository
 
-  override protected def beforeAll(): Unit =
+  override protected def beforeAll(): Unit = {
+    super.beforeAll()
     components.datastorageModule.pipelineDatabaseEngine.updateSchema()
+  }
 
   private val password: String = "-Pa$$w0rd-"
 
@@ -73,17 +72,14 @@ class UserControllerItTest
       "return status code NoContent if user was successfully updated" in {
         val dummyUser: User = TestUserUtils.getDummyUser()
         val request = UserUpdateRequest(dummyUser.email, dummyUser.firstName, dummyUser.lastName)
-        userRepository
-          .addUser(dummyUser)
-          .flatMap(
-            _ =>
-              userRepository.updateUser(dummyUser).map { _ =>
-                val accessToken = AccessTokenContent(dummyUser.userId.value)
-                Put("/users", request) ~> userController.route(accessToken) ~> check {
-                  status shouldBe StatusCodes.NoContent
-                }
-              }
-          )
+        userRepository.addUser(dummyUser).flatMap { _ =>
+          userRepository.updateUser(dummyUser).map { _ =>
+            val accessToken = AccessTokenContent(dummyUser.userId.value)
+            Put("/users", request) ~> userController.route(accessToken) ~> check {
+              status shouldBe StatusCodes.NoContent
+            }
+          }
+        }
       }
     }
 
@@ -92,17 +88,14 @@ class UserControllerItTest
       "return status code NoContent if user's password was successfully updated" in {
         val dummyUser: User = TestUserUtils.getDummyUser()
         val request = PasswordUpdateRequest(password, "newPassword", "newPassword")
-        userRepository
-          .addUser(dummyUser)
-          .flatMap(
-            _ =>
-              userRepository.updatePassword(dummyUser).map { _ =>
-                val accessToken = AccessTokenContent(dummyUser.userId.value)
-                Put("/users", request) ~> userController.route(accessToken) ~> check {
-                  status shouldBe StatusCodes.NoContent
-                }
-              }
-          )
+        userRepository.addUser(dummyUser).flatMap { _ =>
+          userRepository.updatePassword(dummyUser).map { _ =>
+            val accessToken = AccessTokenContent(dummyUser.userId.value)
+            Put("/users", request) ~> userController.route(accessToken) ~> check {
+              status shouldBe StatusCodes.NoContent
+            }
+          }
+        }
       }
     }
   }
