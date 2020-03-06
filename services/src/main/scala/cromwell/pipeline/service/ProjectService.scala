@@ -3,10 +3,11 @@ package cromwell.pipeline.service
 import java.util.UUID
 
 import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
-import cromwell.pipeline.datastorage.dto.{ ProjectAdditionRequest, ProjectUpdateRequest }
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, UserId }
+import cromwell.pipeline.datastorage.dto.{ProjectAdditionRequest, ProjectUpdateRequest}
+import cromwell.pipeline.datastorage.dto.{Project, ProjectId, UserId}
+import cromwell.pipeline.service.Exceptions.{ProjectAccessDeniedException, ProjectNotFoundException}
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 class ProjectService(projectRepository: ProjectRepository)(implicit executionContext: ExecutionContext) {
 
@@ -67,5 +68,7 @@ class ProjectService(projectRepository: ProjectRepository)(implicit executionCon
 
 }
 
-case class ProjectNotFoundException(message: String = "Project not found") extends RuntimeException(message)
-case class ProjectAccessDeniedException(message: String = "Access denied") extends RuntimeException(message)
+object Exceptions {
+  case class ProjectNotFoundException(message: String = "Project not found") extends RuntimeException(message)
+  case class ProjectAccessDeniedException(message: String = "Access denied. You  not owner of the project") extends RuntimeException(message)
+}

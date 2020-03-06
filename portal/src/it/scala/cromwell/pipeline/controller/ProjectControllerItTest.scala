@@ -45,7 +45,7 @@ class ProjectControllerItTest
                 val accessToken = AccessTokenContent(dummyProject.ownerId.value)
                 Get("/projects?name=" + dummyProject.name) ~> projectController.route(accessToken) ~> check {
                   status shouldBe StatusCodes.OK
-                  responseAs[Option[Project]] shouldEqual Option(dummyProject)
+                  responseAs[Option[Project]] shouldEqual Some(dummyProject)
                 }
               }
           )
@@ -70,7 +70,7 @@ class ProjectControllerItTest
   }
 
   "deleteProjectById" should {
-    "return project's entity with false value if project was successfully deactivated" in {
+    "return project's entity with a field active equal to false if project was successfully deactivated" in {
       val dummyProject = TestProjectUtils.getDummyProject(projectId, UserId(ownerId))
       val request = ProjectDeleteRequest(dummyProject.projectId)
       val deactivatedProjectResponse = dummyProject.copy(active = false)

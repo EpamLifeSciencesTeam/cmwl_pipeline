@@ -17,8 +17,8 @@ class ProjectControllerTest
   extends AsyncWordSpec
     with Matchers
     with ScalatestRouteTest
-    with MockitoSugar
-    with PlayJsonSupport {
+    with MockitoSugar {
+  import PlayJsonSupport._
 
   private val projectService = mock[ProjectService]
   private val projectController = new ProjectController(projectService)
