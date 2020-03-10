@@ -47,12 +47,17 @@ lazy val datasource = project
 
 lazy val portal = project
   .configs(IntegrationTest)
+  .enablePlugins(JavaAppPackaging)
   .settings(
     name := "Portal",
     commonSettings,
     libraryDependencies ++= akkaDependencies ++ jsonDependencies,
     Defaults.itSettings,
     Seq(parallelExecution in Test := false),
+    mappings in Universal ++= Seq(
+      (resourceDirectory in Compile).value / "application.conf" -> "conf/application.conf",
+      (resourceDirectory in Compile).value / "logback.xml" -> "conf/logback.xml"
+    ),
     addCommandAlias("testAll", "; test ; it:test")
   )
   .aggregate(repositories, services, controllers, utils)
