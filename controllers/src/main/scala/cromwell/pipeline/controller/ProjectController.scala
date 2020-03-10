@@ -5,7 +5,8 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives._
 import cromwell.pipeline.datastorage.dto.{ProjectAdditionRequest, ProjectDeleteRequest, ProjectUpdateRequest, UserId}
 import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
-import cromwell.pipeline.service.{ProjectAccessDeniedException, ProjectNotFoundException, ProjectService}
+import cromwell.pipeline.service.Exceptions.{ProjectAccessDeniedException, ProjectNotFoundException}
+import cromwell.pipeline.service.ProjectService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
 import scala.concurrent.ExecutionContext
