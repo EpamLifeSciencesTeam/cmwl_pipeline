@@ -31,7 +31,7 @@ class ProjectController(projectService: ProjectService)(
         },
         post {
           entity(as[ProjectAdditionRequest]) { request =>
-            onComplete(projectService.addProject(request, UserId(accessToken.userId))) {
+            onComplete(projectService.addProject(request, UserId(accessToken.userId), "repoStub")) {
               case Success(_) => complete(StatusCodes.OK)
               case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
             }

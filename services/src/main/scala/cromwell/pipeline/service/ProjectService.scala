@@ -23,13 +23,13 @@ class ProjectService(projectRepository: ProjectRepository)(implicit executionCon
     }
   }
 
-  def addProject(request: ProjectAdditionRequest, userId: UserId): Future[ProjectId] = {
+  def addProject(request: ProjectAdditionRequest, userId: UserId, repoStub: String): Future[ProjectId] = {
     val project =
       Project(
         projectId = ProjectId(UUID.randomUUID().toString),
         ownerId = userId,
         name = request.name,
-        repository = "test_repo",
+        repository = repoStub, /* A stub for project repository. The project repository will be appointed later*/
         active = true
       )
     projectRepository.addProject(project)
