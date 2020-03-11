@@ -6,7 +6,7 @@ import cromwell.pipeline.datastorage.dao.repository.utils.{TestProjectUtils, Tes
 import cromwell.pipeline.datastorage.dto.{Project, ProjectDeleteRequest, ProjectUpdateRequest, UserId}
 import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
 import cromwell.pipeline.service.ProjectService
-import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
+import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import org.mockito.Mockito.when
 import org.scalatest.{AsyncWordSpec, Matchers}
 import org.scalatestplus.mockito.MockitoSugar
@@ -18,7 +18,6 @@ class ProjectControllerTest
     with Matchers
     with ScalatestRouteTest
     with MockitoSugar {
-  import PlayJsonSupport._
 
   private val projectService = mock[ProjectService]
   private val projectController = new ProjectController(projectService)
