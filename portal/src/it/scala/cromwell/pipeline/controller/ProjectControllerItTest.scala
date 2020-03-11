@@ -11,14 +11,13 @@ import cromwell.pipeline.datastorage.dao.repository.utils.{TestProjectUtils, Tes
 import cromwell.pipeline.datastorage.dto.{Project, ProjectDeleteRequest, ProjectId, ProjectUpdateRequest, UserId}
 import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
 import cromwell.pipeline.utils.TestContainersUtils
-import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
+import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import org.scalatest.{AsyncWordSpec, Matchers}
 
 class ProjectControllerItTest
   extends AsyncWordSpec
     with Matchers
     with ScalatestRouteTest
-    with PlayJsonSupport
     with ForAllTestContainer {
 
   override val container: PostgreSQLContainer = TestContainersUtils.getPostgreSQLContainer()
