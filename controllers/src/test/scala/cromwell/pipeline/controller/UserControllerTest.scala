@@ -7,7 +7,7 @@ import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdat
 import cromwell.pipeline.datastorage.dto.{ User, UserId, UserNoCredentials }
 import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
 import cromwell.pipeline.service.UserService
-import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
+import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import org.mockito.Mockito._
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
@@ -20,7 +20,6 @@ class UserControllerTest
     with ScalatestRouteTest
     with MockitoSugar
     with BeforeAndAfterAll {
-  import PlayJsonSupport._
 
   private val userService = mock[UserService]
   private val userController = new UserController(userService)
