@@ -4,6 +4,7 @@ import cats.data.Validated._
 import cats.data._
 import cats.implicits._
 import cromwell.pipeline.datastorage.dto.auth.SignUpRequest
+import cromwell.pipeline.datastorage.dto.user.PasswordUpdateRequest
 
 object FormValidatorNel {
 
@@ -30,4 +31,10 @@ object FormValidatorNel {
       validateLastName(signUpRequest.lastName)
     ).mapN(SignUpRequest.apply)
 
+  def validateForm(passwordUpdateRequest: PasswordUpdateRequest): ValidationResult[PasswordUpdateRequest] =
+    (
+      validatePassword(passwordUpdateRequest.currentPassword),
+      validatePassword(passwordUpdateRequest.newPassword),
+      validatePassword(passwordUpdateRequest.repeatPassword)
+    ).mapN(PasswordUpdateRequest.apply)
 }
