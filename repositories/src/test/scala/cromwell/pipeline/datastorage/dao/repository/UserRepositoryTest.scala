@@ -19,7 +19,8 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
     datastorageModule.pipelineDatabaseEngine.updateSchema()
   }
 
-  private val newPasswordHash: String = StringUtils.calculatePasswordHash("newPassword", "salt")
+  private val newPasswordHash: String = StringUtils.calculatePasswordHash("newPassword1", "salt")
+  private val newInvalidPasswordHash: String = StringUtils.calculatePasswordHash("newPassword", "salt")
 
   "UserRepository" when {
 
@@ -87,6 +88,5 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
           )
       }
     }
-
   }
 }
