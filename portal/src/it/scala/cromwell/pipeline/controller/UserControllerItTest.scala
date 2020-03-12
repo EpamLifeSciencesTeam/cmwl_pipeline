@@ -87,12 +87,25 @@ class UserControllerItTest
 
       "return status code NoContent if user's password was successfully updated" in {
         val dummyUser: User = TestUserUtils.getDummyUser()
-        val request = PasswordUpdateRequest(password, "newPassword", "newPassword")
+        val request = PasswordUpdateRequest(password, "newPassword1", "newPassword1")
         userRepository.addUser(dummyUser).flatMap { _ =>
           userRepository.updatePassword(dummyUser).map { _ =>
             val accessToken = AccessTokenContent(dummyUser.userId.value)
             Put("/users", request) ~> userController.route(accessToken) ~> check {
               status shouldBe StatusCodes.NoContent
+            }
+          }
+        }
+      }
+
+      "return BadRequest status if user's password is invalid" in {
+        val dummyUser: User = TestUserUtils.getDummyUser()
+        val request = PasswordUpdateRequest(password, "newPassword", "newPassword")
+        userRepository.addUser(dummyUser).flatMap { _ =>
+          userRepository.updatePassword(dummyUser).map { _ =>
+            val accessToken = AccessTokenContent(dummyUser.userId.value)
+            Put("/users", request) ~> userController.route(accessToken) ~> check {
+              status shouldBe StatusCodes.BadRequest
             }
           }
         }

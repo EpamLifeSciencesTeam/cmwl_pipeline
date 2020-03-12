@@ -31,10 +31,6 @@ object FormValidatorNel {
       validateLastName(signUpRequest.lastName)
     ).mapN(SignUpRequest.apply)
 
-  def validateForm(passwordUpdateRequest: PasswordUpdateRequest): ValidationResult[PasswordUpdateRequest] =
-    (
-      validatePassword(passwordUpdateRequest.currentPassword),
-      validatePassword(passwordUpdateRequest.newPassword),
-      validatePassword(passwordUpdateRequest.repeatPassword)
-    ).mapN(PasswordUpdateRequest.apply)
+  def validateForm(passwordUpdateRequest: PasswordUpdateRequest): ValidationResult[String] =
+    validatePassword(passwordUpdateRequest.newPassword)
 }

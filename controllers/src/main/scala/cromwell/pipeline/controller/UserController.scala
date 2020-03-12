@@ -53,7 +53,7 @@ class UserController(userService: UserService)(implicit executionContext: Execut
                     case Failure(exc) => complete(StatusCodes.BadRequest, exc.getMessage)
                   }
                 case Invalid(errors) =>
-                  complete(StatusCodes.BadRequest -> errors.toList.map(_.toMap))
+                  complete(StatusCodes.BadRequest, errors.toList.map(_.toMap))
               }
           }
         }
