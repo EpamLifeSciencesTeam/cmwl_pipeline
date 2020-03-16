@@ -26,10 +26,6 @@ object Resources {
   def inferClassName[A](implicit A: TypeTag[A]): String =
     A.tpe.typeSymbol.name.decodedName.toString
 
-  def open(path: String): Try[Source] = Try(
-    Source.fromInputStream(getClass.getResourceAsStream(path))
-  )
-
   @scala.annotation.tailrec
   private def getParentFile(file: File): File = file match {
     case parentFile if isParentFileCorrect(parentFile)  => parentFile

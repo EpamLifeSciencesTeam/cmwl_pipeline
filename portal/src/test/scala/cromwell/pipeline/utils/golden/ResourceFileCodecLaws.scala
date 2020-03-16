@@ -2,7 +2,6 @@ package cromwell.pipeline.utils.golden
 
 import cats.instances.list._
 import cats.instances.try_._
-import cats.syntax.apply._
 import cats.syntax.traverse._
 import java.io.File
 import java.io.PrintWriter
@@ -46,12 +45,15 @@ abstract class ResourceFileCodecLaws[A](
             case _                                      => None
           }.toList.traverse[Try, (A, String)] {
             case (seed, name) =>
-              val contents = Resources.open(rootPath + name).map { source =>
-                val lines = source.getLines.mkString("\n")
-                source.close()
-                lines
+              Option(getClass.getResourceAsStream(rootPath + name)) match {
+                case Some(contentStream) =>
+                  val contentSource = Source.fromInputStream(contentStream)
+                  val contents = open(contentSource) { source =>
+                    source.getLines.mkString("\n")
+                  }
+                  Try((getValueFromBase64Seed(seed).get, contents))
+                case None => Try((getValueFromBase64Seed(seed).get, ""))
               }
-              (getValueFromBase64Seed(seed), contents).tupled
           }
 
           files.flatMap { values =>
