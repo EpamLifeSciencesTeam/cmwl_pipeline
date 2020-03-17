@@ -20,7 +20,7 @@ class UserController(userService: UserService)(implicit executionContext: Execut
     path("users") {
       concat(
         get {
-          parameter('email.as[String]) { email =>
+          parameter(Symbol("email").as[String]) { email =>
             onComplete(userService.getUsersByEmail(email)) {
               case Success(r) => complete(r)
               case Failure(exc) =>

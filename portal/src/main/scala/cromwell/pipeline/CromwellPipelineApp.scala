@@ -3,7 +3,7 @@ package cromwell.pipeline
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
-import akka.stream.ActorMaterializer
+import akka.stream.{ Materializer }
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContextExecutor
@@ -11,7 +11,8 @@ import scala.concurrent.ExecutionContextExecutor
 object CromwellPipelineApp extends App {
 
   implicit val system: ActorSystem = ActorSystem("cromwell-pipeline")
-  implicit val materializer: ActorMaterializer = ActorMaterializer()
+  implicit val materializer: Materializer = Materializer(system)
+
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
   val log = LoggerFactory.getLogger(CromwellPipelineApp.getClass)

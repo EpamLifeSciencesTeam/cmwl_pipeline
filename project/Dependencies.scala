@@ -3,26 +3,25 @@ import sbt._
 object Dependencies {
 
   object Version {
-    val akka = "2.5.25"
-    val akkaHttp = "10.1.10"
+    val akka = "2.6.3"
+    val akkaHttp = "10.1.11"
     val slick = "3.3.2"
-    val hikariCP = "3.3.1"
-    val playJson = "2.7.3"
-    val akkaHttpJson = "1.29.1"
-    val jwtCore = "4.1.0"
-    val cats = "2.0.0"
-    val scalaCheck = "1.14.0"
+    val hikariCP = "3.3.2"
+    val playJson = "2.8.1"
+    val akkaHttpJson = "1.31.0"
+    val jwtCore = "4.3.0"
+    val cats = "2.1.1"
+    val scalaCheck = "1.14.3"
     val mockito = "1.10.19"
     val scalaTest = "3.0.8"
     val scalaMock = "4.4.0"
     val tcCore = "0.34.0"
-    val tcPostgres = "1.12.2"
-    val yaml = "1.23"
-    val liquibase = "3.8.6"
-    val postgresql = "42.2.8"
+    val tcPostgres = "1.13.0"
+    val yaml = "1.26"
+    val liquibase = "3.8.7"
+    val postgresql = "42.2.11"
     val womtool = "48"
     val logback = "1.2.3"
-
   }
 
   val akkaActor = "com.typesafe.akka" %% "akka-actor" % Version.akka

@@ -19,7 +19,7 @@ object TestContainersUtils {
       password = password
     )
 
-  import scala.collection.JavaConverters._
+  import scala.jdk.CollectionConverters._
 
   def getConfigForPgContainer(container: PostgreSQLContainer): Config = ConfigFactory
     .parseMap(

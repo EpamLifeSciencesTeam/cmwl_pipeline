@@ -46,7 +46,7 @@ class AuthController(authService: AuthService)(implicit executionContext: Execut
       },
       path("refresh") {
         get {
-          parameter('refreshToken.as[String]) { refreshToken =>
+          parameter(Symbol("refreshToken").as[String]) { refreshToken =>
             authService.refreshTokens(refreshToken) match {
               case Some(authResponse) => setSuccessAuthRoute(authResponse)
               case _                  => complete(StatusCodes.BadRequest)
