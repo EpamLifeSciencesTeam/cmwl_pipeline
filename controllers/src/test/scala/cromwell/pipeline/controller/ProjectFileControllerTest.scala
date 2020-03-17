@@ -28,7 +28,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
 
   "ProjectFileController" when {
     "validate file" should {
-      val accessToken = AccessTokenContent(TestUserUtils.getDummyUserId.value)
+      val accessToken = AccessTokenContent(TestUserUtils.getDummyUserId)
       val content = FileContent("task hello {}")
 
       "return OK response to valid file" taggedAs Controller in {
@@ -50,7 +50,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
 
     "upload file" should {
       val version = Version("v.0.0.2", "commit message", "this project", Commit("commit_12"))
-      val accessToken = AccessTokenContent(TestUserUtils.getDummyUserId.value)
+      val accessToken = AccessTokenContent(TestUserUtils.getDummyUserId)
       val project = TestProjectUtils.getDummyProject()
       val projectFile = ProjectFile(Paths.get("folder/test.txt"), "file context")
       val request = ProjectUpdateFileRequest(project, projectFile, Some(version))

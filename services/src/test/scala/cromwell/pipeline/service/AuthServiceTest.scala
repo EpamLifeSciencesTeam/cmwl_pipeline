@@ -3,9 +3,9 @@ package cromwell.pipeline.service
 import java.time.Instant
 
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
-import cromwell.pipeline.datastorage.dto.UserId
 import cromwell.pipeline.datastorage.dto.auth.AuthResponse
 import cromwell.pipeline.datastorage.utils.auth.{ AccessTokenContent, AuthContent, AuthUtils, RefreshTokenContent }
+import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.utils.{ AuthConfig, ExpirationTimeInSeconds }
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ Matchers, WordSpec }
@@ -30,7 +30,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
   private val userRepository: UserRepository = stub[UserRepository]
   private val authUtils: AuthUtils = stub[AuthUtils]
   private val authService: AuthService = new AuthService(userRepository, authUtils)
-  private val userId = UserId("userId")
+  private val userId = UserId.random
 
   "AuthServiceTest" when {
 
@@ -48,7 +48,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
 
       "return None for another type of token" taggedAs Service in {
         val currentTimestamp = Instant.now.getEpochSecond
-        val accessTokenContent: AuthContent = AccessTokenContent(userId = userId.value)
+        val accessTokenContent: AuthContent = AccessTokenContent(userId = userId)
         val accessTokenClaims = JwtClaim(
           content = Json.stringify(Json.toJson(accessTokenContent)),
           expiration = Some(currentTimestamp + expirationTimeInSeconds.accessToken),
@@ -74,7 +74,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
   class RefreshTokenContext(lifetime: Long) {
     val currentTimestamp: Long = Instant.now.getEpochSecond
     val refreshTokenContent: AuthContent = RefreshTokenContent(
-      userId = userId.value,
+      userId = userId,
       optRestOfUserSession = Some(expirationTimeInSeconds.userSession - lifetime)
     )
     val refreshTokenClaims: JwtClaim = JwtClaim(
@@ -88,4 +88,5 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
     (authUtils.getOptJwtClaims _ when refreshToken).returns(Some(refreshTokenClaims))
     (authUtils.getAuthResponse _ when (*, *, *)).returns(Some(authResponse))
   }
+
 }

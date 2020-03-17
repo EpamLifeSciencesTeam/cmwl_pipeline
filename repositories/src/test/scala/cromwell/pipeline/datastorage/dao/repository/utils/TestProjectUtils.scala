@@ -3,6 +3,7 @@ package cromwell.pipeline.datastorage.dao.repository.utils
 import java.util.UUID
 
 import cromwell.pipeline.datastorage.dto._
+import cromwell.pipeline.model.wrapper.UserId
 
 object TestProjectUtils {
 
