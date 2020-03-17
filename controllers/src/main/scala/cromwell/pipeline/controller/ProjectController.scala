@@ -3,7 +3,7 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import cromwell.pipeline.datastorage.dto.{ ProjectAdditionRequest, ProjectDeleteRequest, ProjectUpdateRequest, UserId }
+import cromwell.pipeline.datastorage.dto.{ ProjectAdditionRequest, ProjectDeleteRequest, ProjectUpdateRequest }
 import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
 import cromwell.pipeline.service.Exceptions.{ ProjectAccessDeniedException, ProjectNotFoundException }
 import cromwell.pipeline.service.ProjectService
@@ -19,19 +19,18 @@ class ProjectController(projectService: ProjectService)(
     path("projects") {
       concat(
         get {
-          parameter('name.as[String]) {
-            name =>
-              onComplete(projectService.getProjectByName(name, UserId(accessToken.userId))) {
-                case Success(project)                         => complete(project)
-                case Failure(e: ProjectNotFoundException)     => complete(StatusCodes.NotFound, e.getMessage)
-                case Failure(e: ProjectAccessDeniedException) => complete(StatusCodes.Forbidden, e.getMessage)
-                case Failure(e)                               => complete(StatusCodes.InternalServerError, e.getMessage)
-              }
+          parameter('name.as[String]) { name =>
+            onComplete(projectService.getProjectByName(name, accessToken.userId)) {
+              case Success(project)                         => complete(project)
+              case Failure(e: ProjectNotFoundException)     => complete(StatusCodes.NotFound, e.getMessage)
+              case Failure(e: ProjectAccessDeniedException) => complete(StatusCodes.Forbidden, e.getMessage)
+              case Failure(e)                               => complete(StatusCodes.InternalServerError, e.getMessage)
+            }
           }
         },
         post {
           entity(as[ProjectAdditionRequest]) { request =>
-            onComplete(projectService.addProject(request, UserId(accessToken.userId))) {
+            onComplete(projectService.addProject(request, accessToken.userId)) {
               case Success(_) => complete(StatusCodes.OK)
               case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
             }
@@ -40,7 +39,7 @@ class ProjectController(projectService: ProjectService)(
         delete {
           entity(as[ProjectDeleteRequest]) {
             request =>
-              onComplete(projectService.deactivateProjectById(request.projectId, UserId(accessToken.userId))) {
+              onComplete(projectService.deactivateProjectById(request.projectId, accessToken.userId)) {
                 case Success(project)                         => complete(project)
                 case Failure(e: ProjectNotFoundException)     => complete(StatusCodes.NotFound, e.getMessage)
                 case Failure(e: ProjectAccessDeniedException) => complete(StatusCodes.Forbidden, e.getMessage)
@@ -50,7 +49,7 @@ class ProjectController(projectService: ProjectService)(
         },
         put {
           entity(as[ProjectUpdateRequest]) { request =>
-            onComplete(projectService.updateProject(request, UserId(accessToken.userId))) {
+            onComplete(projectService.updateProject(request, accessToken.userId)) {
               case Success(_) => complete(StatusCodes.NoContent)
               case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
             }

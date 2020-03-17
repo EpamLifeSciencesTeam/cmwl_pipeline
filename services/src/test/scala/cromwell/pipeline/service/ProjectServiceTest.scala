@@ -2,7 +2,8 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectAdditionRequest, ProjectId, UserId }
+import cromwell.pipeline.datastorage.dto.{ Project, ProjectAdditionRequest, ProjectId }
+import cromwell.pipeline.model.wrapper.UserId
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
@@ -36,7 +37,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar w
     "deactivateProjectById" should {
       "return deactivated project" taggedAs Service in {
         val projectId = ProjectId("projectId")
-        val userId = UserId("userId")
+        val userId = UserId.random
         val project = TestProjectUtils.getDummyProject(projectId, userId)
 
         when(projectRepository.deactivateProjectById(projectId)).thenReturn(Future(0))
@@ -49,7 +50,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar w
     "getProjectById" should {
       "return project with corresponding id" taggedAs Service in {
         val projectId = ProjectId("projectId")
-        val userId = UserId("userId")
+        val userId = UserId.random
         val project = TestProjectUtils.getDummyProject(projectId, userId)
 
         when(projectRepository.getProjectById(projectId)).thenReturn(Future(Some(project)))

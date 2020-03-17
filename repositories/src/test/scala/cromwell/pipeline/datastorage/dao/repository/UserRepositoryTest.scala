@@ -6,6 +6,9 @@ import cromwell.pipeline.datastorage.DatastorageModule
 import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
 import cromwell.pipeline.utils.{ ApplicationConfig, StringUtils, TestContainersUtils }
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
+import cats.implicits._
+import cromwell.pipeline.model.validator.Enable
+import cromwell.pipeline.model.wrapper.{ Name, UserEmail }
 
 class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfterAll with ForAllTestContainer {
 
@@ -55,7 +58,7 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
       "should find newly added user by email pattern" taggedAs Dao in {
         val dummyUser = TestUserUtils.getDummyUser()
         userRepository.addUser(dummyUser).flatMap { _ =>
-          userRepository.getUsersByEmail(dummyUser.email).map(_ should contain theSameElementsAs Seq(dummyUser))
+          userRepository.getUsersByEmail(dummyUser.email.unwrap).map(_ should contain theSameElementsAs Seq(dummyUser))
         }
       }
     }
@@ -66,7 +69,11 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
         val dummyUser = TestUserUtils.getDummyUser()
         userRepository.addUser(dummyUser)
         val updatedUser =
-          dummyUser.copy(email = "updated@email.com", firstName = "updatedFName", lastName = "updatedLName")
+          dummyUser.copy(
+            email = UserEmail("updated@email.com", Enable.Unsafe),
+            firstName = Name("updatedFName", Enable.Unsafe),
+            lastName = Name("updatedLName", Enable.Unsafe)
+          )
         userRepository
           .updateUser(updatedUser)
           .flatMap(

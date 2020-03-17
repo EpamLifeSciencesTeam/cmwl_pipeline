@@ -6,7 +6,7 @@ import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
 import cromwell.pipeline.ApplicationComponents
 import cromwell.pipeline.datastorage.dao.repository.utils.{ TestProjectUtils, TestUserUtils }
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectDeleteRequest, ProjectUpdateRequest }
+import cromwell.pipeline.datastorage.dto.{ Project, ProjectDeleteRequest, ProjectId, ProjectUpdateRequest }
 import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
 import cromwell.pipeline.utils.TestContainersUtils
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
@@ -36,7 +36,8 @@ class ProjectControllerItTest
   "ProjectController" when {
     "getProjectByName" should {
       "return a project with the same name" in {
-        val dummyProject = TestProjectUtils.getDummyProject(ownerId = dummyUser.userId)
+        val dummyProject =
+          TestProjectUtils.getDummyProject(ownerId = dummyUser.userId)
         val projectByNameRequest = dummyProject.name
 
         userRepository
@@ -44,7 +45,7 @@ class ProjectControllerItTest
           .flatMap(
             _ =>
               projectRepository.addProject(dummyProject).map { _ =>
-                val accessToken = AccessTokenContent(dummyProject.ownerId.value)
+                val accessToken = AccessTokenContent(dummyProject.ownerId)
                 Get("/projects?name=" + projectByNameRequest) ~> projectController.route(accessToken) ~> check {
                   status shouldBe StatusCodes.OK
                   responseAs[Option[Project]] shouldEqual Option(dummyProject)
@@ -56,14 +57,15 @@ class ProjectControllerItTest
 
     "updateProject" should {
       "return status code NoContend if project was successfully updated" in {
-        val dummyProject = TestProjectUtils.getDummyProject(ownerId = dummyUser.userId)
+        val dummyProject =
+          TestProjectUtils.getDummyProject(ownerId = dummyUser.userId)
         val request = ProjectUpdateRequest(dummyProject.projectId, dummyProject.name, dummyProject.repository)
         projectRepository
           .addProject(dummyProject)
           .flatMap(
             _ =>
               projectRepository.updateProject(dummyProject).map { _ =>
-                val accessToken = AccessTokenContent(dummyUser.userId.value)
+                val accessToken = AccessTokenContent(dummyUser.userId)
                 Put("/projects", request) ~> projectController.route(accessToken) ~> check {
                   status shouldBe StatusCodes.NoContent
                 }
@@ -74,11 +76,12 @@ class ProjectControllerItTest
 
     "deleteProjectById" should {
       "return project's entity with false value if project was successfully deactivated" in {
-        val dummyProject = TestProjectUtils.getDummyProject(ownerId = dummyUser.userId)
+        val dummyProject =
+          TestProjectUtils.getDummyProject(ownerId = dummyUser.userId)
         val request = ProjectDeleteRequest(dummyProject.projectId)
         val deactivatedProjectResponse = dummyProject.copy(active = false)
         projectRepository.addProject(dummyProject).map { _ =>
-          val accessToken = AccessTokenContent(dummyUser.userId.value)
+          val accessToken = AccessTokenContent(dummyUser.userId)
           Delete("/projects", request) ~> projectController.route(accessToken) ~> check {
             responseAs[Project] shouldBe deactivatedProjectResponse
           }

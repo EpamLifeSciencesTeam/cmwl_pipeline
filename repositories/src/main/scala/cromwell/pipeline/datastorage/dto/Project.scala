@@ -4,6 +4,7 @@ import java.nio.file.{ Path, Paths }
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import cromwell.pipeline.model.wrapper.UserId
 import slick.lifted.MappedTo
 
 final case class Project(

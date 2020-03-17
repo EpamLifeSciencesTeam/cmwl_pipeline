@@ -12,6 +12,9 @@ import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
 import cromwell.pipeline.utils.TestContainersUtils
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import org.scalatest.{ AsyncWordSpec, Matchers }
+import cats.implicits._
+import cromwell.pipeline.model.validator.Enable
+import cromwell.pipeline.model.wrapper.Password
 
 class UserControllerItTest
     extends AsyncWordSpec
@@ -40,10 +43,10 @@ class UserControllerItTest
 
       "should find newly added user by email pattern" in {
         val dummyUser: User = TestUserUtils.getDummyUser()
-        val userByEmailRequest: String = dummyUser.email
+        val userByEmailRequest: String = dummyUser.email.unwrap
         val seqUser: Seq[User] = Seq(dummyUser)
         userRepository.addUser(dummyUser).map { _ =>
-          val accessToken = AccessTokenContent(dummyUser.userId.value)
+          val accessToken = AccessTokenContent(dummyUser.userId)
           Get("/users?email=" + userByEmailRequest) ~> userController.route(accessToken) ~> check {
             status shouldBe StatusCodes.OK
             responseAs[Seq[User]] shouldEqual seqUser
@@ -58,7 +61,7 @@ class UserControllerItTest
         val dummyUser: User = TestUserUtils.getDummyUser()
         val deactivatedUserResponse = UserNoCredentials.fromUser(dummyUser.copy(active = false))
         userRepository.addUser(dummyUser).map { _ =>
-          val accessToken = AccessTokenContent(dummyUser.userId.value)
+          val accessToken = AccessTokenContent(dummyUser.userId)
           Delete("/users") ~> userController.route(accessToken) ~> check {
             responseAs[UserNoCredentials] shouldBe deactivatedUserResponse
             status shouldBe StatusCodes.OK
@@ -74,7 +77,7 @@ class UserControllerItTest
         val request = UserUpdateRequest(dummyUser.email, dummyUser.firstName, dummyUser.lastName)
         userRepository.addUser(dummyUser).flatMap { _ =>
           userRepository.updateUser(dummyUser).map { _ =>
-            val accessToken = AccessTokenContent(dummyUser.userId.value)
+            val accessToken = AccessTokenContent(dummyUser.userId)
             Put("/users", request) ~> userController.route(accessToken) ~> check {
               status shouldBe StatusCodes.NoContent
             }
@@ -87,25 +90,17 @@ class UserControllerItTest
 
       "return status code NoContent if user's password was successfully updated" in {
         val dummyUser: User = TestUserUtils.getDummyUser()
-        val request = PasswordUpdateRequest(password, "newPassword1", "newPassword1")
+        val request =
+          PasswordUpdateRequest(
+            Password(password, Enable.Unsafe),
+            Password("new$Password1", Enable.Unsafe),
+            Password("new$Password1", Enable.Unsafe)
+          )
         userRepository.addUser(dummyUser).flatMap { _ =>
           userRepository.updatePassword(dummyUser).map { _ =>
-            val accessToken = AccessTokenContent(dummyUser.userId.value)
+            val accessToken = AccessTokenContent(dummyUser.userId)
             Put("/users", request) ~> userController.route(accessToken) ~> check {
               status shouldBe StatusCodes.NoContent
-            }
-          }
-        }
-      }
-
-      "return BadRequest status if user's password is invalid" in {
-        val dummyUser: User = TestUserUtils.getDummyUser()
-        val request = PasswordUpdateRequest(password, "newPassword", "newPassword")
-        userRepository.addUser(dummyUser).flatMap { _ =>
-          userRepository.updatePassword(dummyUser).map { _ =>
-            val accessToken = AccessTokenContent(dummyUser.userId.value)
-            Put("/users", request) ~> userController.route(accessToken) ~> check {
-              status shouldBe StatusCodes.BadRequest
             }
           }
         }

@@ -22,7 +22,8 @@ lazy val commonSettings = Seq(
     (scalafmtCheck in Test).value
   },
   compile in Compile := (compile in Compile).dependsOn(checkFormat).value,
-  test in Test := (test in Test).dependsOn(checkFormat).value
+  test in Test := (test in Test).dependsOn(checkFormat).value,
+  testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports")
 )
 
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")
@@ -70,23 +71,23 @@ lazy val portal = project
   )
 
 lazy val utils =
-  (project in file("utils")).settings(libraryDependencies ++= jsonDependencies ++ testContainers)
+  (project in file("utils")).settings(libraryDependencies ++= jsonDependencies ++ testContainers :+ cats)
 
 lazy val repositories =
   (project in file("repositories"))
     .settings(libraryDependencies ++= akkaDependencies ++ testDependencies ++ jsonDependencies :+ cats)
     .configs(IntegrationTest)
-    .dependsOn(datasource, utils % "compile->compile;test->test")
+    .dependsOn(datasource, model, utils % "compile->compile;test->test")
 
 lazy val services =
   (project in file("services"))
     .settings(libraryDependencies ++= jsonDependencies :+ cats)
-    .dependsOn(repositories % "compile->compile;test->test", utils % "compile->compile;test->test", womtool)
+    .dependsOn(repositories % "compile->compile;test->test", utils % "compile->compile;test->test", womtool, model)
 
 lazy val controllers =
   (project in file("controllers"))
     .settings(libraryDependencies ++= akkaDependencies ++ jsonDependencies :+ cats)
-    .dependsOn(services, utils, repositories % "test->test")
+    .dependsOn(services, utils, model, repositories % "test->test", model)
 
 lazy val womtool = (project in file("womtool"))
   .configs(IntegrationTest)
@@ -97,3 +98,6 @@ lazy val womtool = (project in file("womtool"))
     libraryDependencies ++= testDependencies ++ cromwellDependencies,
     addCommandAlias("testAll", "; test ; it:test")
   )
+
+lazy val model =
+  (project in file("model")).settings(libraryDependencies ++= jsonDependencies ++ dbDependencies :+ cats)

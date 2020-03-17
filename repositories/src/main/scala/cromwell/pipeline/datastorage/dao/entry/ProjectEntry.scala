@@ -3,7 +3,8 @@ package cromwell.pipeline.datastorage.dao
 import com.github.tminglei.slickpg.PgEnumSupport
 import cromwell.pipeline.datastorage.Profile
 import cromwell.pipeline.datastorage.dao.entry.UserEntry
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, Repository, UserId, Visibility }
+import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, Repository, Visibility }
 import slick.basic.Capability
 import slick.jdbc.{ JdbcType, PostgresProfile }
 
@@ -31,6 +32,7 @@ trait ProjectProfileWithEnumSupport extends PostgresProfile with PgEnumSupport {
 }
 
 trait ProjectEntry { this: Profile with UserEntry with ProjectProfileWithEnumSupport =>
+  import Implicits._
   import api._
 
   class ProjectTable(tag: Tag) extends Table[Project](tag, "project") {

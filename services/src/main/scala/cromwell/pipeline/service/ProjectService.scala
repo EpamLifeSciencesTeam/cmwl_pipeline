@@ -5,6 +5,7 @@ import java.util.UUID
 import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.service.Exceptions.{ ProjectAccessDeniedException, ProjectNotFoundException }
+import cromwell.pipeline.model.wrapper.UserId
 
 import scala.concurrent.{ ExecutionContext, Future }
 

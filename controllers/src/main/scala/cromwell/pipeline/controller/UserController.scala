@@ -3,11 +3,8 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import cats.data.Validated.{ Invalid, Valid }
-import cromwell.pipeline.datastorage.dto.UserId
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
 import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
-import cromwell.pipeline.datastorage.utils.validator.FormValidatorNel
 import cromwell.pipeline.service.UserService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
@@ -29,7 +26,7 @@ class UserController(userService: UserService)(implicit executionContext: Execut
           }
         },
         delete {
-          onComplete(userService.deactivateUserById(UserId(accessToken.userId))) {
+          onComplete(userService.deactivateUserById(accessToken.userId)) {
             case Success(Some(idResponse)) => complete(idResponse)
             case Success(None)             => complete(StatusCodes.NotFound, "User not found")
             case Failure(_)                => complete(StatusCodes.InternalServerError, "Internal error")
@@ -44,17 +41,11 @@ class UserController(userService: UserService)(implicit executionContext: Execut
           }
         },
         put {
-          entity(as[PasswordUpdateRequest]) {
-            passwordUpdateRequest =>
-              FormValidatorNel.validateForm(passwordUpdateRequest) match {
-                case Valid(_) =>
-                  onComplete(userService.updatePassword(accessToken.userId, passwordUpdateRequest)) {
-                    case Success(_)   => complete(StatusCodes.NoContent)
-                    case Failure(exc) => complete(StatusCodes.BadRequest, exc.getMessage)
-                  }
-                case Invalid(errors) =>
-                  complete(StatusCodes.BadRequest, errors.toList.map(_.toMap))
-              }
+          entity(as[PasswordUpdateRequest]) { passwordUpdateRequest =>
+            onComplete(userService.updatePassword(accessToken.userId, passwordUpdateRequest)) {
+              case Success(_)   => complete(StatusCodes.NoContent)
+              case Failure(exc) => complete(StatusCodes.BadRequest, exc.getMessage)
+            }
           }
         }
       )
