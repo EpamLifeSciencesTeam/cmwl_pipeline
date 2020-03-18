@@ -20,8 +20,8 @@ object Project{
 
 final case class ProjectId(value: String) extends MappedTo[String]
 
-object ProjectId {
-  implicit lazy val projectIdFormat: Format[ProjectId] = implicitly[Format[String]].inmap(ProjectId.apply, _.value)
+object ProjectId{
+  implicit lazy val projectIdFormat: OFormat[ProjectId] = Json.format[ProjectId]
 }
 
 final case class ProjectAdditionRequest(name: String)
