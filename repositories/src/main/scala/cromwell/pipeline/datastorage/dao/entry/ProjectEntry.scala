@@ -16,7 +16,7 @@ trait ProjectEntry {
     def repository = column[String]("repository")
     def active = column[Boolean]("active")
     def * = (projectId, ownerId, name, repository, active) <>
-      (Project.tupled, Project.unapply)
+      ((Project.apply _).tupled, Project.unapply)
 
     def user = foreignKey("fk_project_user", ownerId, users)(_.userId)
   }
@@ -27,9 +27,13 @@ trait ProjectEntry {
     projects.filter(_.projectId === projectId).take(1)
   }
 
+  def getProjectByNameAction = Compiled { name: Rep[String] =>
+    projects.filter(_.name === name).take(1)
+  }
+
   def addProjectAction(project: Project) = projects.returning(projects.map(_.projectId)) += project
 
-  def deactivateProjectById(projectId: ProjectId) =
+  def deactivateProjectByIdAction(projectId: ProjectId) =
     projects.filter(_.projectId === projectId).map(_.active).update(false)
 
 }
