@@ -3,7 +3,9 @@ package cromwell.pipeline
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
+import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContextExecutor
@@ -23,7 +25,12 @@ object CromwellPipelineApp extends App {
 
   pipelineDatabaseEngine.updateSchema()
 
-  val route = authController.route ~ securityDirective.authenticated { userController.route }
+  type SecuredRoute = AccessTokenContent => Route
+  def routeCombiner(routes: SecuredRoute*): SecuredRoute = token => concat(routes.map(_(token)): _*)
+
+  val route = authController.route ~ securityDirective.authenticated {
+    routeCombiner(userController.route, projectController.route)
+  }
 
   log.info(s"Server online at http://${webServiceConfig.interface}:${webServiceConfig.port}/")
   Http().bindAndHandle(route, webServiceConfig.interface, webServiceConfig.port)
