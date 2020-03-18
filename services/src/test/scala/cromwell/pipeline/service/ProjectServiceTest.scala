@@ -60,9 +60,9 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar w
       "return none if project not found" taggedAs Service in {
         val projectId = ProjectId("projectId")
 
-        when(projectRepository.getProjectById(dummyProject.projectId)).thenReturn(Future(None))
+        when(projectRepository.getProjectById(projectId)).thenReturn(Future(None))
 
-        projectService.getProjectById(dummyProject.projectId).map { _ shouldBe None }
+        projectService.getProjectById(projectId).map { _ shouldBe None }
       }
     }
   }
