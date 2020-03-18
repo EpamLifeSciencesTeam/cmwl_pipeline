@@ -29,7 +29,7 @@ class ProjectControllerTest
         val dummyProject: Project = TestProjectUtils.getDummyProject()
         val getProjectByNameResponse: Option[Project] = Option(dummyProject)
         val accessToken = AccessTokenContent(dummyProject.ownerId.value)
-
+        
         when(projectService.getProjectByName(projectByName, new UserId(accessToken.userId)))
           .thenReturn(Future.successful(getProjectByNameResponse))
 

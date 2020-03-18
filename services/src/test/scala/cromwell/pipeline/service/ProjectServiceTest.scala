@@ -33,8 +33,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
     }
 
     "deactivateProjectById" should {
-      "return deactivated project" in {
-
+      "return deactivated project" taggedAs Service in {
         val projectId = ProjectId("projectId")
         val userId = UserId("userId")
         val project = TestProjectUtils.getDummyProject(projectId,userId)
@@ -47,7 +46,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
     }
 
     "getProjectById" should {
-      "return project with corresponding id" in {
+      "return project with corresponding id" taggedAs Service in {
         val projectId = ProjectId("projectId")
         val userId = UserId("userId")
         val project = TestProjectUtils.getDummyProject(projectId,userId)
@@ -58,6 +57,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
       }
 
       "return none if project not found" in {
+      "return none if project not found" taggedAs Service in {
         val projectId = ProjectId("projectId")
 
         when(projectRepository.getProjectById(projectId)).thenReturn(Future(None))
