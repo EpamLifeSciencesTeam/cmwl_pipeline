@@ -3,13 +3,14 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import cromwell.pipeline.datastorage.dto.{ ProjectAdditionRequest, UserId }
+import cromwell.pipeline.datastorage.dto.{ProjectAdditionRequest, UserId}
 import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
-import cromwell.pipeline.service.{ ProjectAccessDeniedException, ProjectNotFoundException, ProjectService }
+import cromwell.pipeline.service.Exceptions.{ProjectAccessDeniedException, ProjectNotFoundException}
+import cromwell.pipeline.service.ProjectService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
 import scala.concurrent.ExecutionContext
-import scala.util.{ Failure, Success }
+import scala.util.{Failure, Success}
 
 class ProjectController(projectService: ProjectService)(
   implicit executionContext: ExecutionContext
@@ -30,7 +31,7 @@ class ProjectController(projectService: ProjectService)(
         },
         post {
           entity(as[ProjectAdditionRequest]) { request =>
-            onComplete(projectService.addProject(request, UserId(accessToken.userId))) {
+            onComplete(projectService.addProject(request, UserId(accessToken.userId), "repoStub")) {
               case Success(_) => complete(StatusCodes.OK)
               case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
             }

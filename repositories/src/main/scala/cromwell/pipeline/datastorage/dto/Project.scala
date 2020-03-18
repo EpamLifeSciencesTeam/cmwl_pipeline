@@ -14,7 +14,7 @@ final case class Project(
   active: Boolean
 )
 
-object Project {
+object Project{
   implicit lazy val projectFormat: OFormat[Project] = Json.format[Project]
 }
 

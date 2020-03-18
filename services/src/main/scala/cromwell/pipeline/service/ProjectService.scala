@@ -3,9 +3,10 @@ package cromwell.pipeline.service
 import java.util.UUID
 
 import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectAdditionRequest, ProjectId, UserId }
+import cromwell.pipeline.datastorage.dto.{Project, ProjectAdditionRequest, ProjectId, UserId}
+import cromwell.pipeline.service.Exceptions.{ProjectAccessDeniedException, ProjectNotFoundException}
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 class ProjectService(projectRepository: ProjectRepository)(implicit executionContext: ExecutionContext) {
 
@@ -21,13 +22,13 @@ class ProjectService(projectRepository: ProjectRepository)(implicit executionCon
     }
   }
 
-  def addProject(request: ProjectAdditionRequest, userId: UserId): Future[ProjectId] = {
+  def addProject(request: ProjectAdditionRequest, userId: UserId, repoStub: String): Future[ProjectId] = {
     val project =
       Project(
         projectId = ProjectId(UUID.randomUUID().toString),
         ownerId = userId,
         name = request.name,
-        repository = "test_repo",
+        repository = repoStub, /* A stub for project repository. The project repository will be appointed later*/
         active = true
       )
     projectRepository.addProject(project)
@@ -41,5 +42,7 @@ class ProjectService(projectRepository: ProjectRepository)(implicit executionCon
 
 }
 
-case class ProjectNotFoundException(message: String = "Project not found") extends RuntimeException(message)
-case class ProjectAccessDeniedException(message: String = "Access denied") extends RuntimeException(message)
+object Exceptions {
+  case class ProjectNotFoundException(message: String = "Project not found") extends RuntimeException(message)
+  case class ProjectAccessDeniedException(message: String = "Access denied. You  not owner of the project") extends RuntimeException(message)
+}
