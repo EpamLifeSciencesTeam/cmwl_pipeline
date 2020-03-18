@@ -1,11 +1,9 @@
 package cromwell.pipeline.service
 
 import java.util.UUID
-
 import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dto.{Project, ProjectAdditionRequest, ProjectId, ProjectUpdateRequest, UserId}
 import cromwell.pipeline.service.Exceptions.{ProjectAccessDeniedException, ProjectNotFoundException}
-
 import scala.concurrent.{ExecutionContext, Future}
 
 class ProjectService(projectRepository: ProjectRepository)(implicit executionContext: ExecutionContext) {
