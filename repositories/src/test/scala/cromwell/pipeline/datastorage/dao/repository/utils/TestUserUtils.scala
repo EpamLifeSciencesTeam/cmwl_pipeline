@@ -9,8 +9,10 @@ import cromwell.pipeline.utils.StringUtils
 object TestUserUtils {
   val userPassword = "-Pa$$w0rd-"
 
+  private def randomUuidStr: String = UUID.randomUUID().toString
+  def getDummyUserId = UserId(randomUuidStr)
   def getDummyUser(
-    uuid: String = UUID.randomUUID().toString,
+    userId: UserId = getDummyUserId,
     email: UserEmail = "JohnDoe-@cromwell.com",
     password: String = userPassword,
     passwordSalt: String = "salt",
@@ -20,8 +22,8 @@ object TestUserUtils {
   ): User = {
     val passwordHash = StringUtils.calculatePasswordHash(password, passwordSalt)
     User(
-      UserId(uuid),
-      s"JohnDoe-$uuid@cromwell.com",
+      userId,
+      s"JohnDoe-$randomUuidStr@cromwell.com",
       passwordHash,
       passwordSalt,
       firstName,
