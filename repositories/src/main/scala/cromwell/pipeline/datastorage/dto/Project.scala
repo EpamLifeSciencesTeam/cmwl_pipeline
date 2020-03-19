@@ -20,14 +20,26 @@ object Project{
 
 final case class ProjectId(value: String) extends MappedTo[String]
 
-object ProjectId{
-  implicit lazy val projectIdFormat: OFormat[ProjectId] = Json.format[ProjectId]
+object ProjectId {
+  implicit lazy val projectIdFormat: Format[ProjectId] = implicitly[Format[String]].inmap(ProjectId.apply, _.value)
 }
 
 final case class ProjectAdditionRequest(name: String)
 
 object ProjectAdditionRequest {
   implicit lazy val projectAdditionFormat: OFormat[ProjectAdditionRequest] = Json.format[ProjectAdditionRequest]
+}
+
+final case class ProjectDeleteRequest(projectId: ProjectId)
+
+object ProjectDeleteRequest {
+  implicit lazy val projectDeleteFormat: OFormat[ProjectDeleteRequest] = Json.format[ProjectDeleteRequest]
+}
+
+final case class ProjectUpdateRequest(projectId: ProjectId, name: String, repository: String)
+
+object ProjectUpdateRequest {
+  implicit val updateRequestFormat: OFormat[ProjectUpdateRequest] = Json.format[ProjectUpdateRequest]
 }
 
 final case class Version(value: String) extends AnyVal
