@@ -3,6 +3,8 @@ package cromwell.pipeline.service
 import java.nio.file.Path
 
 import cromwell.pipeline.datastorage.dto.{ Project, ProjectFile, Version }
+import cromwell.pipeline.datastorage.dto.Project
+import cromwell.pipeline.datastorage.dto.formatters.ProjectFormatters.{ ProjectFile, Version }
 
 import scala.concurrent.Future
 

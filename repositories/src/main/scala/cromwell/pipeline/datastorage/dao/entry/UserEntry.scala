@@ -1,7 +1,8 @@
 package cromwell.pipeline.datastorage.dao.entry
 
 import cromwell.pipeline.datastorage.Profile
-import cromwell.pipeline.datastorage.dto.{ ProfilePicture, User, UserId }
+import cromwell.pipeline.datastorage.dto.formatters.UserFormatters.ProfilePicture
+import cromwell.pipeline.datastorage.dto.{User, UserId}
 
 trait UserEntry {
   this: Profile =>

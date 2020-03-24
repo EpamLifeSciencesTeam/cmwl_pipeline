@@ -1,5 +1,6 @@
 package cromwell.pipeline.datastorage.dto
 
+import cromwell.pipeline.datastorage.dto.formatters.ProjectFormatters.ProjectId
 import java.nio.file.Path
 
 import play.api.libs.functional.syntax._
