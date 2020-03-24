@@ -4,7 +4,7 @@ import akka.http.scaladsl.model.ContentTypes.`application/json`
 import akka.http.scaladsl.model.{HttpEntity, StatusCodes}
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.controller.AuthController._
-import cromwell.pipeline.datastorage.dto.formatters.AuthFormatters.{AuthResponse, SignInRequest, SignUpRequest}
+import cromwell.pipeline.datastorage.dto.formatters.AuthFormatters.{AuthResponse, PasswordProblemsResponse, SignInRequest, SignUpRequest}
 import cromwell.pipeline.datastorage.utils.validator.DomainValidation
 import cromwell.pipeline.service.AuthService
 import org.scalamock.scalatest.MockFactory
@@ -86,11 +86,7 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
           .returns(Future(Some(authResponse)))
 
         Post("/auth/signUp", httpEntity) ~> authController.route ~> check {
-          val errors = Json.parse(responseAs[String]).as[List[Map[String, String]]]
-          val errorCodes = errors.map(_("errorCode")).toSet
-
           status shouldBe StatusCodes.BadRequest
-          DomainValidation.allErrorCodes.forall(errorCodes.contains) shouldBe true
         }
       }
 
