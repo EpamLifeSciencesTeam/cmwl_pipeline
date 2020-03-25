@@ -20,6 +20,7 @@ class AkkaHttpClient extends HttpClient {
   override def get(url: String, params: Map[String, String] = Map(), headers: Map[String, String] = Map())(
     implicit ec: ExecutionContext
   ): Future[Response] = {
+    println(queryBuilder(url, params))
     val futureResponse: Future[HttpResponse] = http.singleRequest(
       HttpRequest(method = HttpMethods.GET, uri = queryBuilder(url, params)).withHeaders(parseHeaders(headers))
     )

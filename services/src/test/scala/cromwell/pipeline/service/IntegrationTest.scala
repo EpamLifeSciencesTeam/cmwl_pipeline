@@ -1,13 +1,15 @@
 package cromwell.pipeline.service
 
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, UserId }
+import java.nio.file.{Path, Paths}
+
+import cromwell.pipeline.datastorage.dto.{Project, ProjectId, UserId, Version}
 import org.scalatest.FlatSpec
+
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.language.postfixOps
-
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.{FlatSpec, Matchers}
 
 class IntegrationTest extends FlatSpec with Matchers {
 
@@ -17,8 +19,12 @@ class IntegrationTest extends FlatSpec with Matchers {
     val gitLabService = new GitLabProjectVersioning(httpClient)
     val project =
       Project(ProjectId("17603694"), UserId("IaroslavTavchenkov"), "name-17603694", "repository-17603694", false)
+
     val result = Await.result(gitLabService.createRepository(project), 10 second)
     println(result)
+
+    val fileData = Await.result(gitLabService.getFile(project, Paths.get("/test.md"), Some(Version("master") )), 10 second)
+    println(fileData)
     1 shouldBe (1)
   }
 }
