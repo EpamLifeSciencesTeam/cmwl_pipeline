@@ -103,5 +103,26 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
 
   override def getFile(project: Project, path: Path, version: Option[Version])(
     implicit ec: ExecutionContext
-  ): AsyncResult[String] = ???
+  ): AsyncResult[ProjectFile] = {
+    val filePath: String = URLEncoder.encode(path.toString, "UTF-8")
+    val fileVersion: String = version match {
+      case Some(version) => version.name
+      case None => config.defaultFileVersion
+    }
+
+    httpClient
+      .get(
+        s"${config.url}/projects/${project.repository}/repository/files/$filePath/raw",
+        Map("ref" -> fileVersion),
+        config.token
+      )
+      .map(
+        resp =>
+          resp.status match {
+            case HttpStatusCodes.OK => Right(ProjectFile(path, resp.body))
+            case _                  => Left(VersioningException(s"Exception. Response status: ${resp.status}"))
+          }
+      )
+      .recover { case e: Throwable => Left(VersioningException(e.getMessage)) }
+  }
 }

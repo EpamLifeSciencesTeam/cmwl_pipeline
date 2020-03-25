@@ -6,7 +6,7 @@ import java.nio.file.Paths
 import akka.http.scaladsl.model.StatusCodes
 import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto.File.UpdateFileRequest
-import cromwell.pipeline.datastorage.dto.{ Commit, File, Project, ProjectFile, Version }
+import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.utils.{ ApplicationConfig, GitLabConfig, HttpStatusCodes }
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
@@ -20,6 +20,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
   val mockHttpClient: HttpClient = mock[HttpClient]
   val gitLabConfig: GitLabConfig = ApplicationConfig.load().gitLabConfig
   val gitLabProjectVersioning: GitLabProjectVersioning = new GitLabProjectVersioning(mockHttpClient, gitLabConfig)
+
   import ProjectContext._
   import ProjectFileContext._
 
@@ -145,6 +146,45 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
           .flatMap(_ shouldBe Right("Success update file"))
       }
     }
+
+    "getFile" should {
+      "return file with 200 response" taggedAs Service in {
+        val project = TestProjectUtils.getDummyProject()
+        val path = Paths.get("test.md")
+        val version = dummyVersion;
+
+        when(
+          mockHttpClient.get(
+            s"${gitLabConfig.url}/projects/${project.repository}/repository/files/${URLEncoder.encode(path.toString, "UTF-8")}/raw",
+            Map("ref" -> version.name),
+            gitLabConfig.token
+          )
+        ).thenReturn(Future.successful(Response(200, "Test File", Map())))
+
+        gitLabProjectVersioning
+          .getFile(project, path, Some(version))
+          .map(_ shouldBe (Right(ProjectFile(path, "Test File"))))
+      }
+
+      "throw new VersioningException with not 200 response" taggedAs Service in {
+        val project = TestProjectUtils.getDummyProject()
+        val path = Paths.get("test.md")
+        val version = dummyVersion;
+
+        when(
+          mockHttpClient.get(
+            s"${gitLabConfig.url}/projects/${project.repository}/repository/files/${URLEncoder.encode(path.toString, "UTF-8")}/raw",
+            Map("ref" -> version.name),
+            gitLabConfig.token
+          )
+        ).thenReturn(Future.successful(Response(404, "Not Found", Map())))
+
+        gitLabProjectVersioning
+          .getFile(project, path, Some(version))
+          .map(_ shouldBe Left(VersioningException("Exception. Response status: 404")))
+      }
+
+    }
   }
 
   object ProjectContext {
@@ -161,4 +201,5 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
     val newFile: ProjectFile = ProjectFile(Paths.get("new_file.txt"), "Hello world")
     val existFile: ProjectFile = ProjectFile(Paths.get("exist_file.txt"), "Hello world")
   }
+
 }
