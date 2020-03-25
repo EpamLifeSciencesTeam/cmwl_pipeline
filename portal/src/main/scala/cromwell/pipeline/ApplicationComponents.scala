@@ -14,6 +14,6 @@ final class ApplicationComponents(
 ) {
   lazy val applicationConfig: ApplicationConfig = ApplicationConfig.load(config)
   lazy val datastorageModule: DatastorageModule = new DatastorageModule(applicationConfig)
-  lazy val serviceModule: ServiceModule = new ServiceModule(datastorageModule)
+  lazy val serviceModule: ServiceModule = new ServiceModule(datastorageModule, applicationConfig.gitLabConfig)
   lazy val controllerModule: ControllerModule = new ControllerModule(serviceModule)
 }
