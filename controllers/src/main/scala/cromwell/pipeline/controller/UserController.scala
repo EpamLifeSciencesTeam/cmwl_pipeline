@@ -3,16 +3,16 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import cats.data.Validated.{Invalid, Valid}
+import cats.data.Validated.{ Invalid, Valid }
 import cromwell.pipeline.datastorage.dto.UserId
-import cromwell.pipeline.datastorage.dto.formatters.UserFormatters.{PasswordUpdateRequest, UserUpdateRequest}
+import cromwell.pipeline.datastorage.dto.formatters.UserFormatters.{ PasswordUpdateRequest, UserUpdateRequest }
 import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.utils.validator.FormValidatorNel
 import cromwell.pipeline.service.UserService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
 import scala.concurrent.ExecutionContext
-import scala.util.{Failure, Success}
+import scala.util.{ Failure, Success }
 
 class UserController(userService: UserService)(implicit executionContext: ExecutionContext) {
 

@@ -3,7 +3,7 @@ package cromwell.pipeline.datastorage.dao
 import cromwell.pipeline.datastorage.Profile
 import cromwell.pipeline.datastorage.dao.entry.UserEntry
 import cromwell.pipeline.datastorage.dto.formatters.ProjectFormatters.ProjectId
-import cromwell.pipeline.datastorage.dto.{Project, UserId}
+import cromwell.pipeline.datastorage.dto.{ Project, UserId }
 
 trait ProjectEntry {
   this: Profile with UserEntry =>
