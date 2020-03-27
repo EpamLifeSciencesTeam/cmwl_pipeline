@@ -1,4 +1,4 @@
-package cromwell.pipeline.datastorage.utils.auth
+package cromwell.pipeline.utils.auth
 
 import cromwell.pipeline.model.wrapper.UserId
 import play.api.libs.json._

@@ -54,6 +54,19 @@ To run the integration test suit, execute the following command:
 ```
 sbt it:test
 ```
+
+### Finding unused dependencies
+To show unused dependencies list, execute the following command:
+```
+sbt unusedCompileDependencies
+```
+
+### Finding undeclared dependencies
+To show undeclared dependencies list, execute the following command:
+```
+sbt undeclaredCompileDependencies
+```
+
 Default configuration can be overloaded in application.properties file located in the same directory as service jar
 ## Local database usage
 Locally we could start Postgres db instance via

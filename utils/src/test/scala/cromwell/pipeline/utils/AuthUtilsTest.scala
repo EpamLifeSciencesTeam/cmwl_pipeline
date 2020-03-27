@@ -1,15 +1,14 @@
-package cromwell.pipeline.datastorage.dao.repository.auth
+package cromwell.pipeline.utils
 
 import java.time.Instant
 
-import cromwell.pipeline.datastorage.dto.auth.AuthResponse
-import cromwell.pipeline.datastorage.utils.auth.{ AccessTokenContent, AuthUtils, RefreshTokenContent }
+import cromwell.pipeline.utils.auth.dto.AuthResponse
+import cromwell.pipeline.utils.auth.{ AccessTokenContent, AuthUtils, RefreshTokenContent }
 import cromwell.pipeline.model.wrapper.UserId
-import cromwell.pipeline.utils.{ AuthConfig, ExpirationTimeInSeconds }
-import org.scalatest.{ Assertion, Matchers, WordSpec }
 import pdi.jwt.algorithms.JwtHmacAlgorithm
 import pdi.jwt.{ Jwt, JwtAlgorithm }
 import play.api.libs.json.Json
+import org.scalatest.{ Assertion, Matchers, WordSpec }
 
 class AuthUtilsTest extends WordSpec with Matchers {
 
