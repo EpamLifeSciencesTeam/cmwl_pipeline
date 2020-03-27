@@ -3,8 +3,9 @@ package cromwell.pipeline.service
 import java.time.Instant
 
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
-import cromwell.pipeline.datastorage.dto.auth.AuthResponse
-import cromwell.pipeline.datastorage.utils.auth.{ AccessTokenContent, AuthContent, AuthUtils, RefreshTokenContent }
+import cromwell.pipeline.datastorage.dto.UserId
+import cromwell.pipeline.utils.auth.dto.AuthResponse
+import cromwell.pipeline.utils.auth.{ AccessTokenContent, AuthContent, AuthUtils, RefreshTokenContent }
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.utils.{ AuthConfig, ExpirationTimeInSeconds }
 import org.scalamock.scalatest.MockFactory

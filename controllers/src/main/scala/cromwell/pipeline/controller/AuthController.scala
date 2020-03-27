@@ -4,8 +4,10 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, SignInRequest, SignUpRequest }
+import cats.data.Validated.{ Invalid, Valid }
+import cromwell.pipeline.datastorage.utils.validator.FormValidatorNel
 import cromwell.pipeline.service.AuthService
+import cromwell.pipeline.utils.auth.dto.{ AuthResponse, SignInRequest, SignUpRequest }
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
 import scala.concurrent.ExecutionContext

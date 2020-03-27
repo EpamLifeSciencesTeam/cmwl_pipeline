@@ -3,7 +3,7 @@ package cromwell.pipeline.datastorage
 import cromwell.pipeline.database.PipelineDatabaseEngine
 import cromwell.pipeline.datastorage.dao.entry.UserEntry
 import cromwell.pipeline.datastorage.dao.repository.{ ProjectRepository, UserRepository }
-import cromwell.pipeline.datastorage.utils.auth.{ AuthUtils, SecurityDirective }
+import cromwell.pipeline.datastorage.dao.{ ProjectEntry, ProjectProfileWithEnumSupport }
 import cromwell.pipeline.model.validator.{ Enable, Wrapped }
 import cromwell.pipeline.model.wrapper.{ Name, UserEmail, UserId }
 import cromwell.pipeline.utils.ApplicationConfig
@@ -13,8 +13,6 @@ import cromwell.pipeline.datastorage.dao.{ ProjectEntry, ProjectProfileWithEnumS
 
 class DatastorageModule(applicationConfig: ApplicationConfig) {
 
-  lazy val authUtils: AuthUtils = new AuthUtils(applicationConfig.authConfig)
-  lazy val securityDirective: SecurityDirective = new SecurityDirective(applicationConfig.authConfig)
   lazy val pipelineDatabaseEngine: PipelineDatabaseEngine = new PipelineDatabaseEngine(applicationConfig.config)
   lazy val profile: JdbcProfile = pipelineDatabaseEngine.profile
   lazy val databaseLayer: DatabaseLayer = new DatabaseLayer(profile)
