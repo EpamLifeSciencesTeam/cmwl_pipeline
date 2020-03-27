@@ -1,0 +1,258 @@
+237  [main] WARN  com.zaxxer.hikari.HikariConfig - database.postgres_dc.db - using dataSourceClassName and ignoring jdbcUrl.
+240  [main] DEBUG com.zaxxer.hikari.HikariConfig - database.postgres_dc.db - configuration:
+244  [main] DEBUG com.zaxxer.hikari.HikariConfig - allowPoolSuspension.............false
+244  [main] DEBUG com.zaxxer.hikari.HikariConfig - autoCommit......................true
+244  [main] DEBUG com.zaxxer.hikari.HikariConfig - catalog.........................none
+244  [main] DEBUG com.zaxxer.hikari.HikariConfig - connectionInitSql...............none
+244  [main] DEBUG com.zaxxer.hikari.HikariConfig - connectionTestQuery.............none
+244  [main] DEBUG com.zaxxer.hikari.HikariConfig - connectionTimeout...............30000
+244  [main] DEBUG com.zaxxer.hikari.HikariConfig - dataSource......................none
+244  [main] DEBUG com.zaxxer.hikari.HikariConfig - dataSourceClassName............."org.postgresql.ds.PGSimpleDataSource"
+244  [main] DEBUG com.zaxxer.hikari.HikariConfig - dataSourceJNDI..................none
+245  [main] DEBUG com.zaxxer.hikari.HikariConfig - dataSourceProperties............{password=<masked>}
+245  [main] DEBUG com.zaxxer.hikari.HikariConfig - driverClassName.................none
+245  [main] DEBUG com.zaxxer.hikari.HikariConfig - healthCheckProperties...........{}
+245  [main] DEBUG com.zaxxer.hikari.HikariConfig - healthCheckRegistry.............none
+245  [main] DEBUG com.zaxxer.hikari.HikariConfig - idleTimeout.....................600000
+245  [main] DEBUG com.zaxxer.hikari.HikariConfig - initializationFailTimeout.......-1
+245  [main] DEBUG com.zaxxer.hikari.HikariConfig - isolateInternalQueries..........false
+246  [main] DEBUG com.zaxxer.hikari.HikariConfig - jdbcUrl.........................postgresql://:/
+246  [main] DEBUG com.zaxxer.hikari.HikariConfig - leakDetectionThreshold..........0
+246  [main] DEBUG com.zaxxer.hikari.HikariConfig - maxLifetime.....................1800000
+246  [main] DEBUG com.zaxxer.hikari.HikariConfig - maximumPoolSize.................10
+246  [main] DEBUG com.zaxxer.hikari.HikariConfig - metricRegistry..................none
+246  [main] DEBUG com.zaxxer.hikari.HikariConfig - metricsTrackerFactory...........none
+246  [main] DEBUG com.zaxxer.hikari.HikariConfig - minimumIdle.....................10
+246  [main] DEBUG com.zaxxer.hikari.HikariConfig - password........................<masked>
+246  [main] DEBUG com.zaxxer.hikari.HikariConfig - poolName........................"database.postgres_dc.db"
+246  [main] DEBUG com.zaxxer.hikari.HikariConfig - readOnly........................false
+246  [main] DEBUG com.zaxxer.hikari.HikariConfig - registerMbeans..................false
+246  [main] DEBUG com.zaxxer.hikari.HikariConfig - scheduledExecutor...............none
+246  [main] DEBUG com.zaxxer.hikari.HikariConfig - schema..........................none
+246  [main] DEBUG com.zaxxer.hikari.HikariConfig - threadFactory...................internal
+246  [main] DEBUG com.zaxxer.hikari.HikariConfig - transactionIsolation............default
+247  [main] DEBUG com.zaxxer.hikari.HikariConfig - username........................none
+247  [main] DEBUG com.zaxxer.hikari.HikariConfig - validationTimeout...............5000
+248  [main] INFO  com.zaxxer.hikari.HikariDataSource - database.postgres_dc.db - Starting...
+274  [main] INFO  com.zaxxer.hikari.HikariDataSource - database.postgres_dc.db - Start completed.
+294  [main] DEBUG slick.basic.BasicBackend.action - #1: SimpleJdbcAction
+330  [database.postgres_dc.db connection adder] DEBUG com.zaxxer.hikari.pool.PoolBase - database.postgres_dc.db - Failed to create/setup connection: The server requested password-based authentication, but no password was provided.
+332  [database.postgres_dc.db connection adder] DEBUG com.zaxxer.hikari.pool.HikariPool - database.postgres_dc.db - Cannot acquire connection from data source
+org.postgresql.util.PSQLException: The server requested password-based authentication, but no password was provided.
+	at org.postgresql.Driver$ConnectThread.getResult(Driver.java:409)
+	at org.postgresql.Driver.connect(Driver.java:267)
+	at java.sql.DriverManager.getConnection(DriverManager.java:664)
+	at java.sql.DriverManager.getConnection(DriverManager.java:247)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:97)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:82)
+	at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:369)
+	at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:198)
+	at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:467)
+	at com.zaxxer.hikari.pool.HikariPool.access$100(HikariPool.java:71)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:706)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:692)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+374  [database.postgres_dc.db housekeeper] DEBUG com.zaxxer.hikari.pool.HikariPool - database.postgres_dc.db - Pool stats (total=0, active=0, idle=0, waiting=1)
+585  [database.postgres_dc.db connection adder] DEBUG com.zaxxer.hikari.pool.HikariPool - database.postgres_dc.db - Cannot acquire connection from data source
+org.postgresql.util.PSQLException: The server requested password-based authentication, but no password was provided.
+	at org.postgresql.Driver$ConnectThread.getResult(Driver.java:409)
+	at org.postgresql.Driver.connect(Driver.java:267)
+	at java.sql.DriverManager.getConnection(DriverManager.java:664)
+	at java.sql.DriverManager.getConnection(DriverManager.java:247)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:97)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:82)
+	at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:369)
+	at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:198)
+	at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:467)
+	at com.zaxxer.hikari.pool.HikariPool.access$100(HikariPool.java:71)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:706)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:692)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+963  [database.postgres_dc.db connection adder] DEBUG com.zaxxer.hikari.pool.HikariPool - database.postgres_dc.db - Cannot acquire connection from data source
+org.postgresql.util.PSQLException: The server requested password-based authentication, but no password was provided.
+	at org.postgresql.Driver$ConnectThread.getResult(Driver.java:409)
+	at org.postgresql.Driver.connect(Driver.java:267)
+	at java.sql.DriverManager.getConnection(DriverManager.java:664)
+	at java.sql.DriverManager.getConnection(DriverManager.java:247)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:97)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:82)
+	at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:369)
+	at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:198)
+	at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:467)
+	at com.zaxxer.hikari.pool.HikariPool.access$100(HikariPool.java:71)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:706)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:692)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+1528 [database.postgres_dc.db connection adder] DEBUG com.zaxxer.hikari.pool.HikariPool - database.postgres_dc.db - Cannot acquire connection from data source
+org.postgresql.util.PSQLException: The server requested password-based authentication, but no password was provided.
+	at org.postgresql.Driver$ConnectThread.getResult(Driver.java:409)
+	at org.postgresql.Driver.connect(Driver.java:267)
+	at java.sql.DriverManager.getConnection(DriverManager.java:664)
+	at java.sql.DriverManager.getConnection(DriverManager.java:247)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:97)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:82)
+	at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:369)
+	at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:198)
+	at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:467)
+	at com.zaxxer.hikari.pool.HikariPool.access$100(HikariPool.java:71)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:706)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:692)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+2375 [database.postgres_dc.db connection adder] DEBUG com.zaxxer.hikari.pool.HikariPool - database.postgres_dc.db - Cannot acquire connection from data source
+org.postgresql.util.PSQLException: The server requested password-based authentication, but no password was provided.
+	at org.postgresql.Driver$ConnectThread.getResult(Driver.java:409)
+	at org.postgresql.Driver.connect(Driver.java:267)
+	at java.sql.DriverManager.getConnection(DriverManager.java:664)
+	at java.sql.DriverManager.getConnection(DriverManager.java:247)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:97)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:82)
+	at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:369)
+	at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:198)
+	at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:467)
+	at com.zaxxer.hikari.pool.HikariPool.access$100(HikariPool.java:71)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:706)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:692)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+3644 [database.postgres_dc.db connection adder] DEBUG com.zaxxer.hikari.pool.HikariPool - database.postgres_dc.db - Cannot acquire connection from data source
+org.postgresql.util.PSQLException: The server requested password-based authentication, but no password was provided.
+	at org.postgresql.Driver$ConnectThread.getResult(Driver.java:409)
+	at org.postgresql.Driver.connect(Driver.java:267)
+	at java.sql.DriverManager.getConnection(DriverManager.java:664)
+	at java.sql.DriverManager.getConnection(DriverManager.java:247)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:97)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:82)
+	at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:369)
+	at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:198)
+	at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:467)
+	at com.zaxxer.hikari.pool.HikariPool.access$100(HikariPool.java:71)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:706)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:692)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+5543 [database.postgres_dc.db connection adder] DEBUG com.zaxxer.hikari.pool.HikariPool - database.postgres_dc.db - Cannot acquire connection from data source
+org.postgresql.util.PSQLException: The server requested password-based authentication, but no password was provided.
+	at org.postgresql.Driver$ConnectThread.getResult(Driver.java:409)
+	at org.postgresql.Driver.connect(Driver.java:267)
+	at java.sql.DriverManager.getConnection(DriverManager.java:664)
+	at java.sql.DriverManager.getConnection(DriverManager.java:247)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:97)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:82)
+	at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:369)
+	at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:198)
+	at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:467)
+	at com.zaxxer.hikari.pool.HikariPool.access$100(HikariPool.java:71)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:706)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:692)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+8392 [database.postgres_dc.db connection adder] DEBUG com.zaxxer.hikari.pool.HikariPool - database.postgres_dc.db - Cannot acquire connection from data source
+org.postgresql.util.PSQLException: The server requested password-based authentication, but no password was provided.
+	at org.postgresql.Driver$ConnectThread.getResult(Driver.java:409)
+	at org.postgresql.Driver.connect(Driver.java:267)
+	at java.sql.DriverManager.getConnection(DriverManager.java:664)
+	at java.sql.DriverManager.getConnection(DriverManager.java:247)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:97)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:82)
+	at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:369)
+	at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:198)
+	at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:467)
+	at com.zaxxer.hikari.pool.HikariPool.access$100(HikariPool.java:71)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:706)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:692)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+12663 [database.postgres_dc.db connection adder] DEBUG com.zaxxer.hikari.pool.HikariPool - database.postgres_dc.db - Cannot acquire connection from data source
+org.postgresql.util.PSQLException: The server requested password-based authentication, but no password was provided.
+	at org.postgresql.Driver$ConnectThread.getResult(Driver.java:409)
+	at org.postgresql.Driver.connect(Driver.java:267)
+	at java.sql.DriverManager.getConnection(DriverManager.java:664)
+	at java.sql.DriverManager.getConnection(DriverManager.java:247)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:97)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:82)
+	at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:369)
+	at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:198)
+	at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:467)
+	at com.zaxxer.hikari.pool.HikariPool.access$100(HikariPool.java:71)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:706)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:692)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+19068 [database.postgres_dc.db connection adder] DEBUG com.zaxxer.hikari.pool.HikariPool - database.postgres_dc.db - Cannot acquire connection from data source
+org.postgresql.util.PSQLException: The server requested password-based authentication, but no password was provided.
+	at org.postgresql.Driver$ConnectThread.getResult(Driver.java:409)
+	at org.postgresql.Driver.connect(Driver.java:267)
+	at java.sql.DriverManager.getConnection(DriverManager.java:664)
+	at java.sql.DriverManager.getConnection(DriverManager.java:247)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:97)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:82)
+	at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:369)
+	at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:198)
+	at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:467)
+	at com.zaxxer.hikari.pool.HikariPool.access$100(HikariPool.java:71)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:706)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:692)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+28670 [database.postgres_dc.db connection adder] DEBUG com.zaxxer.hikari.pool.HikariPool - database.postgres_dc.db - Cannot acquire connection from data source
+org.postgresql.util.PSQLException: The server requested password-based authentication, but no password was provided.
+	at org.postgresql.Driver$ConnectThread.getResult(Driver.java:409)
+	at org.postgresql.Driver.connect(Driver.java:267)
+	at java.sql.DriverManager.getConnection(DriverManager.java:664)
+	at java.sql.DriverManager.getConnection(DriverManager.java:247)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:97)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:82)
+	at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:369)
+	at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:198)
+	at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:467)
+	at com.zaxxer.hikari.pool.HikariPool.access$100(HikariPool.java:71)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:706)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:692)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+30307 [database.postgres_dc.db-1] DEBUG com.zaxxer.hikari.pool.HikariPool - database.postgres_dc.db - Timeout failure stats (total=0, active=0, idle=0, waiting=0)
+30375 [database.postgres_dc.db housekeeper] DEBUG com.zaxxer.hikari.pool.HikariPool - database.postgres_dc.db - Pool stats (total=0, active=0, idle=0, waiting=0)
+38675 [database.postgres_dc.db connection adder] DEBUG com.zaxxer.hikari.pool.HikariPool - database.postgres_dc.db - Cannot acquire connection from data source
+org.postgresql.util.PSQLException: The server requested password-based authentication, but no password was provided.
+	at org.postgresql.Driver$ConnectThread.getResult(Driver.java:409)
+	at org.postgresql.Driver.connect(Driver.java:267)
+	at java.sql.DriverManager.getConnection(DriverManager.java:664)
+	at java.sql.DriverManager.getConnection(DriverManager.java:247)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:97)
+	at org.postgresql.ds.common.BaseDataSource.getConnection(BaseDataSource.java:82)
+	at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:369)
+	at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:198)
+	at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:467)
+	at com.zaxxer.hikari.pool.HikariPool.access$100(HikariPool.java:71)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:706)
+	at com.zaxxer.hikari.pool.HikariPool$PoolEntryCreator.call(HikariPool.java:692)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)

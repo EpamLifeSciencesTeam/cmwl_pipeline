@@ -1,4 +1,4 @@
-package cromwell.pipeline.datastorage.dao.repository.auth
+package cromwell.pipeline.controller
 
 import java.time.Instant
 
@@ -7,14 +7,15 @@ import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{ RejectionHandler, Route, ValidationRejection }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import cromwell.pipeline.datastorage.utils.auth.SecurityDirective._
-import cromwell.pipeline.datastorage.utils.auth.{ AccessTokenContent, AuthContent, SecurityDirective }
+import cromwell.pipeline.controller.utils.auth.SecurityDirective._
+import cromwell.pipeline.utils.auth.{ AccessTokenContent, AuthContent, SecurityDirective }
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.utils.{ AuthConfig, ExpirationTimeInSeconds, MissingAccessTokenRejection }
 import org.scalatest.{ Matchers, WordSpec }
 import pdi.jwt.algorithms.JwtHmacAlgorithm
 import pdi.jwt.{ Jwt, JwtAlgorithm, JwtClaim }
 import play.api.libs.json.Json
+import cromwell.pipeline.controller.utils.auth.SecurityDirective._
 
 class SecurityDirectiveTest extends WordSpec with Matchers with ScalatestRouteTest {
 

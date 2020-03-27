@@ -1,4 +1,4 @@
-package cromwell.pipeline.datastorage.dto.auth
+package cromwell.pipeline.utils.auth.dto
 
 import cromwell.pipeline.model.wrapper.{ Name, Password, UserEmail }
 import play.api.libs.json.{ Json, OFormat }

@@ -4,4 +4,4 @@ scala:
   - 2.12.9
 
 script:
-  - sbt clean compile test it:test
+  - sbt clean compile undeclaredCompileDependenciesTest test it:test
