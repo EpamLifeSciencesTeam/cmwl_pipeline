@@ -22,10 +22,11 @@ object AuthFormatters {
     implicit val signUpRequestFormat: OFormat[SignUpRequest] = Json.format[SignUpRequest]
   }
 
-  final case class PasswordProblemsResponse(value:String, valid: Boolean = false, errors: List[Map[String,String]])
+  final case class PasswordProblemsResponse(value: String, valid: Boolean = false, errors: List[Map[String, String]])
 
   object PasswordProblemsResponse {
-    implicit  val passwordProblemsResponseFormat: OFormat[PasswordProblemsResponse] = Json.format[PasswordProblemsResponse]
+    implicit val passwordProblemsResponseFormat: OFormat[PasswordProblemsResponse] =
+      Json.format[PasswordProblemsResponse]
   }
 
 }

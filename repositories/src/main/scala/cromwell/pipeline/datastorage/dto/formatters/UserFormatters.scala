@@ -1,7 +1,7 @@
 package cromwell.pipeline.datastorage.dto.formatters
 
-import cromwell.pipeline.datastorage.dto.{User, UserId}
-import play.api.libs.json.{Json, OFormat}
+import cromwell.pipeline.datastorage.dto.{ User, UserId }
+import play.api.libs.json.{ Json, OFormat }
 import slick.lifted.MappedTo
 
 object UserFormatters {
@@ -24,7 +24,13 @@ object UserFormatters {
     implicit val updateRequestFormat: OFormat[UserUpdateRequest] = Json.format[UserUpdateRequest]
   }
 
-  final case class UserNoCredentials(userId: UserId, email: String, firstName: String, lastName: String, active: Boolean)
+  final case class UserNoCredentials(
+    userId: UserId,
+    email: String,
+    firstName: String,
+    lastName: String,
+    active: Boolean
+  )
 
   object UserNoCredentials {
     implicit val UserNoCredentialsFormat: OFormat[UserNoCredentials] =
