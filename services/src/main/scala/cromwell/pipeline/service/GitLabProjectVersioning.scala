@@ -10,7 +10,7 @@ class GitLabProjectVersioning(httpClient: HttpClient)(
   implicit executionContext: ExecutionContext
 ) extends ProjectVersioning[VersioningException] {
 
-  lazy val URL: String = "https://gitlab.com/api/v4/"
+  lazy val URL: String = "https://gitlab.com/api/v4"
   lazy val NAMESPACE
     : String = "AdminLogin%2F" //to access repo in GitLab use this combo: NAMESPACE + project.projectId.value
   lazy val TOKEN: Map[String, String] = Map("PRIVATE-TOKEN" -> "s1ui8JcCCE-zhpyWDDmU") //access_token must be here
@@ -20,7 +20,7 @@ class GitLabProjectVersioning(httpClient: HttpClient)(
   override def updateFiles(project: Project, projectFiles: ProjectFiles): AsyncResult[List[String]] = ???
 
   override def createRepository(project: Project): AsyncResult[Project] = {
-    def responseFuture = httpClient.post(URL + "projects", createRepositoryParams(project), TOKEN, "")
+    def responseFuture = httpClient.post(URL + "/projects", createRepositoryParams(project), TOKEN, "")
     if (project.active)
       Future.failed(VersioningException("The repository is already active, creation failed."))
     else
@@ -51,8 +51,10 @@ class GitLabProjectVersioning(httpClient: HttpClient)(
     val fileVersion: String = version.map((el)=> el.value).getOrElse("master")
 
     def responseFuture = httpClient.get(
+//      s"$URL/projects/$projectId/repository/files/$filePath",
       s"$URL/projects/$projectId/repository/files/$filePath/raw",
-      Map("ref" -> fileVersion)
+      Map("ref" -> fileVersion),
+      TOKEN
     )
 
     responseFuture.flatMap(
