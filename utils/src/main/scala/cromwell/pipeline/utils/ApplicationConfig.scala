@@ -8,7 +8,8 @@ sealed trait ConfigComponent
 
 final case class WebServiceConfig(interface: String, port: Int) extends ConfigComponent
 
-final case class GitLabConfig(url: String, idPath: String, token: Map[String, String]) extends ConfigComponent
+final case class GitLabConfig(url: String, idPath: String, token: Map[String, String], defaultFileVersion: String)
+    extends ConfigComponent
 
 final case class AuthConfig(
   secretKey: String,
@@ -50,7 +51,8 @@ class ApplicationConfig(val config: Config) {
     GitLabConfig(
       url = config.getString("database.gitlab.url"),
       idPath = config.getString("database.gitlab.path") + "%2F",
-      token = Map("PRIVATE-TOKEN" -> config.getString("database.gitlab.token"))
+      token = Map("PRIVATE-TOKEN" -> config.getString("database.gitlab.token")),
+      defaultFileVersion = config.getString("database.gitlab.defaultFileVersion")
     )
   }
 
