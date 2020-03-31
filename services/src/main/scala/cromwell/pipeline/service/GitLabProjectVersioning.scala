@@ -1,6 +1,9 @@
 package cromwell.pipeline.service
+
+import java.net.URLEncoder
 import java.nio.file.Path
 
+import cromwell.pipeline.datastorage.dto.File.UpdateFileRequest
 import cromwell.pipeline.datastorage.dto.{ Project, ProjectFile, Version }
 import cromwell.pipeline.utils.{ GitLabConfig, HttpStatusCodes }
 import play.api.libs.json.{ JsError, JsResult, JsSuccess, Json }
@@ -10,9 +13,41 @@ import scala.concurrent.{ ExecutionContext, Future }
 class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
     extends ProjectVersioning[VersioningException] {
 
-  override def updateFile(project: Project, projectFile: ProjectFile)(
+  override def updateFile(project: Project, projectFile: ProjectFile, version: Option[Version])(
     implicit ec: ExecutionContext
-  ): AsyncResult[String] = ???
+  ): AsyncResult[String] = {
+    val path = URLEncoder.encode(projectFile.path.toString, "UTF-8")
+    val fileUrl = s"${config.url}projects/${project.repository}/repository/files/$path"
+    val versionValue = version.map(_.name).getOrElse(config.defaultFileVersion)
+
+    httpClient
+      .put(
+        fileUrl,
+        payload = Json.stringify(
+          Json.toJson(UpdateFileRequest(versionValue, projectFile.content, versionValue))
+        ),
+        headers = config.token
+      )
+      .flatMap {
+        case Response(HttpStatusCodes.OK, _, _) =>
+          Future.successful(Right("Success update file"))
+        case Response(HttpStatusCodes.BadRequest, _, _) =>
+          httpClient
+            .post(
+              fileUrl,
+              payload = Json.stringify(
+                Json.toJson(UpdateFileRequest(config.defaultFileVersion, projectFile.content, "Init commit"))
+              ),
+              headers = config.token
+            )
+            .map {
+              case Response(HttpStatusCodes.OK, _, _) => Right("Create new file")
+              case Response(_, body, _)               => Left(VersioningException(body))
+            }
+        case Response(_, body, _) => Future.successful(Left(VersioningException(body)))
+      }
+  }
+
   override def updateFiles(project: Project, projectFiles: ProjectFiles)(
     implicit ec: ExecutionContext
   ): AsyncResult[List[String]] = ???
@@ -32,6 +67,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
         )
         .recover { case e: Throwable => Left(VersioningException(e.getMessage)) }
     }
+
   override def getFiles(project: Project, path: Path)(implicit ec: ExecutionContext): AsyncResult[List[String]] = ???
 
   override def getProjectVersions(project: Project)(implicit ec: ExecutionContext): AsyncResult[Seq[Version]] = {
@@ -56,12 +92,15 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
   override def getFileVersions(project: Project, path: Path)(
     implicit ec: ExecutionContext
   ): AsyncResult[List[Version]] = ???
+
   override def getFilesVersions(project: Project, path: Path)(
     implicit ec: ExecutionContext
   ): AsyncResult[List[Version]] = ???
+
   override def getFileTree(project: Project, version: Option[Version])(
     implicit ec: ExecutionContext
   ): AsyncResult[List[String]] = ???
+
   override def getFile(project: Project, path: Path, version: Option[Version])(
     implicit ec: ExecutionContext
   ): AsyncResult[String] = ???

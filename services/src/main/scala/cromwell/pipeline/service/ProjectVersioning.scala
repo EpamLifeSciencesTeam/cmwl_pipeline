@@ -10,7 +10,7 @@ trait ProjectVersioning[E >: VersioningException] {
   type AsyncResult[T] = Future[Either[E, T]]
   type ProjectFiles = List[ProjectFile]
 
-  def updateFile(project: Project, projectFile: ProjectFile)(
+  def updateFile(project: Project, projectFile: ProjectFile, version: Option[Version])(
     implicit ec: ExecutionContext
   ): AsyncResult[String]
 

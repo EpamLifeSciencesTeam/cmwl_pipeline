@@ -1,6 +1,12 @@
 package cromwell.pipeline.service
+
+import java.net.URLEncoder
+import java.nio.file.Paths
+
+import akka.http.scaladsl.model.StatusCodes
 import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
-import cromwell.pipeline.datastorage.dto.{ Project, Version }
+import cromwell.pipeline.datastorage.dto.File.UpdateFileRequest
+import cromwell.pipeline.datastorage.dto.{ Commit, File, Project, ProjectFile, Version }
 import cromwell.pipeline.utils.{ ApplicationConfig, GitLabConfig, HttpStatusCodes }
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
@@ -15,9 +21,14 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
   val gitLabConfig: GitLabConfig = ApplicationConfig.load().gitLabConfig
   val gitLabProjectVersioning: GitLabProjectVersioning = new GitLabProjectVersioning(mockHttpClient, gitLabConfig)
   import ProjectContext._
+  import ProjectFileContext._
+
   "GitLabProjectVersioning" when {
+
     "createRepository" should {
+
       def payload(project: Project): String = Json.stringify(Json.toJson(project))
+
       def request(project: Project) =
         mockHttpClient.post(
           url = gitLabConfig.url + "projects",
@@ -30,6 +41,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
           _ shouldBe VersioningException("Could not create a repository for deleted project.")
         }
       }
+
       "return new active Project with 201 response" taggedAs Service in {
         val project = withRepoProject
         when(request(activeProject)).thenReturn(Future.successful(Response(HttpStatusCodes.Created, EmptyBody, Map())))
@@ -37,6 +49,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
           _ shouldBe Right(project)
         }
       }
+
       "throw new VersioningException with 400 response" taggedAs Service in {
         when(request(activeProject))
           .thenReturn(Future.successful(Response(HttpStatusCodes.BadRequest, EmptyBody, Map())))
@@ -48,11 +61,13 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
 
     "getProjectVersions" should {
       val dummyVersionsJson: String = s"[${Json.stringify(Json.toJson(dummyVersion))}]"
+
       def request(project: Project) =
         mockHttpClient.get(
           url = gitLabConfig.url + "projects/" + project.repository.get.value + "/repository/tags",
           headers = gitLabConfig.token
         )
+
       "return list of Project versions with 200 response" taggedAs Service in {
         when(request(withRepoProject))
           .thenReturn(Future.successful(Response(HttpStatusCodes.OK, dummyVersionsJson, Map())))
@@ -68,6 +83,68 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
         }
       }
     }
+
+    "updateFile" should {
+      "return create file response when file is new" taggedAs Service in {
+        val path = URLEncoder.encode(newFile.path.toString, "UTF-8")
+        val url = s"${gitLabConfig.url}projects/${withRepoProject.repository}/repository/files/$path"
+
+        when(
+          mockHttpClient.put(
+            url,
+            payload = Json.stringify(
+              Json.toJson(
+                File
+                  .UpdateFileRequest(gitLabConfig.defaultFileVersion, newFile.content, gitLabConfig.defaultFileVersion)
+              )
+            ),
+            headers = gitLabConfig.token
+          )
+        ).thenReturn(
+          Future.successful(
+            Response(StatusCodes.BadRequest.intValue, "File does not exist", Map("error" -> List("true")))
+          )
+        )
+        when(
+          mockHttpClient.post(
+            url,
+            payload = Json.stringify(
+              Json.toJson(File.UpdateFileRequest(gitLabConfig.defaultFileVersion, newFile.content, "Init commit"))
+            ),
+            headers = gitLabConfig.token
+          )
+        ).thenReturn(
+          Future.successful(Response(StatusCodes.OK.intValue, "Create file", Map("success" -> List("true"))))
+        )
+
+        gitLabProjectVersioning.updateFile(withRepoProject, newFile, None).flatMap(_ shouldBe Right("Create new file"))
+      }
+
+      "return update file response when file is already exist" taggedAs Service in {
+        val path = URLEncoder.encode(existFile.path.toString, "UTF-8")
+        val url = s"${gitLabConfig.url}projects/${withRepoProject.repository}/repository/files/$path"
+
+        when(
+          mockHttpClient.put(
+            url,
+            payload = Json.stringify(Json.toJson(UpdateFileRequest("v.0.0.2", existFile.content, "v.0.0.2"))),
+            headers = gitLabConfig.token
+          )
+        ).thenReturn(
+          Future.successful(
+            Response(StatusCodes.OK.intValue, "File update", Map("success" -> List("true")))
+          )
+        )
+
+        gitLabProjectVersioning
+          .updateFile(
+            withRepoProject,
+            existFile,
+            Some(Version("v.0.0.2", "New version", "this project", Commit("commit_12")))
+          )
+          .flatMap(_ shouldBe Right("Success update file"))
+      }
+    }
   }
 
   object ProjectContext {
@@ -78,5 +155,10 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
     lazy val withRepoProject: Project =
       activeProject.withRepository(Some(s"${gitLabConfig.idPath}${activeProject.projectId.value}"))
     lazy val dummyVersion: Version = TestProjectUtils.getDummyVersion()
+  }
+
+  object ProjectFileContext {
+    val newFile: ProjectFile = ProjectFile(Paths.get("new_file.txt"), "Hello world")
+    val existFile: ProjectFile = ProjectFile(Paths.get("exist_file.txt"), "Hello world")
   }
 }
