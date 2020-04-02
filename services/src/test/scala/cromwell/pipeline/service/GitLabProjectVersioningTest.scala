@@ -1,16 +1,15 @@
 package cromwell.pipeline.service
+import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, UserId, Version }
+import org.mockito.Mockito.when
+import org.mockito.{ Matchers => MockitoMatchers }
+import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
+import org.scalatestplus.mockito.MockitoSugar
 import java.net.URLEncoder
 import java.nio.file.Paths
-
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, UserId, Version }
-import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers, WordSpec }
-import org.mockito.Mockito.when
-import org.scalatestplus.mockito.MockitoSugar
-import org.mockito.{ Matchers => MockitoMatchers }
-
 import scala.concurrent.{ ExecutionContext, Future }
 
 class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with MockitoSugar with BeforeAndAfterAll {
+
   val mockHttpClient: HttpClient = mock[HttpClient]
   val gitLabProjectVersioning: GitLabProjectVersioning = new GitLabProjectVersioning(mockHttpClient)
 
