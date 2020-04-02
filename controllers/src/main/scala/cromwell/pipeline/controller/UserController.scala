@@ -5,7 +5,8 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import cats.data.Validated.{ Invalid, Valid }
 import cromwell.pipeline.datastorage.dto.UserId
-import cromwell.pipeline.datastorage.dto.formatters.UserFormatters.{ PasswordUpdateRequest, UserUpdateRequest }
+import cromwell.pipeline.datastorage.dto.{ PasswordUpdateRequest, UserUpdateRequest }
+import cromwell.pipeline.datastorage.dto.formatters.UserFormatters._
 import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.utils.validator.FormValidatorNel
 import cromwell.pipeline.service.UserService

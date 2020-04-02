@@ -6,6 +6,8 @@ import java.nio.file.Path
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{ Format, Json, OFormat }
 import slick.lifted.MappedTo
+import slick.lifted.MappedTo
+import scala.reflect.io.Path
 
 final case class Project(
   projectId: ProjectId,
@@ -42,6 +44,14 @@ final case class ProjectUpdateRequest(projectId: ProjectId, name: String, reposi
 object ProjectUpdateRequest {
   implicit val updateRequestFormat: OFormat[ProjectUpdateRequest] = Json.format[ProjectUpdateRequest]
 }
+
+final case class Version(value: String) extends AnyVal
+
+final case class ProjectFile(path: Path, content: String)
+
+final case class ProjectId(value: String) extends MappedTo[String]
+
+final case class ProjectAdditionRequest(ownerId: UserId, name: String, repository: String)
 
 final case class Version(value: String) extends AnyVal
 

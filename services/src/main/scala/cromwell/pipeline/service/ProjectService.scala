@@ -6,7 +6,7 @@ import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.service.Exceptions.{ ProjectAccessDeniedException, ProjectNotFoundException }
 import cromwell.pipeline.datastorage.dto.Project
-import cromwell.pipeline.datastorage.dto.formatters.ProjectFormatters.{ ProjectAdditionRequest, ProjectId }
+import cromwell.pipeline.datastorage.dto.{ ProjectAdditionRequest, ProjectId }
 
 import scala.concurrent.{ ExecutionContext, Future }
 

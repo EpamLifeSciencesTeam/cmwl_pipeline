@@ -3,7 +3,7 @@ package cromwell.pipeline.datastorage.dao.repository
 import cromwell.pipeline.database.PipelineDatabaseEngine
 import cromwell.pipeline.datastorage.dao.ProjectEntry
 import cromwell.pipeline.datastorage.dto.Project
-import cromwell.pipeline.datastorage.dto.formatters.ProjectFormatters.ProjectId
+import cromwell.pipeline.datastorage.dto.ProjectId
 
 import scala.concurrent.Future
 

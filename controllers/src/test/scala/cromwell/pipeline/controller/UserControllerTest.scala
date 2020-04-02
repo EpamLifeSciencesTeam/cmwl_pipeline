@@ -3,8 +3,9 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
-import cromwell.pipeline.datastorage.dto.formatters.UserFormatters.{ PasswordUpdateRequest, UserNoCredentials, UserUpdateRequest }
+import cromwell.pipeline.datastorage.dto.{ PasswordUpdateRequest, UserNoCredentials, UserUpdateRequest }
 import cromwell.pipeline.datastorage.dto.{ User, UserId }
+import cromwell.pipeline.datastorage.dto.formatters.UserFormatters._
 import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
 import cromwell.pipeline.service.UserService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport

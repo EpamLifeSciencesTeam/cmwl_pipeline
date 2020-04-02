@@ -6,8 +6,9 @@ import java.util.UUID
 import cats.data.OptionT
 import cats.implicits._
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
-import cromwell.pipeline.datastorage.dto.formatters.AuthFormatters.{ AuthResponse, SignInRequest, SignUpRequest }
+
 import cromwell.pipeline.datastorage.dto.{ User, UserId }
+import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, SignInRequest, SignUpRequest }
 import cromwell.pipeline.datastorage.utils.auth.{ AccessTokenContent, AuthContent, AuthUtils, RefreshTokenContent }
 import cromwell.pipeline.utils.StringUtils
 import play.api.libs.json.Json
