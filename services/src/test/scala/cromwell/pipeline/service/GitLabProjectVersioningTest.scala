@@ -5,26 +5,20 @@ import cromwell.pipeline.datastorage.dto.Project
 import cromwell.pipeline.utils.{ ApplicationConfig, GitLabConfig }
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
+import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.Future
 
-class GitLabProjectVersioningTest
-    extends AsyncWordSpec
-    with ScalaFutures
-    with Matchers
-    with MockitoSugar
-    with BeforeAndAfterAll {
+class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with Matchers with MockitoSugar {
   val mockHttpClient: HttpClient = mock[HttpClient]
   val gitLabConfig: GitLabConfig = ApplicationConfig.load().gitLabConfig
   val gitLabProjectVersioning: GitLabProjectVersioning = new GitLabProjectVersioning(mockHttpClient, gitLabConfig)
   import ProjectContext._
   "GitLabProjectVersioning" when {
     "createRepository" should {
-      val quote = "\""
       def payload(project: Project): String =
-        s"{${quote}name${quote}:${quote}${project.ownerId.value}${quote},${quote}path${quote}:${quote}${project.projectId.value}${quote},${quote}visibility${quote}:${quote}private${quote}}"
+        s"""{"name":"${project.ownerId.value}","path":"${project.projectId.value}","visibility":"private"}"""
       def request(project: Project) =
         mockHttpClient.post(
           url = gitLabConfig.url + "projects",

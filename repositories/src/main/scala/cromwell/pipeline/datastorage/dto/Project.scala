@@ -3,7 +3,7 @@ package cromwell.pipeline.datastorage.dto
 import java.nio.file.Path
 
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{ Format, Json, OFormat }
+import play.api.libs.json._
 import slick.lifted.MappedTo
 
 final case class Project(
@@ -11,11 +11,23 @@ final case class Project(
   ownerId: UserId,
   name: String,
   repository: String,
+  visibility: Visibility = Private,
   active: Boolean
-)
+) {
+  def toJson: JsValue = Json.toJson(this)
+}
 
 object Project {
   implicit lazy val projectFormat: OFormat[Project] = Json.format[Project]
+  implicit lazy val projectWrites: Writes[Project] = (project: Project) =>
+    Json.obj(
+      "name" -> project.name,
+      "path" -> project.projectId.value,
+      "owner" -> project.ownerId,
+      "full_path" -> project.repository,
+      "visibility" -> project.visibility.value,
+      "active" -> project.active
+    )
 }
 
 final case class ProjectId(value: String) extends MappedTo[String]
@@ -45,3 +57,8 @@ object ProjectUpdateRequest {
 final case class Version(value: String) extends AnyVal
 
 final case class ProjectFile(path: Path, content: String)
+
+sealed trait Visibility extends MappedTo[String]
+case object Private extends Visibility { override def value: String = "private" }
+case object Internal extends Visibility { override def value: String = "internal" }
+case object Public extends Visibility { override def value: String = "public" }
