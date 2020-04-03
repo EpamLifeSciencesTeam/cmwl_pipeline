@@ -18,23 +18,23 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
     implicit ec: ExecutionContext
   ): AsyncResult[List[String]] = ???
 
-  override def createRepository(project: Project)(implicit ec: ExecutionContext): AsyncResult[Project] =
+  override def createRepository(project: Project)(implicit ec: ExecutionContext): AsyncResult[Project] = {
+    def projectWithRepository(repositoryFullPath: String): Project = project.copy(repository = repositoryFullPath)
     if (!project.active)
       Future.failed(VersioningException("Could not create a repository for deleted project."))
     else {
       val createRepoUrl: String = s"${config.url}projects"
-      val responseFuture =
-        httpClient.post(url = createRepoUrl, headers = config.token, payload = createRepositoryBody(project))
-      responseFuture
+      httpClient
+        .post(url = createRepoUrl, headers = config.token, payload = Json.stringify(project.toJson))
         .map(
           resp =>
             if (resp.status != StatusCodes.Created.intValue)
               Left(VersioningException(s"The repository was not created. Response status: ${resp.status}"))
-            else Right(updateProject(project))
+            else Right(projectWithRepository(config.idPath + project.projectId))
         )
         .recover { case e: Throwable => Left(VersioningException(e.getMessage)) }
     }
-
+  }
   override def getFiles(project: Project, path: Path)(implicit ec: ExecutionContext): AsyncResult[List[String]] = ???
   override def getProjectVersions(project: Project)(implicit ec: ExecutionContext): AsyncResult[Project] = ???
   override def getFileVersions(project: Project, path: Path)(
@@ -49,15 +49,4 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
   override def getFile(project: Project, path: Path, version: Option[Version])(
     implicit ec: ExecutionContext
   ): AsyncResult[String] = ???
-
-  private def createRepositoryBody(project: Project): String = {
-    val name: String = project.ownerId.value
-    val path: String = project.projectId.value
-    val visibility = "private"
-    val jsValue = Json.toJson(Map("name" -> name, "path" -> path, "visibility" -> visibility))
-    Json.stringify(jsValue)
-  }
-
-  private def updateProject(project: Project): Project =
-    project.copy(repository = config.idPath + project.projectId.value)
 }
