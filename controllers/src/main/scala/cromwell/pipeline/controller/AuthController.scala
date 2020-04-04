@@ -5,8 +5,8 @@ import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import cats.data.Validated.{ Invalid, Valid }
-import cromwell.pipeline.datastorage.dto.formatters.AuthFormatters._
 import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, PasswordProblemsResponse, SignInRequest, SignUpRequest }
+import cromwell.pipeline.datastorage.dto.formatters.AuthFormatters._
 import cromwell.pipeline.datastorage.utils.validator.FormValidatorNel
 import cromwell.pipeline.service.AuthService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
@@ -44,6 +44,7 @@ class AuthController(authService: AuthService)(implicit executionContext: Execut
                   complete(
                     StatusCodes.BadRequest -> PasswordProblemsResponse(
                       value = request.password,
+                      isValid = false,
                       errors = errors.toList.map(_.toMap)
                     )
                   )

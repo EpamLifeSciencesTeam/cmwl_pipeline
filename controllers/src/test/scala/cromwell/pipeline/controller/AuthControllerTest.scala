@@ -5,12 +5,12 @@ import akka.http.scaladsl.model.{ HttpEntity, StatusCodes }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.controller.AuthController._
 import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, PasswordProblemsResponse, SignInRequest, SignUpRequest }
+import cromwell.pipeline.datastorage.dto.formatters.AuthFormatters._
 import cromwell.pipeline.datastorage.utils.validator.DomainValidation
 import cromwell.pipeline.service.AuthService
-import play.api.libs.json.Json
-import cromwell.pipeline.datastorage.dto.formatters.AuthFormatters._
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ Assertion, Matchers, WordSpec }
+import play.api.libs.json.Json
 
 import scala.concurrent.Future
 

@@ -5,6 +5,7 @@ import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto.{ Project, ProjectAdditionRequest, ProjectId, UserId }
 import cromwell.pipeline.datastorage.dto.Project
 import cromwell.pipeline.datastorage.dto.ProjectAdditionRequest
+import cromwell.pipeline.datastorage.dto.{ Project, ProjectAdditionRequest }
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }

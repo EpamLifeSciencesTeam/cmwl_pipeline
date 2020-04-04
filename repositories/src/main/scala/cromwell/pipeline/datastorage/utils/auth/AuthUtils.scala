@@ -1,7 +1,7 @@
 package cromwell.pipeline.datastorage.utils.auth
 
-import cromwell.pipeline.utils.AuthConfig
 import cromwell.pipeline.datastorage.dto.auth.AuthResponse
+import cromwell.pipeline.utils.AuthConfig
 import pdi.jwt.{ Jwt, JwtClaim }
 import play.api.libs.json.Json
 

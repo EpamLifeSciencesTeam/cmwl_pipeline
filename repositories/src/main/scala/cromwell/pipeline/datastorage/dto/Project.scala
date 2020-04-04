@@ -7,6 +7,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.{ Format, Json, OFormat }
 import slick.lifted.MappedTo
 import slick.lifted.MappedTo
+
 import scala.reflect.io.Path
 
 final case class Project(

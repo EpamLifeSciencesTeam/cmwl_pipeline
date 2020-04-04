@@ -3,8 +3,8 @@ package cromwell.pipeline.datastorage.utils.validator
 import cats.data.Validated._
 import cats.data._
 import cats.implicits._
-import cromwell.pipeline.datastorage.dto.auth.SignUpRequest
 import cromwell.pipeline.datastorage.dto.PasswordUpdateRequest
+import cromwell.pipeline.datastorage.dto.auth.SignUpRequest
 
 object FormValidatorNel {
 
