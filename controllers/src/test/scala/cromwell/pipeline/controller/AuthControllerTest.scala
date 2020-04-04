@@ -7,9 +7,10 @@ import cromwell.pipeline.controller.AuthController._
 import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, PasswordProblemsResponse, SignInRequest, SignUpRequest }
 import cromwell.pipeline.datastorage.utils.validator.DomainValidation
 import cromwell.pipeline.service.AuthService
+import play.api.libs.json.Json
+import cromwell.pipeline.datastorage.dto.formatters.AuthFormatters._
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ Assertion, Matchers, WordSpec }
-import play.api.libs.json.Json
 
 import scala.concurrent.Future
 
@@ -86,7 +87,11 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
           .returns(Future(Some(authResponse)))
 
         Post("/auth/signUp", httpEntity) ~> authController.route ~> check {
+          val response = Json.parse(responseAs[String]).as[PasswordProblemsResponse]
+          val errorCodes = response.errors.map(_("errorCode")).toSet
+
           status shouldBe StatusCodes.BadRequest
+          DomainValidation.allErrorCodes.forall(errorCodes.contains) shouldBe true
         }
       }
 
