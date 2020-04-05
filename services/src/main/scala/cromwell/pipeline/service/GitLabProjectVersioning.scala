@@ -50,16 +50,13 @@ class GitLabProjectVersioning(httpClient: HttpClient)(
       TOKEN
     )
 
-//      Map instead of flatMap
-    responseFuture.flatMap(
+    responseFuture.map(
       resp =>
-        Future.successful(
-          if (resp.status == 200) {
-            Right(resp.body)
-          } else {
-            Left(VersioningException(s"Exception. Response status: ${resp.status}"))
-          }
-        )
+        if (resp.status == 200) {
+          Right(resp.body)
+        } else {
+          Left(VersioningException(s"Exception. Response status: ${resp.status}"))
+        }
     )
   }
 
