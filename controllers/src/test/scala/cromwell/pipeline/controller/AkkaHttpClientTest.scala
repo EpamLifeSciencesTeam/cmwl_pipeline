@@ -6,26 +6,27 @@ import akka.stream.ActorMaterializer
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration._
-import org.scalatest.{ AsyncWordSpec, BeforeAndAfterEach, Matchers }
+import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.ExecutionContext
 
-class AkkaHttpClientTest extends AsyncWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
+class AkkaHttpClientTest extends AsyncWordSpec with Matchers with MockitoSugar with BeforeAndAfterAll {
   implicit val actorSystem: ActorSystem = ActorSystem()
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val ec: ExecutionContext = actorSystem.dispatcher
 
   val wireMockServer = new WireMockServer(wireMockConfig().dynamicPort())
+  val client = new AkkaHttpClient()
 
-  override def beforeEach: Unit = {
-    super.beforeEach()
+  override def beforeAll: Unit = {
+    super.beforeAll()
     wireMockServer.start()
   }
 
-  override def afterEach: Unit = {
+  override def afterAll: Unit = {
     wireMockServer.stop()
-    super.afterEach()
+    super.afterAll()
   }
 
   "AkkaHttpControllerTest" when {
@@ -39,7 +40,7 @@ class AkkaHttpClientTest extends AsyncWordSpec with Matchers with MockitoSugar w
         val params = Map("id" -> "1")
         val headers = Map("Language" -> "eng")
 
-        new AkkaHttpClient().get(get_url, params, headers).flatMap(_.status shouldBe StatusCodes.OK.intValue)
+        client.get(get_url, params, headers).flatMap(_.status shouldBe StatusCodes.OK.intValue)
       }
 
       "return response with body" taggedAs Controller in {
@@ -50,7 +51,7 @@ class AkkaHttpClientTest extends AsyncWordSpec with Matchers with MockitoSugar w
         val params = Map("id" -> "1")
         val headers = Map("Language" -> "eng")
 
-        new AkkaHttpClient().get(get_url, params, headers).flatMap(_.body shouldBe "Value")
+        client.get(get_url, params, headers).flatMap(_.body shouldBe "Value")
       }
 
       "return response with headers" taggedAs Controller in {
@@ -61,7 +62,7 @@ class AkkaHttpClientTest extends AsyncWordSpec with Matchers with MockitoSugar w
         val params = Map("id" -> "1")
         val headers = Map("Language" -> "eng")
 
-        new AkkaHttpClient()
+        client
           .get(get_url, params, headers)
           .flatMap(_.headers.getOrElse("TestKey", List("failed")) shouldBe List("TestValue"))
       }
@@ -79,7 +80,7 @@ class AkkaHttpClientTest extends AsyncWordSpec with Matchers with MockitoSugar w
         val headers = Map("Language" -> "eng")
         val payload = "test payload"
 
-        new AkkaHttpClient().post(post_url, params, headers, payload).flatMap(_.status shouldBe StatusCodes.OK.intValue)
+        client.post(post_url, params, headers, payload).flatMap(_.status shouldBe StatusCodes.OK.intValue)
       }
 
       "return response with body" taggedAs Controller in {
@@ -93,7 +94,7 @@ class AkkaHttpClientTest extends AsyncWordSpec with Matchers with MockitoSugar w
         val headers = Map("Language" -> "eng")
         val payload = "test payload"
 
-        new AkkaHttpClient().post(post_url, params, headers, payload).flatMap(_.body shouldBe "Value")
+        client.post(post_url, params, headers, payload).flatMap(_.body shouldBe "Value")
       }
 
       "return response with headers" taggedAs Controller in {
@@ -107,7 +108,7 @@ class AkkaHttpClientTest extends AsyncWordSpec with Matchers with MockitoSugar w
         val headers = Map("Language" -> "eng")
         val payload = "test payload"
 
-        new AkkaHttpClient()
+        client
           .post(post_url, params, headers, payload)
           .flatMap(_.headers.getOrElse("TestKey", List("failed")) shouldBe List("TestValue"))
       }
@@ -125,7 +126,7 @@ class AkkaHttpClientTest extends AsyncWordSpec with Matchers with MockitoSugar w
         val headers = Map("Language" -> "eng")
         val payload = "test payload"
 
-        new AkkaHttpClient().put(put_url, params, headers, payload).flatMap(_.status shouldBe StatusCodes.OK.intValue)
+        client.put(put_url, params, headers, payload).flatMap(_.status shouldBe StatusCodes.OK.intValue)
       }
 
       "return response with body" taggedAs Controller in {
@@ -139,7 +140,7 @@ class AkkaHttpClientTest extends AsyncWordSpec with Matchers with MockitoSugar w
         val headers = Map("Language" -> "eng")
         val payload = "test payload"
 
-        new AkkaHttpClient().put(put_url, params, headers, payload).flatMap(_.body shouldBe "Value")
+        client.put(put_url, params, headers, payload).flatMap(_.body shouldBe "Value")
       }
 
       "return response with headers" taggedAs Controller in {
@@ -153,7 +154,7 @@ class AkkaHttpClientTest extends AsyncWordSpec with Matchers with MockitoSugar w
         val headers = Map("Language" -> "eng")
         val payload = "test payload"
 
-        new AkkaHttpClient()
+        client
           .put(put_url, params, headers, payload)
           .flatMap(_.headers.getOrElse("TestKey", List("failed")) shouldBe List("TestValue"))
       }
