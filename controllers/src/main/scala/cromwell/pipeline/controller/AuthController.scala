@@ -44,7 +44,6 @@ class AuthController(authService: AuthService)(implicit executionContext: Execut
                   complete(
                     StatusCodes.BadRequest -> PasswordProblemsResponse(
                       value = request.password,
-                      isValid = false,
                       errors = errors.toList.map(_.toMap)
                     )
                   )
