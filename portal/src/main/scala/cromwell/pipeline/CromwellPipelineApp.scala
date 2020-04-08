@@ -29,7 +29,7 @@ object CromwellPipelineApp extends App {
   def routeCombiner(routes: SecuredRoute*): SecuredRoute = token => concat(routes.map(_(token)): _*)
 
   val route = authController.route ~ securityDirective.authenticated {
-    routeCombiner(userController.route, projectController.route)
+    routeCombiner(userController.route, projectController.route, projectFileController.route)
   }
 
   log.info(s"Server online at http://${webServiceConfig.interface}:${webServiceConfig.port}/")

@@ -8,4 +8,5 @@ class ControllerModule(serviceModule: ServiceModule)(implicit executionContext: 
   lazy val authController: AuthController = new AuthController(serviceModule.authService)
   lazy val userController: UserController = new UserController(serviceModule.userService)
   lazy val projectController: ProjectController = new ProjectController(serviceModule.projectService)
+  lazy val projectFileController: ProjectFileController = new ProjectFileController(serviceModule.projectFileService)
 }

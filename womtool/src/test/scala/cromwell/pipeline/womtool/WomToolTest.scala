@@ -74,14 +74,14 @@ class WomToolTest extends WordSpec with Matchers {
         val res: Either[NonEmptyList[String], WomBundle] =
           womTool.validate(correctWdl)
 
-        res.right.value.allCallables("hello").toString.stripMargin should be(correctValidateAnswer)
+        res.right.value.allCallables("hello").toString.stripMargin shouldBe correctValidateAnswer
       }
       "return the error message" in {
 
         val res: Either[NonEmptyList[String], WomBundle] =
           womTool.validate(inCorrectWdl)
 
-        res.left.value.head.slice(0, 5) should be("ERROR")
+        res.left.value.head.slice(0, 5) shouldBe "ERROR"
       }
     }
 
@@ -92,7 +92,7 @@ class WomToolTest extends WordSpec with Matchers {
         val res: Either[NonEmptyList[String], String] =
           womTool.inputs(correctWdl)
 
-        res.right.value should be(correctInputsAnswer)
+        res.right.value shouldBe correctInputsAnswer
       }
 
       "return the ERROR" in {
@@ -100,7 +100,7 @@ class WomToolTest extends WordSpec with Matchers {
         val res: Either[NonEmptyList[String], String] =
           womTool.inputs(inCorrectWdl)
 
-        res.left.value.toString.stripMargin should be(inCorrectInputs)
+        res.left.value.toString.stripMargin shouldBe inCorrectInputs
       }
     }
   }
