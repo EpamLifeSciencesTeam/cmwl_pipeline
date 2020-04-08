@@ -25,7 +25,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
     else {
       val createRepoUrl: String = s"${config.url}projects"
       httpClient
-        .post(url = createRepoUrl, headers = config.token, payload = Json.stringify(project.toJson))
+        .post(url = createRepoUrl, headers = config.token, payload = Json.stringify(Json.toJson(project)))
         .map(
           resp =>
             if (resp.status != StatusCodes.Created.intValue)

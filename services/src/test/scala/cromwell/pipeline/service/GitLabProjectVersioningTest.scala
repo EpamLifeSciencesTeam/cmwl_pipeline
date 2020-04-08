@@ -7,6 +7,7 @@ import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.libs.json.Json
 
 import scala.concurrent.Future
 
@@ -17,8 +18,8 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
   import ProjectContext._
   "GitLabProjectVersioning" when {
     "createRepository" should {
-      def payload(project: Project): String =
-        s"""{"name":"${project.ownerId.value}","path":"${project.projectId.value}","visibility":"private"}"""
+      def payload(project: Project): String = Json.stringify(Json.toJson(project))
+      // s"""{"name":"${project.name}","path":"${project.projectId.value}","visibility":"private"}"""
       def request(project: Project) =
         mockHttpClient.post(
           url = gitLabConfig.url + "projects",
@@ -32,7 +33,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
         }
       }
       "return new active Project with 201 response" taggedAs Service in {
-        val project = activeProject.copy(repository = gitLabConfig.idPath + activeProject.projectId.value)
+        val project = projectWithRepo
         when(request(activeProject)).thenReturn(Future.successful(Response(StatusCodes.Created.intValue, "", Map())))
         gitLabProjectVersioning.createRepository(activeProject).map {
           _ shouldBe Right(project)
@@ -51,7 +52,6 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
     lazy val activeProject: Project = TestProjectUtils.getDummyProject()
     lazy val inactiveProject: Project = activeProject.copy(active = false)
     lazy val noRepoProject: Project = activeProject.copy(repository = null)
-    lazy val projectWithRepo: Project =
-      activeProject.copy(repository = gitLabConfig.idPath + activeProject.projectId.value)
+    lazy val projectWithRepo: Project = activeProject.copy(repository = gitLabConfig.idPath + activeProject.projectId)
   }
 }

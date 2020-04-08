@@ -2,7 +2,9 @@ package cromwell.pipeline.datastorage.dao
 
 import cromwell.pipeline.datastorage.Profile
 import cromwell.pipeline.datastorage.dao.entry.UserEntry
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, UserId }
+import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, UserId, Visibility }
+import slick.ast.BaseTypedType
+import slick.jdbc.JdbcType
 
 trait ProjectEntry {
   this: Profile with UserEntry =>
@@ -14,8 +16,9 @@ trait ProjectEntry {
     def ownerId = column[UserId]("owner_id")
     def name = column[String]("name")
     def repository = column[String]("repository")
+    def visibility = column[Visibility]("visibility")
     def active = column[Boolean]("active")
-    def * = (projectId, ownerId, name, repository, active) <>
+    def * = (projectId, ownerId, name, repository, visibility, active) <>
       ((Project.apply _).tupled, Project.unapply)
 
     def user = foreignKey("fk_project_user", ownerId, users)(_.userId)
@@ -42,4 +45,12 @@ trait ProjectEntry {
       .map(project => (project.name, project.repository))
       .update((updatedProject.name, updatedProject.repository))
 
+  implicit val visibilityColumnType: JdbcType[Visibility] with BaseTypedType[Visibility] =
+    MappedColumnType.base[Visibility, String](
+      { visibility =>
+        Visibility.fromVisibility(visibility)
+      }, { string =>
+        Visibility.toVisibility(string)
+      }
+    )
 }

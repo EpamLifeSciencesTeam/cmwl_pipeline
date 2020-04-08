@@ -13,20 +13,18 @@ final case class Project(
   repository: String,
   visibility: Visibility = Private,
   active: Boolean
-) {
-  def toJson: JsValue = Json.toJson(this)
-}
-
+)
 object Project {
   implicit lazy val projectFormat: OFormat[Project] = Json.format[Project]
   implicit lazy val projectWrites: Writes[Project] = (project: Project) =>
     Json.obj(
+      "projectId" -> project.projectId.value,
+      "ownerId" -> project.ownerId,
       "name" -> project.name,
-      "path" -> project.projectId.value,
-      "owner" -> project.ownerId,
-      "full_path" -> project.repository,
-      "visibility" -> project.visibility.value,
-      "active" -> project.active
+      "repository" -> project.repository,
+      "visibility" -> Visibility.fromVisibility(project.visibility),
+      "active" -> project.active,
+      "path" -> project.projectId.value
     )
 }
 
@@ -58,7 +56,22 @@ final case class Version(value: String) extends AnyVal
 
 final case class ProjectFile(path: Path, content: String)
 
-sealed trait Visibility extends MappedTo[String]
-case object Private extends Visibility { override def value: String = "private" }
-case object Internal extends Visibility { override def value: String = "internal" }
-case object Public extends Visibility { override def value: String = "public" }
+sealed trait Visibility
+case object Private extends Visibility
+case object Internal extends Visibility
+case object Public extends Visibility
+object Visibility {
+  def toVisibility(string: String): Visibility = string match {
+    case "private"  => Private
+    case "internal" => Internal
+    case "public"   => Public
+  }
+  def fromVisibility(visibility: Visibility): String = visibility match {
+    case Private  => "private"
+    case Internal => "internal"
+    case Public   => "public"
+  }
+  implicit lazy val projectVisibilityFormat: Format[Visibility] =
+    implicitly[Format[String]].inmap(toVisibility, fromVisibility)
+
+}

@@ -54,4 +54,15 @@
         <addForeignKeyConstraint constraintName="fk_project_user" baseTableName="project" baseColumnNames="owner_id" referencedTableName="user" referencedColumnNames="user_id"/>
     </changeSet>
 
+    <changeSet id="add_column_for_project_visibility" author="andrey_maksimenko">
+        <sql>CREATE TYPE visibility_type AS ENUM('private','internal','public')</sql>
+        <addColumn tableName="project">
+            <column name="visibility" type="visibility_type" defaultValue="private"/>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="project" columnName="visibility"/>
+            <sql>DROP TYPE visibility_type</sql>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>
