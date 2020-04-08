@@ -63,6 +63,7 @@ case object Public extends Visibility
 object Visibility {
   implicit lazy val visibilityFormat: Format[Visibility] =
     implicitly[Format[String]].inmap(Visibility.fromString, Visibility.toString)
+
   def fromString(s: String): Visibility = s match {
     case "private"  => Private
     case "internal" => Internal
@@ -76,4 +77,10 @@ object Visibility {
   }
 
   def values = Seq(Private, Internal, Public)
+}
+
+final case class FileContent(content: String)
+
+object FileContent {
+  implicit lazy val validateFileRequestFormat: OFormat[FileContent] = Json.format[FileContent]
 }

@@ -5,7 +5,12 @@ import cromwell.pipeline.utils.GitLabConfig
 
 import scala.concurrent.ExecutionContext
 
-class ServiceModule(datastorageModule: DatastorageModule, httpClient: HttpClient, config: GitLabConfig)(
+class ServiceModule(
+  datastorageModule: DatastorageModule,
+  httpClient: HttpClient,
+  config: GitLabConfig,
+  womToolModule: WomToolModule
+)(
   implicit executionContext: ExecutionContext
 ) {
   lazy val authService: AuthService =
@@ -14,4 +19,5 @@ class ServiceModule(datastorageModule: DatastorageModule, httpClient: HttpClient
   lazy val projectService: ProjectService = new ProjectService(datastorageModule.projectRepository)
   lazy val projectVersioning: GitLabProjectVersioning = new GitLabProjectVersioning(httpClient, config)
 
+  lazy val projectFileService: ProjectFileService = new ProjectFileService(womToolModule.womTool)
 }

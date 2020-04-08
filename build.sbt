@@ -81,7 +81,7 @@ lazy val repositories =
 lazy val services =
   (project in file("services"))
     .settings(libraryDependencies ++= jsonDependencies :+ cats)
-    .dependsOn(repositories % "compile->compile;test->test", utils % "compile->compile;test->test")
+    .dependsOn(repositories % "compile->compile;test->test", utils % "compile->compile;test->test", womtool)
 
 lazy val controllers =
   (project in file("controllers"))
