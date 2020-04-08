@@ -2,7 +2,7 @@ package cromwell.pipeline.datastorage.dao.repository.utils
 
 import java.util.UUID
 
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, UserId }
+import cromwell.pipeline.datastorage.dto._
 
 object TestProjectUtils {
 
@@ -13,7 +13,7 @@ object TestProjectUtils {
     ownerId: UserId = TestUserUtils.getDummyUserId,
     name: String = s"project-" + randomUuidStr,
     repository: String = s"repo-" + randomUuidStr,
+    visibility: Visibility = Private,
     active: Boolean = true
-  ): Project =
-    Project(projectId, ownerId, name, repository, active)
+  ): Project = Project(projectId, ownerId, name, repository, visibility, active)
 }
