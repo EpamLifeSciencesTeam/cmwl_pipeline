@@ -49,7 +49,7 @@ class ApplicationConfig(val config: Config) {
   lazy val gitLabConfig: GitLabConfig = {
     GitLabConfig(
       url = config.getString("database.gitlab.url"),
-      idPath = config.getString("database.gitlab.path"),
+      idPath = config.getString("database.gitlab.path") + "%2F",
       token = Map("PRIVATE-TOKEN" -> config.getString("database.gitlab.token"))
     )
   }

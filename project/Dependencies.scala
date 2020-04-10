@@ -6,6 +6,7 @@ object Dependencies {
     val akka = "2.5.25"
     val akkaHttp = "10.1.10"
     val slick = "3.3.2"
+    val slickPg = "0.18.0"
     val hikariCP = "3.3.1"
     val playJson = "2.7.3"
     val akkaHttpJson = "1.29.1"
@@ -29,6 +30,7 @@ object Dependencies {
   val akkaStreams = "com.typesafe.akka" %% "akka-stream" % Version.akka
   val akkaHttp = "com.typesafe.akka" %% "akka-http" % Version.akkaHttp
   val slick = "com.typesafe.slick" %% "slick" % Version.slick
+  val slickPg = "com.github.tminglei" %% "slick-pg" % Version.slickPg
   val hikariCP = "com.typesafe.slick" %% "slick-hikaricp" % Version.hikariCP
   val playJson = "com.typesafe.play" %% "play-json" % Version.playJson
   val akkaHttpJson = "de.heikoseeberger" %% "akka-http-play-json" % Version.akkaHttpJson
@@ -51,7 +53,7 @@ object Dependencies {
 
   lazy val akkaDependencies = Seq(akkaActor, akkaStreams, akkaHttp)
   lazy val jsonDependencies = Seq(playJson, akkaHttpJson, jwtCore)
-  lazy val dbDependencies = Seq(slick, hikariCP, postgresql, liquibase, yaml)
+  lazy val dbDependencies = Seq(slick, slickPg, hikariCP, postgresql, liquibase, yaml)
   lazy val testDependencies =
     Seq(mockito, akkaTestKit, akkaHttpTestKit, scalaCheck, scalaTest, scalaMock, logback, wireMock)
   lazy val testContainers = Seq(tcCore, tcPostgres)

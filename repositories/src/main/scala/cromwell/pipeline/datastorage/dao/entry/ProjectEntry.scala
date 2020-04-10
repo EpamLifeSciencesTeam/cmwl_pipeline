@@ -1,24 +1,46 @@
 package cromwell.pipeline.datastorage.dao
 
+import com.github.tminglei.slickpg.PgEnumSupport
 import cromwell.pipeline.datastorage.Profile
 import cromwell.pipeline.datastorage.dao.entry.UserEntry
 import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, UserId, Visibility }
-import slick.ast.BaseTypedType
-import slick.jdbc.JdbcType
+import slick.basic.Capability
+import slick.jdbc.{ JdbcType, PostgresProfile }
 
-trait ProjectEntry {
-  this: Profile with UserEntry =>
+trait ProjectProfileWithEnumSupport extends PostgresProfile with PgEnumSupport {
+  override protected def computeCapabilities: Set[Capability] =
+    super.computeCapabilities + slick.jdbc.JdbcCapabilities.insertOrUpdate
+  override val api: API = new API {}
+  trait API extends super.API {
+    implicit val visibilityTypeMapper: JdbcType[Visibility] =
+      createEnumJdbcType[Visibility]("visibility_type", Visibility.toString, Visibility.fromString, quoteName = false)
+    implicit val visibilityTypeListMapper: JdbcType[List[Visibility]] =
+      createEnumListJdbcType[Visibility](
+        "visibility_type",
+        Visibility.toString,
+        Visibility.fromString,
+        quoteName = false
+      )
+    implicit val visibilityColumnExtensionMethodsBuilder
+      : api.Rep[Visibility] => EnumColumnExtensionMethods[Visibility, Visibility] =
+      createEnumColumnExtensionMethodsBuilder[Visibility]
+    implicit val visibilityOptionColumnExtensionMethodsBuilder
+      : api.Rep[Option[Visibility]] => EnumColumnExtensionMethods[Visibility, Option[Visibility]] =
+      createEnumOptionColumnExtensionMethodsBuilder[Visibility]
+  }
+}
 
-  import profile.api._
+trait ProjectEntry { this: Profile with UserEntry with ProjectProfileWithEnumSupport =>
+  import api._
 
   class ProjectTable(tag: Tag) extends Table[Project](tag, "project") {
     def projectId = column[ProjectId]("project_id", O.PrimaryKey)
     def ownerId = column[UserId]("owner_id")
     def name = column[String]("name")
     def repository = column[String]("repository")
-    def visibility = column[Visibility]("visibility")
     def active = column[Boolean]("active")
-    def * = (projectId, ownerId, name, repository, visibility, active) <>
+    def visibility = column[Visibility]("visibility")
+    def * = (projectId, ownerId, name, repository, active, visibility) <>
       ((Project.apply _).tupled, Project.unapply)
 
     def user = foreignKey("fk_project_user", ownerId, users)(_.userId)
@@ -44,13 +66,4 @@ trait ProjectEntry {
       .filter(_.projectId === updatedProject.projectId)
       .map(project => (project.name, project.repository))
       .update((updatedProject.name, updatedProject.repository))
-
-  implicit val visibilityColumnType: JdbcType[Visibility] with BaseTypedType[Visibility] =
-    MappedColumnType.base[Visibility, String](
-      { visibility =>
-        Visibility.fromVisibility(visibility)
-      }, { string =>
-        Visibility.toVisibility(string)
-      }
-    )
 }

@@ -13,7 +13,7 @@ object TestProjectUtils {
     ownerId: UserId = TestUserUtils.getDummyUserId,
     name: String = s"project-" + randomUuidStr,
     repository: String = s"repo-" + randomUuidStr,
-    visibility: Visibility = Private,
-    active: Boolean = true
-  ): Project = Project(projectId, ownerId, name, repository, visibility, active)
+    active: Boolean = true,
+    visibility: Visibility = Private
+  ): Project = Project(projectId, ownerId, name, repository, active, visibility)
 }

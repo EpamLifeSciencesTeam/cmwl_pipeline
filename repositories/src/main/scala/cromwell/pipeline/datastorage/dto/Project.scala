@@ -11,8 +11,8 @@ final case class Project(
   ownerId: UserId,
   name: String,
   repository: String,
-  visibility: Visibility = Private,
-  active: Boolean
+  active: Boolean,
+  visibility: Visibility = Private
 )
 object Project {
   implicit lazy val projectFormat: OFormat[Project] = Json.format[Project]
@@ -22,8 +22,8 @@ object Project {
       "ownerId" -> project.ownerId,
       "name" -> project.name,
       "repository" -> project.repository,
-      "visibility" -> Visibility.fromVisibility(project.visibility),
       "active" -> project.active,
+      "visibility" -> Visibility.toString(project.visibility),
       "path" -> project.projectId.value
     )
 }
@@ -61,17 +61,19 @@ case object Private extends Visibility
 case object Internal extends Visibility
 case object Public extends Visibility
 object Visibility {
-  def toVisibility(string: String): Visibility = string match {
+  implicit lazy val visibilityFormat: Format[Visibility] =
+    implicitly[Format[String]].inmap(Visibility.fromString, Visibility.toString)
+  def fromString(s: String): Visibility = s match {
     case "private"  => Private
     case "internal" => Internal
     case "public"   => Public
   }
-  def fromVisibility(visibility: Visibility): String = visibility match {
+
+  def toString(visibility: Visibility): String = visibility match {
     case Private  => "private"
     case Internal => "internal"
     case Public   => "public"
   }
-  implicit lazy val projectVisibilityFormat: Format[Visibility] =
-    implicitly[Format[String]].inmap(toVisibility, fromVisibility)
 
+  def values = Seq(Private, Internal, Public)
 }
