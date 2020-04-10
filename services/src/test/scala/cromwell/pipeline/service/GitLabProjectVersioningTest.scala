@@ -19,7 +19,6 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
   "GitLabProjectVersioning" when {
     "createRepository" should {
       def payload(project: Project): String = Json.stringify(Json.toJson(project))
-      // s"""{"name":"${project.name}","path":"${project.projectId.value}","visibility":"private"}"""
       def request(project: Project) =
         mockHttpClient.post(
           url = gitLabConfig.url + "projects",

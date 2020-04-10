@@ -1,9 +1,9 @@
 package cromwell.pipeline.datastorage
 
 import cromwell.pipeline.database.PipelineDatabaseEngine
-import cromwell.pipeline.datastorage.dao.ProjectEntry
 import cromwell.pipeline.datastorage.dao.entry.UserEntry
 import cromwell.pipeline.datastorage.dao.repository.{ ProjectRepository, UserRepository }
+import cromwell.pipeline.datastorage.dao.{ ProjectEntry, ProjectProfileWithEnumSupport }
 import cromwell.pipeline.datastorage.utils.auth.{ AuthUtils, SecurityDirective }
 import cromwell.pipeline.utils.ApplicationConfig
 import slick.jdbc.JdbcProfile
@@ -25,5 +25,8 @@ class DatastorageModule(applicationConfig: ApplicationConfig) {
 trait Profile {
   val profile: JdbcProfile
 }
-
-class DatabaseLayer(val profile: JdbcProfile) extends Profile with UserEntry with ProjectEntry
+class DatabaseLayer(override val profile: JdbcProfile)
+    extends Profile
+    with UserEntry
+    with ProjectEntry
+    with ProjectProfileWithEnumSupport
