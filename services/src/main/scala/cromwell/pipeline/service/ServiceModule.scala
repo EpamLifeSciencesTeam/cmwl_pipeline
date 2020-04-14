@@ -19,5 +19,5 @@ class ServiceModule(
   lazy val projectService: ProjectService = new ProjectService(datastorageModule.projectRepository)
   lazy val projectVersioning: GitLabProjectVersioning = new GitLabProjectVersioning(httpClient, config)
 
-  lazy val projectFileService: ProjectFileService = new ProjectFileService(womToolModule.womTool)
+  lazy val projectFileService: ProjectFileService = new ProjectFileService(womToolModule.womTool, projectVersioning)
 }

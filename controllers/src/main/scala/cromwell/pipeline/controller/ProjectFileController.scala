@@ -3,7 +3,7 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import cromwell.pipeline.datastorage.dto.FileContent
+import cromwell.pipeline.datastorage.dto.{ FileContent, ProjectUpdateFileRequest }
 import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
 import cromwell.pipeline.service.ProjectFileService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
@@ -19,6 +19,17 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
           entity(as[FileContent]) { request =>
             onComplete(wdlService.validateFile(request)) {
               case Success(Left(e)) => complete(StatusCodes.Conflict, e.errors)
+              case Success(_)       => complete(StatusCodes.OK)
+              case Failure(e)       => complete(StatusCodes.InternalServerError, e.getMessage)
+            }
+          }
+        }
+      },
+      path("files") {
+        post {
+          entity(as[ProjectUpdateFileRequest]) { request =>
+            onComplete(wdlService.uploadFile(request.project, request.projectFile)) {
+              case Success(Left(e)) => complete(StatusCodes.ImATeapot, e.getMessage) // TODO: change status code
               case Success(_)       => complete(StatusCodes.OK)
               case Failure(e)       => complete(StatusCodes.InternalServerError, e.getMessage)
             }

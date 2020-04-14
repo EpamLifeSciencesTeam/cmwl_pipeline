@@ -1,6 +1,6 @@
 package cromwell.pipeline.datastorage.dto
 
-import java.nio.file.Path
+import java.nio.file.{ Path, Paths }
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
@@ -56,10 +56,22 @@ final case class Version(value: String) extends AnyVal
 
 final case class ProjectFile(path: Path, content: String)
 
+object ProjectFile {
+  implicit object ProjectFileFormat extends Format[ProjectFile] {
+    override def reads(json: JsValue): JsResult[ProjectFile] =
+      JsSuccess(ProjectFile(Paths.get((json \ "path").as[String]), (json \ "content").as[String]))
+
+    override def writes(o: ProjectFile): JsValue = JsObject(
+      Seq("path" -> JsString(o.path.toString), "content" -> JsString(o.content))
+    )
+  }
+}
+
 sealed trait Visibility
 case object Private extends Visibility
 case object Internal extends Visibility
 case object Public extends Visibility
+
 object Visibility {
   implicit lazy val visibilityFormat: Format[Visibility] =
     implicitly[Format[String]].inmap(Visibility.fromString, Visibility.toString)
@@ -83,4 +95,11 @@ final case class FileContent(content: String)
 
 object FileContent {
   implicit lazy val validateFileRequestFormat: OFormat[FileContent] = Json.format[FileContent]
+}
+
+final case class ProjectUpdateFileRequest(project: Project, projectFile: ProjectFile)
+
+object ProjectUpdateFileRequest {
+  implicit lazy val projectUpdateFileRequestFormat: OFormat[ProjectUpdateFileRequest] =
+    Json.format[ProjectUpdateFileRequest]
 }
