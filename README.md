@@ -62,6 +62,7 @@ sbt unusedCompileDependencies
 ```
 
 ### Finding undeclared dependencies
+This task executes while building
 To show undeclared dependencies list, execute the following command:
 ```
 sbt undeclaredCompileDependencies

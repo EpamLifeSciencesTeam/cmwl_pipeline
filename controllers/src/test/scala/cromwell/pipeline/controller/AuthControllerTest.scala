@@ -4,7 +4,6 @@ import akka.http.scaladsl.model.ContentTypes.`application/json`
 import akka.http.scaladsl.model.{ HttpEntity, StatusCodes }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.controller.AuthController._
-//import cromwell.pipeline.datastorage.dto.auth.SignUpRequest
 import cromwell.pipeline.datastorage.utils.validator.DomainValidation
 import cromwell.pipeline.service.AuthService
 import cromwell.pipeline.utils.auth.dto.{ AuthResponse, SignInRequest, SignUpRequest }
