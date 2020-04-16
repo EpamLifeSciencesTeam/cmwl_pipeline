@@ -1,4 +1,4 @@
-package cromwell.pipeline.utils.auth.dto
+package cromwell.pipeline.datastorage.dto.auth
 
 import play.api.libs.json.{ Json, OFormat }
 

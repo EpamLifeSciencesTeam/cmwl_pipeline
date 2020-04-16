@@ -4,14 +4,19 @@ import java.time.Instant
 
 import cats.data.OptionT
 import cats.implicits._
+import cromwell.pipeline.auth.AuthUtils
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
-//import cromwell.pipeline.datastorage.dto.auth.SignUpRequest
-import cromwell.pipeline.datastorage.dto.{ User, UserId }
-import cromwell.pipeline.utils.auth.dto.{ AuthResponse, SignInRequest, SignUpRequest }
-//import cromwell.pipeline.datastorage.utils.auth.RefreshTokenContent
+import cromwell.pipeline.datastorage.dto.User
+import cromwell.pipeline.datastorage.dto.auth.{
+  AccessTokenContent,
+  AuthContent,
+  AuthResponse,
+  RefreshTokenContent,
+  SignInRequest,
+  SignUpRequest
+}
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.utils.StringUtils
-import cromwell.pipeline.utils.auth.{ AccessTokenContent, AuthContent, AuthUtils, RefreshTokenContent }
 import play.api.libs.json.Json
 
 import scala.concurrent.{ ExecutionContext, Future }

@@ -1,6 +1,6 @@
 package cromwell.pipeline.controller
 
-import cromwell.pipeline.controller.utils.auth.SecurityDirective
+import cromwell.pipeline.auth.SecurityDirective
 import cromwell.pipeline.service.ServiceModule
 import cromwell.pipeline.utils.AuthConfig
 
