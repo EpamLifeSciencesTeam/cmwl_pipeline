@@ -28,7 +28,7 @@ trait ProjectVersioning[E >: VersioningException] {
 
   def getProjectVersions(project: Project)(
     implicit ec: ExecutionContext
-  ): AsyncResult[Project]
+  ): AsyncResult[Seq[Version]]
 
   def getFileVersions(project: Project, path: Path)(
     implicit ec: ExecutionContext
