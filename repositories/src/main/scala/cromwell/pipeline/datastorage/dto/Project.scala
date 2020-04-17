@@ -52,7 +52,16 @@ object ProjectUpdateRequest {
   implicit val updateRequestFormat: OFormat[ProjectUpdateRequest] = Json.format[ProjectUpdateRequest]
 }
 
-final case class Version(value: String) extends AnyVal
+final case class Version(name: String, message: String, target: String, commit: Commit)
+object Version {
+  implicit val versionPlayFormat: OFormat[Version] = Json.format[Version]
+  implicit val versionsPlayListFormat: Reads[Seq[Version]] = Reads.seq(versionPlayFormat)
+}
+
+final case class Commit(id: String)
+object Commit {
+  implicit val commitFormat: OFormat[Commit] = Json.format[Commit]
+}
 
 final case class ProjectFile(path: Path, content: String)
 
