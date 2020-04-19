@@ -97,6 +97,12 @@ object FileContent {
   implicit lazy val validateFileRequestFormat: OFormat[FileContent] = Json.format[FileContent]
 }
 
+case class Commit(id: String)
+
+object Commit {
+  implicit lazy val commitFormatter: OFormat[Commit] = Json.format[Commit]
+}
+
 final case class ProjectUpdateFileRequest(project: Project, projectFile: ProjectFile)
 
 object ProjectUpdateFileRequest {
