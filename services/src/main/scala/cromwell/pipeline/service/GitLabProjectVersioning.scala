@@ -30,7 +30,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
           resp =>
             if (resp.status != StatusCodes.Created.intValue)
               Left(VersioningException(s"The repository was not created. Response status: ${resp.status}"))
-            else Right(projectWithRepository(config.idPath + project.projectId))
+            else Right(projectWithRepository(s"${config.idPath}${project.projectId.value}"))
         )
         .recover { case e: Throwable => Left(VersioningException(e.getMessage)) }
     }
