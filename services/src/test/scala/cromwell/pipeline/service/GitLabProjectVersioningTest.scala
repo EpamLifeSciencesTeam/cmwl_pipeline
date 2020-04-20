@@ -51,6 +51,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
     lazy val activeProject: Project = TestProjectUtils.getDummyProject()
     lazy val inactiveProject: Project = activeProject.copy(active = false)
     lazy val noRepoProject: Project = activeProject.copy(repository = null)
-    lazy val projectWithRepo: Project = activeProject.copy(repository = gitLabConfig.idPath + activeProject.projectId)
+    lazy val projectWithRepo: Project =
+      activeProject.copy(repository = s"${gitLabConfig.idPath}${activeProject.projectId.value}")
   }
 }
