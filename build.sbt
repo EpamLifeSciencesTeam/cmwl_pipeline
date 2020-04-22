@@ -52,7 +52,7 @@ lazy val portal = project
   .settings(
     name := "Portal",
     commonSettings,
-    libraryDependencies ++= akkaDependencies ++ jsonDependencies :+ configHokon :+ akkaHttpCore :+ sl4j,
+    libraryDependencies ++= akkaDependencies ++ jsonDependencies ++ cromwellDependencies :+ configHokon :+ akkaHttpCore :+ sl4j,
     Defaults.itSettings,
     Seq(parallelExecution in Test := false),
     mappings in Universal ++= Seq(
@@ -74,26 +74,29 @@ lazy val utils =
   (project in file("utils"))
     .configs(IntegrationTest)
     .settings(
-      libraryDependencies ++= (jsonDependencies ++ coreTestDependencies ++ testContainers) :+ configHokon :+ cats :+ playFunctional
+      libraryDependencies ++= (jsonDependencies ++ testContainers ++ coreTestDependencies) :+ configHokon :+ cats :+ playFunctional,
+      commonSettings
     )
 addCommandAlias("testAll", "; test ; it:test")
 
 lazy val repositories =
   (project in file("repositories"))
     .settings(
-      libraryDependencies ++= akkaDependencies ++ allTestDependencies ++ jsonDependencies :+ cats :+ slick :+ configHokon :+ akkaHttpCore :+ playJson :+ catsKernel :+ playFunctional
+      libraryDependencies ++= allTestDependencies ++ jsonDependencies :+ cats :+ slick :+ slickPg :+ slickPgCore :+ configHokon :+ playJson :+ catsKernel :+ playFunctional
     )
     .configs(IntegrationTest)
     .dependsOn(datasource, model, utils % "compile->compile;test->test")
 
 lazy val services =
   (project in file("services"))
-    .settings(libraryDependencies ++= jsonDependencies :+ cats :+ playJson)
+    .settings(libraryDependencies ++= jsonDependencies ++ cromwellDependencies :+ cats :+ akkaHttpCore :+ playJson)
     .dependsOn(repositories % "compile->compile;test->test", utils % "compile->compile;test->test", womtool, model)
 
 lazy val controllers =
   (project in file("controllers"))
-    .settings(libraryDependencies ++= akkaDependencies ++ jsonDependencies :+ cats :+ akkaHttpCore :+ playJson)
+    .settings(
+      libraryDependencies ++= akkaDependencies ++ jsonDependencies ++ cromwellDependencies :+ cats :+ akkaHttpCore :+ playJson
+    )
     .dependsOn(services, utils, model, repositories % "test->test")
 
 lazy val womtool = (project in file("womtool"))
