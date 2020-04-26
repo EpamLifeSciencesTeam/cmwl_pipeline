@@ -1,9 +1,9 @@
 package cromwell.pipeline.service
-import java.net.URLEncoder
+
 import java.nio.file.Path
 
 import akka.http.scaladsl.model.StatusCodes
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectFile, Version }
+import cromwell.pipeline.datastorage.dto.{ Commit, Project, ProjectFile, Version }
 import cromwell.pipeline.utils.GitLabConfig
 import play.api.libs.json.Json
 
@@ -15,6 +15,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
   override def updateFile(project: Project, projectFile: ProjectFile)(
     implicit ec: ExecutionContext
   ): AsyncResult[String] = ???
+
   override def updateFiles(project: Project, projectFiles: ProjectFiles)(
     implicit ec: ExecutionContext
   ): AsyncResult[List[String]] = ???
@@ -31,66 +32,69 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
           resp =>
             if (resp.status != StatusCodes.Created.intValue)
               Left(VersioningException(s"The repository was not created. Response status: ${resp.status}"))
-            else Right(updateProject(project))
-          )
-      )
-  }
-
-  override def getFiles(project: Project, path: Path): AsyncResult[List[String]] = ???
-  override def getProjectVersions(project: Project): AsyncResult[Project] = ???
-  override def getFileVersions(project: Project, path: Path, branch: String = "master"): AsyncResult[List[Version]] = {
-    val projectId = project.projectId
-    val filePath: String = URLEncoder.encode(path.toString, "UTF-8")
-    val tags = httpClient.get(s"$URL/projects/$projectId/repository/", TOKEN)
-    val fileCommits = httpClient.get(
-      s"$URL/projects/$projectId/repository/commits",
-      Map("path" -> filePath, "ref_name" -> branch),
-      TOKEN
-    )
-
-  }
-  override def getFileTree(project: Project, version: Option[Version]): AsyncResult[List[String]] = ???
-
-  override def getFile(project: Project, path: Path, version: Option[Version]): AsyncResult[String] = {
-    //    https://gitlab.example.com/api/v4/projects/13083/repository/files/app%2Fmodels%2Fkey%2Erb/raw?ref=master
-    //    GET /projects/:id/repository/files/:file_path/raw
-
-    val ownerId: String = project.ownerId.value
-    val projectId: String = project.projectId.value
-    val filePath: String = URLEncoder.encode(path.toString, "UTF-8")
-    val fileVersion: String = version.map((el) => el.value).getOrElse("master")
-
-    def responseFuture = httpClient.get(
-      //      s"$URL/projects/$projectId/repository/files/$filePath",
-      s"$URL/projects/$projectId/repository/files/$filePath/raw",
-      Map("ref" -> fileVersion),
-      TOKEN
-    )
-
-    responseFuture.flatMap(
-      resp =>
-        Future.successful(
-          if (resp.status != 200) {
-            Left(VersioningException(s"Exception. Response status: ${resp.status}"))
-          } else {
-            Right(resp.body)
-          }
-        )
-    )
-            else Right(projectWithRepository(s"${config.idPath}${project.projectId.value}"))
+            else Right(projectWithRepository(config.idPath + project.projectId.value))
         )
         .recover { case e: Throwable => Left(VersioningException(e.getMessage)) }
     }
   }
 
-  private def createRepositoryParams(project: Project): Map[String, String] = {
-    val name: String = project.ownerId.value
-    val path: String = project.projectId.value
-    val visibility = "private"
-    Map(("name", name), ("path", path), ("visibility", visibility))
+  override def getFiles(project: Project, path: Path)(implicit ec: ExecutionContext): AsyncResult[List[String]] = ???
+
+  override def getProjectVersions(project: Project)(implicit ec: ExecutionContext): AsyncResult[Seq[Version]] =
+    if (project.repository == null)
+      Future.failed(VersioningException("There is no repository in this project"))
+    else {
+      val versionsListUrl: String = s"${config.url}/projects/${project.repository}/repository/tags"
+      httpClient
+        .get(url = versionsListUrl, headers = config.token)
+        .map(
+          resp =>
+            if (resp.status != StatusCodes.OK.intValue)
+              Left(VersioningException(s"Could not take versions. Response status: ${resp.status}"))
+            else {
+              val versionsBody = Json.parse(resp.body).validate[Seq[Version]]
+              Right(versionsBody.get)
+            }
+        )
+        .recover { case e: Throwable => Left(VersioningException(e.getMessage)) }
+    }
+
+  override def getFileCommits(project: Project, path: Path)(implicit ec: ExecutionContext): AsyncResult[Seq[Commit]] = {
+    val commitsListUrl: String = s"${config.url}projects/${project.projectId}/repository/commits"
+    httpClient
+      .get(url = commitsListUrl, params = Map("path" -> path.toString), headers = config.token)
+      .map(
+        response =>
+          if (response.status != StatusCodes.OK.intValue)
+            Left(VersioningException(s"Could not take commits. Response status: ${response.status}"))
+          else {
+            val commitsBody = Json.parse(response.body).validate[Seq[Commit]]
+            Right(commitsBody.get)
+          }
+      )
+      .recover { case e: Throwable => Left(VersioningException(e.getMessage)) }
   }
 
-  private def updateProject(project: Project): Project =
-    Project(project.projectId, project.ownerId, project.name, NAMESPACE + project.projectId.value, active = true)
+  override def getFileVersions(project: Project, path: Path)(implicit ec: ExecutionContext): AsyncResult[Seq[Version]] =
+    getProjectVersions(project).flatMap { eitherVersions =>
+      getFileCommits(project, path).map { eitherCommits =>
+        eitherCommits.flatMap { commits =>
+          eitherVersions.map { versions =>
+            versions.filter(version => commits.contains(version.commit))
+          }
+        }
+      }
+    }
 
+  override def getFilesVersions(project: Project, path: Path)(
+    implicit ec: ExecutionContext
+  ): AsyncResult[List[Version]] = ???
+
+  override def getFileTree(project: Project, version: Option[Version])(
+    implicit ec: ExecutionContext
+  ): AsyncResult[List[String]] = ???
+
+  override def getFile(project: Project, path: Path, version: Option[Version])(
+    implicit ec: ExecutionContext
+  ): AsyncResult[String] = ???
 }

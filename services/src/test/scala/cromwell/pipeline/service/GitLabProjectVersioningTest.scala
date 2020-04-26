@@ -1,7 +1,9 @@
 package cromwell.pipeline.service
+import java.nio.file.{ Path, Paths }
+
 import akka.http.scaladsl.model.StatusCodes
 import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
-import cromwell.pipeline.datastorage.dto.Project
+import cromwell.pipeline.datastorage.dto.{ Commit, Project, ProjectFile, Version }
 import cromwell.pipeline.utils.{ ApplicationConfig, GitLabConfig }
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
@@ -45,6 +47,31 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
         }
       }
     }
+
+    "getFileCommits" should {
+      val dummyCommitsJson: String = s"[${Json.stringify(Json.toJson(dummyCommit))}]"
+      val path = file.path
+      def request(project: Project, path: Path) =
+        mockHttpClient.get(
+          url = gitLabConfig.url + "projects/" + project.projectId + "/repository/commits",
+          params = Map("path" -> path.toString),
+          headers = gitLabConfig.token
+        )
+      "return sequence of file commits with 200 status code" taggedAs Service in {
+        when(request(projectWithRepo, path))
+          .thenReturn(Future.successful(Response(StatusCodes.OK.intValue, dummyCommitsJson, Map())))
+        gitLabProjectVersioning.getFileCommits(projectWithRepo, path).map {
+          _ shouldBe Right(Seq(dummyCommit))
+        }
+      }
+      "throw new VersioningException with 400 status code" taggedAs Service in {
+        when(request(projectWithRepo, path))
+          .thenReturn(Future.successful(Response(StatusCodes.BadRequest.intValue, "", Map())))
+        gitLabProjectVersioning.getFileCommits(projectWithRepo, path).map {
+          _ shouldBe Left(VersioningException(s"Could not take commits. Response status: 400"))
+        }
+      }
+    }
   }
 
   object ProjectContext {
@@ -53,5 +80,8 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
     lazy val noRepoProject: Project = activeProject.copy(repository = null)
     lazy val projectWithRepo: Project =
       activeProject.copy(repository = s"${gitLabConfig.idPath}${activeProject.projectId.value}")
+    lazy val dummyVersion: Version = TestProjectUtils.getDummyVersion()
+    lazy val dummyCommit: Commit = TestProjectUtils.getDummyCommit()
+    lazy val file: ProjectFile = ProjectFile(Paths.get("file.txt"), "simpleText")
   }
 }
