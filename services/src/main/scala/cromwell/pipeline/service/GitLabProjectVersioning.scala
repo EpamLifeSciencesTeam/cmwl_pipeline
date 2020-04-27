@@ -40,24 +40,21 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
 
   override def getFiles(project: Project, path: Path)(implicit ec: ExecutionContext): AsyncResult[List[String]] = ???
 
-  override def getProjectVersions(project: Project)(implicit ec: ExecutionContext): AsyncResult[Seq[Version]] =
-    if (project.repository == null)
-      Future.failed(VersioningException("There is no repository in this project"))
-    else {
-      val versionsListUrl: String = s"${config.url}/projects/${project.repository}/repository/tags"
-      httpClient
-        .get(url = versionsListUrl, headers = config.token)
-        .map(
-          resp =>
-            if (resp.status != StatusCodes.OK.intValue)
-              Left(VersioningException(s"Could not take versions. Response status: ${resp.status}"))
-            else {
-              val versionsBody = Json.parse(resp.body).validate[Seq[Version]]
-              Right(versionsBody.get)
-            }
-        )
-        .recover { case e: Throwable => Left(VersioningException(e.getMessage)) }
-    }
+  override def getProjectVersions(project: Project)(implicit ec: ExecutionContext): AsyncResult[Seq[Version]] = {
+    val versionsListUrl: String = s"${config.url}/projects/${project.repository}/repository/tags"
+    httpClient
+      .get(url = versionsListUrl, headers = config.token)
+      .map(
+        resp =>
+          if (resp.status != StatusCodes.OK.intValue)
+            Left(VersioningException(s"Could not take versions. Response status: ${resp.status}"))
+          else {
+            val versionsBody = Json.parse(resp.body).validate[Seq[Version]]
+            Right(versionsBody.get)
+          }
+      )
+      .recover { case e: Throwable => Left(VersioningException(e.getMessage)) }
+  }
 
   override def getFileCommits(project: Project, path: Path)(implicit ec: ExecutionContext): AsyncResult[Seq[Commit]] = {
     val commitsListUrl: String = s"${config.url}projects/${project.projectId}/repository/commits"
