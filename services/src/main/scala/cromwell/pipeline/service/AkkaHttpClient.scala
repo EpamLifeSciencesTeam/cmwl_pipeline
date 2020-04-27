@@ -31,7 +31,7 @@ class AkkaHttpClient extends HttpClient {
     url: String,
     params: Map[String, String] = Map(),
     headers: Map[String, String] = Map(),
-    payload: String = ""
+    payload: String
   )(implicit ec: ExecutionContext): Future[Response] = {
     val futureResponse: Future[HttpResponse] = http.singleRequest(
       HttpRequest(method = HttpMethods.POST, uri = queryBuilder(url, params))
@@ -45,7 +45,7 @@ class AkkaHttpClient extends HttpClient {
     url: String,
     params: Map[String, String] = Map(),
     headers: Map[String, String] = Map(),
-    payload: String = ""
+    payload: String
   )(implicit ec: ExecutionContext): Future[Response] = {
     val futureResponse: Future[HttpResponse] = http.singleRequest(
       HttpRequest(method = HttpMethods.PUT, uri = queryBuilder(url, params))
