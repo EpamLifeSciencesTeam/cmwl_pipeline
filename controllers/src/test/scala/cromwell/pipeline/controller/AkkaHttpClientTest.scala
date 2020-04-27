@@ -62,9 +62,7 @@ class AkkaHttpClientTest extends AsyncWordSpec with Matchers with MockitoSugar w
         val params = Map("id" -> "1")
         val headers = Map("Language" -> "eng")
 
-        client
-          .get(get_url, params, headers)
-          .flatMap(_.headers.getOrElse("TestKey", List("failed")) shouldBe List("TestValue"))
+        client.get(get_url, params, headers).flatMap(_.headers.getOrElse("TestKey", List("failed")) shouldBe List("TestValue"))
       }
     }
 
@@ -108,9 +106,7 @@ class AkkaHttpClientTest extends AsyncWordSpec with Matchers with MockitoSugar w
         val headers = Map("Language" -> "eng")
         val payload = "test payload"
 
-        client
-          .post(post_url, params, headers, payload)
-          .flatMap(_.headers.getOrElse("TestKey", List("failed")) shouldBe List("TestValue"))
+        client.post(post_url, params, headers, payload).flatMap(_.headers.getOrElse("TestKey", List("failed")) shouldBe List("TestValue"))
       }
     }
 
@@ -154,9 +150,7 @@ class AkkaHttpClientTest extends AsyncWordSpec with Matchers with MockitoSugar w
         val headers = Map("Language" -> "eng")
         val payload = "test payload"
 
-        client
-          .put(put_url, params, headers, payload)
-          .flatMap(_.headers.getOrElse("TestKey", List("failed")) shouldBe List("TestValue"))
+        client.put(put_url, params, headers, payload).flatMap(_.headers.getOrElse("TestKey", List("failed")) shouldBe List("TestValue"))
       }
     }
   }

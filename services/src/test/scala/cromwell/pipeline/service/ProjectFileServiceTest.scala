@@ -49,8 +49,7 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
       }
 
       "return error message for error request" taggedAs Service in {
-        when(projectVersioning.updateFile(project, projectFile))
-          .thenReturn(Future.successful(Left(VersioningException("Something wrong"))))
+        when(projectVersioning.updateFile(project, projectFile)).thenReturn(Future.successful(Left(VersioningException("Something wrong"))))
         projectFileService.uploadFile(project, projectFile).map(_ shouldBe Left(VersioningException("Something wrong")))
       }
     }

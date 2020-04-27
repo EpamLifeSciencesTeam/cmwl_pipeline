@@ -21,11 +21,9 @@ trait ProjectProfileWithEnumSupport extends PostgresProfile with PgEnumSupport {
         Visibility.fromString,
         quoteName = false
       )
-    implicit val visibilityColumnExtensionMethodsBuilder
-      : api.Rep[Visibility] => EnumColumnExtensionMethods[Visibility, Visibility] =
+    implicit val visibilityColumnExtensionMethodsBuilder: api.Rep[Visibility] => EnumColumnExtensionMethods[Visibility, Visibility] =
       createEnumColumnExtensionMethodsBuilder[Visibility]
-    implicit val visibilityOptionColumnExtensionMethodsBuilder
-      : api.Rep[Option[Visibility]] => EnumColumnExtensionMethods[Visibility, Option[Visibility]] =
+    implicit val visibilityOptionColumnExtensionMethodsBuilder: api.Rep[Option[Visibility]] => EnumColumnExtensionMethods[Visibility, Option[Visibility]] =
       createEnumOptionColumnExtensionMethodsBuilder[Visibility]
   }
 }

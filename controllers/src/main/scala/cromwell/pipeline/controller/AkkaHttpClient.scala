@@ -14,8 +14,8 @@ import scala.concurrent.{ ExecutionContext, Future }
 class AkkaHttpClient(implicit actorSystem: ActorSystem, materializer: ActorMaterializer) extends HttpClient {
   private val expirationTime: FiniteDuration = 300.millis
 
-  override def get(url: String, params: Map[String, String] = Map(), headers: Map[String, String] = Map())(
-    implicit ec: ExecutionContext
+  override def get(url: String, params: Map[String, String] = Map(), headers: Map[String, String] = Map())(implicit
+    ec: ExecutionContext
   ): Future[Response] = {
     val futureResponse: Future[HttpResponse] = Http().singleRequest(
       HttpRequest(method = HttpMethods.GET, uri = Uri(url).withQuery(Query(params))).withHeaders(parseHeaders(headers))
@@ -47,9 +47,7 @@ class AkkaHttpClient(implicit actorSystem: ActorSystem, materializer: ActorMater
     payload: String
   )(implicit ec: ExecutionContext): Future[Response] = {
     val futureResponse: Future[HttpResponse] = Http().singleRequest(
-      HttpRequest(method = HttpMethods.POST, uri = Uri(url).withQuery(Query(params)))
-        .withEntity(payload)
-        .withHeaders(parseHeaders(headers))
+      HttpRequest(method = HttpMethods.POST, uri = Uri(url).withQuery(Query(params))).withEntity(payload).withHeaders(parseHeaders(headers))
     )
     responsify(futureResponse)
   }
@@ -61,9 +59,7 @@ class AkkaHttpClient(implicit actorSystem: ActorSystem, materializer: ActorMater
     payload: String
   )(implicit ec: ExecutionContext): Future[Response] = {
     val futureResponse: Future[HttpResponse] = Http().singleRequest(
-      HttpRequest(method = HttpMethods.PUT, uri = Uri(url).withQuery(Query(params)))
-        .withEntity(payload)
-        .withHeaders(parseHeaders(headers))
+      HttpRequest(method = HttpMethods.PUT, uri = Uri(url).withQuery(Query(params))).withEntity(payload).withHeaders(parseHeaders(headers))
     )
     responsify(futureResponse)
   }

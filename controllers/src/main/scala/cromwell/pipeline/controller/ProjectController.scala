@@ -12,21 +12,20 @@ import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import scala.concurrent.ExecutionContext
 import scala.util.{ Failure, Success }
 
-class ProjectController(projectService: ProjectService)(
-  implicit executionContext: ExecutionContext
+class ProjectController(projectService: ProjectService)(implicit
+  executionContext: ExecutionContext
 ) {
   val route: AccessTokenContent => Route = accessToken =>
     path("projects") {
       concat(
         get {
-          parameter('name.as[String]) {
-            name =>
-              onComplete(projectService.getProjectByName(name, UserId(accessToken.userId))) {
-                case Success(project)                         => complete(project)
-                case Failure(e: ProjectNotFoundException)     => complete(StatusCodes.NotFound, e.getMessage)
-                case Failure(e: ProjectAccessDeniedException) => complete(StatusCodes.Forbidden, e.getMessage)
-                case Failure(e)                               => complete(StatusCodes.InternalServerError, e.getMessage)
-              }
+          parameter('name.as[String]) { name =>
+            onComplete(projectService.getProjectByName(name, UserId(accessToken.userId))) {
+              case Success(project)                         => complete(project)
+              case Failure(e: ProjectNotFoundException)     => complete(StatusCodes.NotFound, e.getMessage)
+              case Failure(e: ProjectAccessDeniedException) => complete(StatusCodes.Forbidden, e.getMessage)
+              case Failure(e)                               => complete(StatusCodes.InternalServerError, e.getMessage)
+            }
           }
         },
         post {
@@ -38,14 +37,13 @@ class ProjectController(projectService: ProjectService)(
           }
         },
         delete {
-          entity(as[ProjectDeleteRequest]) {
-            request =>
-              onComplete(projectService.deactivateProjectById(request.projectId, UserId(accessToken.userId))) {
-                case Success(project)                         => complete(project)
-                case Failure(e: ProjectNotFoundException)     => complete(StatusCodes.NotFound, e.getMessage)
-                case Failure(e: ProjectAccessDeniedException) => complete(StatusCodes.Forbidden, e.getMessage)
-                case Failure(e)                               => complete(StatusCodes.InternalServerError, e.getMessage)
-              }
+          entity(as[ProjectDeleteRequest]) { request =>
+            onComplete(projectService.deactivateProjectById(request.projectId, UserId(accessToken.userId))) {
+              case Success(project)                         => complete(project)
+              case Failure(e: ProjectNotFoundException)     => complete(StatusCodes.NotFound, e.getMessage)
+              case Failure(e: ProjectAccessDeniedException) => complete(StatusCodes.Forbidden, e.getMessage)
+              case Failure(e)                               => complete(StatusCodes.InternalServerError, e.getMessage)
+            }
           }
         },
         put {

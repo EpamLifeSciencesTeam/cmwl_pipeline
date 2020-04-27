@@ -5,8 +5,8 @@ import cromwell.pipeline.womtool.WomToolAPI
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class ProjectFileService(womTool: WomToolAPI, projectVersioning: ProjectVersioning[VersioningException])(
-  implicit executionContext: ExecutionContext
+class ProjectFileService(womTool: WomToolAPI, projectVersioning: ProjectVersioning[VersioningException])(implicit
+  executionContext: ExecutionContext
 ) {
 
   def validateFile(fileContent: FileContent): Future[Either[ValidationError, Unit]] =

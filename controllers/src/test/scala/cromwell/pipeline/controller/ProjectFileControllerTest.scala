@@ -32,8 +32,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       }
 
       "return error response to invalid file" taggedAs Controller in {
-        when(projectFileService.validateFile(content))
-          .thenReturn(Future.successful(Left(ValidationError(List("Miss close bracket")))))
+        when(projectFileService.validateFile(content)).thenReturn(Future.successful(Left(ValidationError(List("Miss close bracket")))))
         Post("/files/validation", content) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.Conflict
           entityAs[List[String]] shouldBe List("Miss close bracket")
@@ -55,8 +54,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       }
 
       "return InternalServerError for bad request" taggedAs Controller in {
-        when(projectFileService.uploadFile(project, projectFile))
-          .thenReturn(Future.successful(Left(VersioningException("Bad request"))))
+        when(projectFileService.uploadFile(project, projectFile)).thenReturn(Future.successful(Left(VersioningException("Bad request"))))
         Post("/files", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.ImATeapot // TODO: change status code
           entityAs[String] shouldBe "Bad request"

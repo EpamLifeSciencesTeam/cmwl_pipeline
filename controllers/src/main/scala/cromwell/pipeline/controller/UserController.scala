@@ -44,17 +44,16 @@ class UserController(userService: UserService)(implicit executionContext: Execut
           }
         },
         put {
-          entity(as[PasswordUpdateRequest]) {
-            passwordUpdateRequest =>
-              FormValidatorNel.validateForm(passwordUpdateRequest) match {
-                case Valid(_) =>
-                  onComplete(userService.updatePassword(accessToken.userId, passwordUpdateRequest)) {
-                    case Success(_)   => complete(StatusCodes.NoContent)
-                    case Failure(exc) => complete(StatusCodes.BadRequest, exc.getMessage)
-                  }
-                case Invalid(errors) =>
-                  complete(StatusCodes.BadRequest, errors.toList.map(_.toMap))
-              }
+          entity(as[PasswordUpdateRequest]) { passwordUpdateRequest =>
+            FormValidatorNel.validateForm(passwordUpdateRequest) match {
+              case Valid(_) =>
+                onComplete(userService.updatePassword(accessToken.userId, passwordUpdateRequest)) {
+                  case Success(_)   => complete(StatusCodes.NoContent)
+                  case Failure(exc) => complete(StatusCodes.BadRequest, exc.getMessage)
+                }
+              case Invalid(errors) =>
+                complete(StatusCodes.BadRequest, errors.toList.map(_.toMap))
+            }
           }
         }
       )

@@ -36,15 +36,14 @@ class UserService(userRepository: UserRepository)(implicit executionContext: Exe
     request: PasswordUpdateRequest,
     salt: String = Random.nextLong().toHexString
   ): Future[Int] =
-    if (request.newPassword == request.repeatPassword) {
+    if (request.newPassword == request.repeatPassword)
       userRepository.getUserById(UserId(userId)).flatMap {
-        case Some(user)
-            if user.passwordHash == StringUtils.calculatePasswordHash(request.currentPassword, user.passwordSalt) =>
+        case Some(user) if user.passwordHash == StringUtils.calculatePasswordHash(request.currentPassword, user.passwordSalt) =>
           val passwordSalt = salt
           val passwordHash = StringUtils.calculatePasswordHash(request.newPassword, passwordSalt)
           userRepository.updatePassword(user.copy(passwordSalt = passwordSalt, passwordHash = passwordHash))
         case Some(_) => Future.failed(new RuntimeException("user password differs from entered"))
         case None    => Future.failed(new RuntimeException("user with this id doesn't exist"))
       }
-    } else Future.failed(new RuntimeException("new password incorrectly duplicated"))
+    else Future.failed(new RuntimeException("new password incorrectly duplicated"))
 }

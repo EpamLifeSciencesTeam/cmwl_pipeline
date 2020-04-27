@@ -10,8 +10,8 @@ import cromwell.pipeline.utils.ApplicationConfig
 
 import scala.concurrent.ExecutionContext
 
-final class ApplicationComponents(
-  implicit val config: Config = ConfigFactory.load(),
+final class ApplicationComponents(implicit
+  val config: Config = ConfigFactory.load(),
   val executionContext: ExecutionContext,
   val actorSystem: ActorSystem,
   val materializer: ActorMaterializer

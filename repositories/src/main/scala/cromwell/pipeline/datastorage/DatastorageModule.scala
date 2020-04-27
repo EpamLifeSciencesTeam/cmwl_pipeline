@@ -25,8 +25,4 @@ class DatastorageModule(applicationConfig: ApplicationConfig) {
 trait Profile {
   val profile: JdbcProfile
 }
-class DatabaseLayer(override val profile: JdbcProfile)
-    extends Profile
-    with UserEntry
-    with ProjectEntry
-    with ProjectProfileWithEnumSupport
+class DatabaseLayer(override val profile: JdbcProfile) extends Profile with UserEntry with ProjectEntry with ProjectProfileWithEnumSupport

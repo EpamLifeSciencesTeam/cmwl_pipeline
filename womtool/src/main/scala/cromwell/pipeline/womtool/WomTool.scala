@@ -11,12 +11,7 @@ import spray.json.DefaultJsonProtocol._
 import spray.json._
 import wom.executable.WomBundle
 import wom.expression.WomExpression
-import wom.graph.{
-  ExternalGraphInputNode,
-  OptionalGraphInputNode,
-  OptionalGraphInputNodeWithDefault,
-  RequiredGraphInputNode
-}
+import wom.graph.{ ExternalGraphInputNode, OptionalGraphInputNode, OptionalGraphInputNodeWithDefault, RequiredGraphInputNode }
 import wom.types.{ WomCompositeType, WomOptionalType, WomType }
 import womtool.input.WomGraphWithResolvedImports
 

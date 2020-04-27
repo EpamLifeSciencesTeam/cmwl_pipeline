@@ -60,6 +60,5 @@ class ProjectService(projectRepository: ProjectRepository)(implicit executionCon
 
 object Exceptions {
   case class ProjectNotFoundException(message: String = "Project not found") extends RuntimeException(message)
-  case class ProjectAccessDeniedException(message: String = "Access denied. You  not owner of the project")
-      extends RuntimeException(message)
+  case class ProjectAccessDeniedException(message: String = "Access denied. You  not owner of the project") extends RuntimeException(message)
 }

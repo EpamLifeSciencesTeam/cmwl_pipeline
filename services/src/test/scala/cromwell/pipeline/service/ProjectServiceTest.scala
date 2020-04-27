@@ -29,7 +29,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar w
 
         when(projectRepository.addProject(any[Project])).thenReturn(Future(projectId))
 
-        projectService.addProject(request, ownerId, "repoStub").map { _ shouldBe projectId }
+        projectService.addProject(request, ownerId, "repoStub").map(_ shouldBe projectId)
       }
     }
 
@@ -42,7 +42,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar w
         when(projectRepository.deactivateProjectById(projectId)).thenReturn(Future(0))
         when(projectRepository.getProjectById(projectId)).thenReturn(Future(Some(project)))
 
-        projectService.deactivateProjectById(projectId, userId).map { _ shouldBe Some(project) }
+        projectService.deactivateProjectById(projectId, userId).map(_ shouldBe Some(project))
       }
     }
 
@@ -54,7 +54,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar w
 
         when(projectRepository.getProjectById(projectId)).thenReturn(Future(Some(project)))
 
-        projectService.getProjectById(projectId).map { _ shouldBe Some(project) }
+        projectService.getProjectById(projectId).map(_ shouldBe Some(project))
       }
 
       "return none if project not found" taggedAs Service in {
@@ -62,7 +62,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar w
 
         when(projectRepository.getProjectById(projectId)).thenReturn(Future(None))
 
-        projectService.getProjectById(projectId).map { _ shouldBe None }
+        projectService.getProjectById(projectId).map(_ shouldBe None)
       }
     }
   }

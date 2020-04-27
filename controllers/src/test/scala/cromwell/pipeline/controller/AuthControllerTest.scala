@@ -63,8 +63,7 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
           s"""{"email":"${email}","password":"${password}","firstName":"${firstName}","lastName":"${lastName}"}"""
         val authResponse = AuthResponse(accessToken, refreshToken, accessTokenExpiration)
         val httpEntity = HttpEntity(`application/json`, signInRequestStr)
-        (authService.signUp _ when SignUpRequest(email, password, firstName, lastName))
-          .returns(Future(Some(authResponse)))
+        (authService.signUp _ when SignUpRequest(email, password, firstName, lastName)).returns(Future(Some(authResponse)))
 
         Post("/auth/signUp", httpEntity) ~> authController.route ~> check {
           status shouldBe StatusCodes.OK
@@ -82,8 +81,7 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
         val authResponse = AuthResponse(accessToken, refreshToken, accessTokenExpiration)
 
         val httpEntity = HttpEntity(`application/json`, signUpRequestStr)
-        (authService.signUp _ when SignUpRequest(email, password, firstName, lastName))
-          .returns(Future(Some(authResponse)))
+        (authService.signUp _ when SignUpRequest(email, password, firstName, lastName)).returns(Future(Some(authResponse)))
 
         Post("/auth/signUp", httpEntity) ~> authController.route ~> check {
           val errors = Json.parse(responseAs[String]).as[List[Map[String, String]]]
@@ -102,8 +100,7 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
         val signUpRequestStr =
           s"""{"email":"${email}","password":"${password}","firstName":"${firstName}","lastName":"${lastName}"}"""
         val httpEntity = HttpEntity(`application/json`, signUpRequestStr)
-        (authService.signUp _ when SignUpRequest(email, password, firstName, lastName))
-          .returns(Future(throw new RuntimeException("Something wrong.")))
+        (authService.signUp _ when SignUpRequest(email, password, firstName, lastName)).returns(Future(throw new RuntimeException("Something wrong.")))
 
         Post("/auth/signUp", httpEntity) ~> authController.route ~> check {
           status shouldBe StatusCodes.BadRequest

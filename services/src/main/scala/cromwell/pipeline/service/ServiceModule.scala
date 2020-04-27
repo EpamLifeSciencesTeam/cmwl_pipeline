@@ -10,8 +10,8 @@ class ServiceModule(
   httpClient: HttpClient,
   config: GitLabConfig,
   womToolModule: WomToolModule
-)(
-  implicit executionContext: ExecutionContext
+)(implicit
+  executionContext: ExecutionContext
 ) {
   lazy val authService: AuthService =
     new AuthService(datastorageModule.userRepository, datastorageModule.authUtils)

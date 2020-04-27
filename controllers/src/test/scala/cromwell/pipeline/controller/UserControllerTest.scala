@@ -14,12 +14,7 @@ import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.Future
 
-class UserControllerTest
-    extends AsyncWordSpec
-    with Matchers
-    with ScalatestRouteTest
-    with MockitoSugar
-    with BeforeAndAfterAll {
+class UserControllerTest extends AsyncWordSpec with Matchers with ScalatestRouteTest with MockitoSugar with BeforeAndAfterAll {
   import PlayJsonSupport._
 
   private val userService = mock[UserService]
@@ -47,8 +42,7 @@ class UserControllerTest
       "return the internal server error if service fails" taggedAs Controller in {
         val usersByEmailRequest: String = "@mail"
         val accessToken = AccessTokenContent(dummyUser.userId.value)
-        when(userService.getUsersByEmail(usersByEmailRequest))
-          .thenReturn(Future.failed(new RuntimeException("something went wrong")))
+        when(userService.getUsersByEmail(usersByEmailRequest)).thenReturn(Future.failed(new RuntimeException("something went wrong")))
 
         Get("/users?email=" + usersByEmailRequest) ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
@@ -90,8 +84,7 @@ class UserControllerTest
       "return server error if user deactivation was failed" taggedAs Controller in {
         val userId = dummyUser.userId.value
         val accessToken = AccessTokenContent(userId)
-        when(userService.deactivateUserById(UserId(userId)))
-          .thenReturn(Future.failed(new RuntimeException("Something wrong.")))
+        when(userService.deactivateUserById(UserId(userId))).thenReturn(Future.failed(new RuntimeException("Something wrong.")))
 
         Delete("/users") ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
@@ -139,8 +132,7 @@ class UserControllerTest
         val accessToken = AccessTokenContent("0")
         val request = UserUpdateRequest(dummyUser.email, dummyUser.firstName, dummyUser.lastName)
 
-        when(userService.updateUser(userId, request))
-          .thenReturn(Future.failed(new RuntimeException("Something wrong.")))
+        when(userService.updateUser(userId, request)).thenReturn(Future.failed(new RuntimeException("Something wrong.")))
 
         Put("/users", request) ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
@@ -153,8 +145,7 @@ class UserControllerTest
         val userPassword = "-Pa$$w0rd-"
         val request = PasswordUpdateRequest(userPassword, userPassword + "1", userPassword)
 
-        when(userService.updatePassword(userId, request))
-          .thenReturn(Future.failed(new RuntimeException("Something wrong.")))
+        when(userService.updatePassword(userId, request)).thenReturn(Future.failed(new RuntimeException("Something wrong.")))
 
         Put("/users", request) ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.BadRequest

@@ -37,22 +37,20 @@ class ApplicationConfig(val config: Config) {
       )
     )
 
-    if (result.expirationTimeInSeconds.accessToken >= result.expirationTimeInSeconds.refreshToken) {
+    if (result.expirationTimeInSeconds.accessToken >= result.expirationTimeInSeconds.refreshToken)
       throw new RuntimeException("Access token lifetime should be less than refresh token lifetime.")
-    } else if (result.expirationTimeInSeconds.refreshToken >= result.expirationTimeInSeconds.userSession) {
+    else if (result.expirationTimeInSeconds.refreshToken >= result.expirationTimeInSeconds.userSession)
       throw new RuntimeException("Refresh token lifetime should be less than user session lifetime.")
-    }
 
     result
   }
 
-  lazy val gitLabConfig: GitLabConfig = {
+  lazy val gitLabConfig: GitLabConfig =
     GitLabConfig(
       url = config.getString("database.gitlab.url"),
       idPath = config.getString("database.gitlab.path") + "%2F",
       token = Map("PRIVATE-TOKEN" -> config.getString("database.gitlab.token"))
     )
-  }
 
 }
 

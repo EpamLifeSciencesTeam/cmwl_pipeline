@@ -69,9 +69,7 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
           dummyUser.copy(email = "updated@email.com", firstName = "updatedFName", lastName = "updatedLName")
         userRepository
           .updateUser(updatedUser)
-          .flatMap(
-            _ => userRepository.getUserById(dummyUser.userId).map(dummyUser => dummyUser.get shouldEqual updatedUser)
-          )
+          .flatMap(_ => userRepository.getUserById(dummyUser.userId).map(dummyUser => dummyUser.get shouldEqual updatedUser))
       }
     }
 
@@ -83,9 +81,7 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
         val updatedUser = dummyUser.copy(passwordHash = newPasswordHash)
         userRepository
           .updatePassword(updatedUser)
-          .flatMap(
-            _ => userRepository.getUserById(dummyUser.userId).map(dummyUser => dummyUser.get shouldEqual updatedUser)
-          )
+          .flatMap(_ => userRepository.getUserById(dummyUser.userId).map(dummyUser => dummyUser.get shouldEqual updatedUser))
       }
     }
   }
