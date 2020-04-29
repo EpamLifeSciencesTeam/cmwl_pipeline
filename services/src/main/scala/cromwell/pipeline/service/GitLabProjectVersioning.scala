@@ -1,7 +1,8 @@
 package cromwell.pipeline.service
 import java.nio.file.Path
 
-import akka.http.scaladsl.model.StatusCodes
+import cromwell.pipeline.utils.HttpStatusCodes
+
 import cromwell.pipeline.datastorage.dto.{ Project, ProjectFile, Version }
 import cromwell.pipeline.utils.GitLabConfig
 import play.api.libs.json.Json
@@ -28,7 +29,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
         .post(url = createRepoUrl, headers = config.token, payload = Json.stringify(Json.toJson(project)))
         .map(
           resp =>
-            if (resp.status != StatusCodes.Created.intValue)
+            if (resp.status != HttpStatusCodes.Created)
               Left(VersioningException(s"The repository was not created. Response status: ${resp.status}"))
             else Right(projectWithRepository(s"${config.idPath}${project.projectId.value}"))
         )
