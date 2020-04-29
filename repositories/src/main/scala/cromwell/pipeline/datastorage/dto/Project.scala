@@ -55,7 +55,6 @@ object ProjectUpdateRequest {
 final case class Version(name: String, message: String, target: String, commit: Commit)
 object Version {
   implicit val versionPlayFormat: OFormat[Version] = Json.format[Version]
-  implicit val versionsPlayListFormat: Reads[Seq[Version]] = Reads.seq(versionPlayFormat)
 }
 
 final case class Commit(id: String, shortId: String, title: String, message: String)
