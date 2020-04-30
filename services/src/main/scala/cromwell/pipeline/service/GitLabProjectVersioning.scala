@@ -6,6 +6,7 @@ import akka.http.scaladsl.model.StatusCodes
 import cromwell.pipeline.datastorage.dto.{ Commit, Project, ProjectFile, Version }
 import cromwell.pipeline.utils.GitLabConfig
 import play.api.libs.json.Json
+import play.api.libs.json.{ JsError, JsSuccess }
 
 import scala.concurrent.{ ExecutionContext, Future }
 

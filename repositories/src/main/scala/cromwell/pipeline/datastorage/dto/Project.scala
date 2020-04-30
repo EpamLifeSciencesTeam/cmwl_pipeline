@@ -57,7 +57,7 @@ object Version {
   implicit val versionPlayFormat: OFormat[Version] = Json.format[Version]
 }
 
-final case class Commit(id: String, shortId: String, title: String, message: String)
+final case class Commit(id: String, title: String, message: String)
 object Commit {
   implicit val commitFormat: OFormat[Commit] = Json.format[Commit]
 }
