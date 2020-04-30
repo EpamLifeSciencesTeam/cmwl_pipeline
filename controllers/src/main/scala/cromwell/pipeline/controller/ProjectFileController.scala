@@ -27,12 +27,22 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
       },
       path("files") {
         post {
-          entity(as[ProjectUpdateFileRequest]) { request =>
-            onComplete(wdlService.uploadFile(request.project, request.projectFile, request.version)) {
-              case Success(Left(e)) => complete(StatusCodes.ImATeapot, e.getMessage) // TODO: change status code
-              case Success(_)       => complete(StatusCodes.OK)
-              case Failure(e)       => complete(StatusCodes.InternalServerError, e.getMessage)
-            }
+          entity(as[ProjectUpdateFileRequest]) {
+            request =>
+              onComplete(for {
+                validateResponse <- wdlService.validateFile(FileContent(request.projectFile.content))
+                uploadResponse <- wdlService.uploadFile(request.project, request.projectFile, request.version)
+              } yield {
+                (validateResponse, uploadResponse) match {
+                  case (Right(_), Right(response)) => StatusCodes.OK.intValue -> response
+                  case (Left(_), Right(response))  => StatusCodes.Created.intValue -> response
+                  case (Right(_), Left(response))  => StatusCodes.ImATeapot.intValue -> response.message
+                  case (Left(_), Left(response))   => StatusCodes.ImATeapot.intValue -> response.message
+                }
+              }) {
+                case Success((status, message)) => complete(status, message)
+                case Failure(e)                 => complete(StatusCodes.InternalServerError, e.getMessage)
+              }
           }
         }
       }
