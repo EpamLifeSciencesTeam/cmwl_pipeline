@@ -3,7 +3,7 @@ package cromwell.pipeline.datastorage.dao
 import com.github.tminglei.slickpg.PgEnumSupport
 import cromwell.pipeline.datastorage.Profile
 import cromwell.pipeline.datastorage.dao.entry.UserEntry
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, UserId, Visibility }
+import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, Repository, UserId, Visibility }
 import slick.basic.Capability
 import slick.jdbc.{ JdbcType, PostgresProfile }
 
@@ -37,10 +37,10 @@ trait ProjectEntry { this: Profile with UserEntry with ProjectProfileWithEnumSup
     def projectId = column[ProjectId]("project_id", O.PrimaryKey)
     def ownerId = column[UserId]("owner_id")
     def name = column[String]("name")
-    def repository = column[String]("repository")
     def active = column[Boolean]("active")
+    def repository = column[Repository]("repository")
     def visibility = column[Visibility]("visibility")
-    def * = (projectId, ownerId, name, repository, active, visibility) <>
+    def * = (projectId, ownerId, name, active, repository.?, visibility) <>
       ((Project.apply _).tupled, Project.unapply)
 
     def user = foreignKey("fk_project_user", ownerId, users)(_.userId)
@@ -64,6 +64,6 @@ trait ProjectEntry { this: Profile with UserEntry with ProjectProfileWithEnumSup
   def updateProjectAction(updatedProject: Project) =
     projects
       .filter(_.projectId === updatedProject.projectId)
-      .map(project => (project.name, project.repository))
+      .map(project => (project.name, project.repository.?))
       .update((updatedProject.name, updatedProject.repository))
 }
