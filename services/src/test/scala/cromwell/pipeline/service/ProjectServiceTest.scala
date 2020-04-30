@@ -8,28 +8,28 @@ import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar with BeforeAndAfterAll {
 
   private val projectRepository = mock[ProjectRepository]
-  private val projectService = new ProjectService(projectRepository)
+  private val projectVersioning = mock[ProjectVersioning[VersioningException]]
+  private val projectService = new ProjectService(projectRepository, projectVersioning)
   private val dummyProject: Project = TestProjectUtils.getDummyProject()
 
   "ProjectServiceTest" when {
 
     "addProject" should {
       "return id of a new project" taggedAs Service in {
-        val request =
-          ProjectAdditionRequest(
-            name = dummyProject.name
-          )
-        val projectId = TestProjectUtils.getDummyProject().projectId
-        val ownerId = TestProjectUtils.getDummyProject().ownerId
+        val request = ProjectAdditionRequest(name = dummyProject.name)
+        val projectId = dummyProject.projectId
+        val ownerId = dummyProject.ownerId
 
-        when(projectRepository.addProject(any[Project])).thenReturn(Future(projectId))
+        when(projectVersioning.createRepository(any[Project])(any[ExecutionContext]))
+          .thenReturn(Future.successful(Right(dummyProject)))
+        when(projectRepository.addProject(any[Project])).thenReturn(Future.successful(projectId))
 
-        projectService.addProject(request, ownerId, "repoStub").map { _ shouldBe projectId }
+        projectService.addProject(request, ownerId).map { _ shouldBe Right(projectId) }
       }
     }
 
