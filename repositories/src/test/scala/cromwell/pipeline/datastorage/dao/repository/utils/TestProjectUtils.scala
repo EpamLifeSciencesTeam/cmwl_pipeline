@@ -21,7 +21,7 @@ object TestProjectUtils {
     shortId: String = s"shortID-$randomUuidStr",
     title: String = s"title-$randomUuidStr",
     message: String = s"message-$randomUuidStr"
-  ): Commit = Commit(id, shortId, title, message)
+  ): Commit = Commit(id, shortId, title)
   def getDummyVersion(
     name: String = s"name-$randomUuidStr",
     message: String = s"message-$randomUuidStr",
