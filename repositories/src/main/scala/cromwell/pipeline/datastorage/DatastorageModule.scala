@@ -1,34 +1,38 @@
 package cromwell.pipeline.datastorage
 
-import cromwell.pipeline.database.PipelineDatabaseEngine
+import cromwell.pipeline.database.{ MongoEngine, PipelineDatabaseEngine }
 import cromwell.pipeline.datastorage.dao.entry.UserEntry
-import cromwell.pipeline.datastorage.dao.repository.{ ProjectRepository, UserRepository }
+import cromwell.pipeline.datastorage.dao.repository.{ DocumentRepository, ProjectRepository, UserRepository }
 import cromwell.pipeline.datastorage.dao.{ ProjectEntry, ProjectProfileWithEnumSupport }
 import cromwell.pipeline.model.validator.{ Enable, Wrapped }
 import cromwell.pipeline.model.wrapper.{ Name, UserEmail, UserId }
 import cromwell.pipeline.utils.ApplicationConfig
+import org.mongodb.scala.{ Document, MongoCollection }
 import slick.jdbc.JdbcProfile
 import slick.lifted.StringColumnExtensionMethods
-import cromwell.pipeline.datastorage.dao.{ ProjectEntry, ProjectProfileWithEnumSupport }
 
 class DatastorageModule(applicationConfig: ApplicationConfig) {
 
   lazy val pipelineDatabaseEngine: PipelineDatabaseEngine = new PipelineDatabaseEngine(applicationConfig.config)
   lazy val profile: JdbcProfile = pipelineDatabaseEngine.profile
   lazy val databaseLayer: DatabaseLayer = new DatabaseLayer(profile)
+  lazy val configurationCollection
+    : MongoCollection[Document] = new MongoEngine(applicationConfig.mongoConfig).mongoCollection
 
   lazy val userRepository: UserRepository =
     new UserRepository(pipelineDatabaseEngine, databaseLayer)
   lazy val projectRepository: ProjectRepository =
     new ProjectRepository(pipelineDatabaseEngine, databaseLayer)
+  lazy val configurationRepository: DocumentRepository = new DocumentRepository(configurationCollection)
 }
 
 trait Profile {
   val profile: JdbcProfile
   object Implicits {
 
-    import profile.api._
     import cats.implicits.catsStdShowForString
+    import profile.api._
+
     import scala.language.implicitConversions
 
     implicit def uuidIso: Isomorphism[UserId, String] = iso[UserId, String](_.unwrap, UserId(_, Enable.Unsafe))

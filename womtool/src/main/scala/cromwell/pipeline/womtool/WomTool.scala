@@ -3,6 +3,7 @@ package cromwell.pipeline.womtool
 import cats.data.NonEmptyList
 import com.typesafe.config.ConfigFactory
 import cromwell.languages.util.ImportResolver.ImportResolver
+import cromwell.pipeline.datastorage.dto.{ FileParameter, TypedValue }
 import languages.cwl.CwlV1_0LanguageFactory
 import languages.wdl.biscayne.WdlBiscayneLanguageFactory
 import languages.wdl.draft2.WdlDraft2LanguageFactory
@@ -30,6 +31,23 @@ class WomTool(val importResolvers: List[ImportResolver]) extends WomToolAPI {
   )
 
   def validate(content: String): Either[NonEmptyList[String], WomBundle] = read(content)
+
+  def inputsToList(content: String): Either[NonEmptyList[String], List[FileParameter]] =
+    for {
+      bundle <- read(content)
+      callable <- bundle.toExecutableCallable
+      wdl = WomGraphWithResolvedImports(callable.graph, bundle.resolvedImportRecords)
+    } yield wdl.graph.externalInputNodes.map(nodeWrite).toList
+
+  private def nodeWrite(node: ExternalGraphInputNode): FileParameter =
+    node match {
+      case RequiredGraphInputNode(_, womType, nameInInputSet, _) =>
+        FileParameter(nameInInputSet, TypedValue.fromPair(womType.stableName, None))
+      case OptionalGraphInputNode(_, womType, nameInInputSet, _) =>
+        FileParameter(nameInInputSet, TypedValue.fromPair(womType.stableName, None))
+      case OptionalGraphInputNodeWithDefault(_, womType, default, nameInInputSet, _) =>
+        FileParameter(nameInInputSet, TypedValue.fromPair(womType.stableName, Some(default.sourceString)))
+    }
 
   def inputs(content: String): Either[NonEmptyList[String], String] =
     for {

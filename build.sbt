@@ -42,7 +42,7 @@ lazy val datasource = project
   .settings(
     name := "Datasource",
     commonSettings,
-    libraryDependencies ++= dbDependencies :+ configHokon
+    libraryDependencies ++= dbDependencies :+ configHokon :+ mongoBson :+ mongoDriverCore
   )
   .dependsOn(utils)
 
@@ -86,7 +86,7 @@ lazy val utils =
   (project in file("utils"))
     .configs(IntegrationTest)
     .settings(
-      libraryDependencies ++= (jsonDependencies ++ testContainers ++ coreTestDependencies) :+ configHokon :+ cats :+ playFunctional :+ pegdown,
+      libraryDependencies ++= (jsonDependencies ++ testContainers ++ coreTestDependencies ++ dbDependencies) :+ configHokon :+ cats :+ playFunctional :+ pegdown,
       commonSettings
     )
     .dependsOn(model)
@@ -94,14 +94,14 @@ lazy val utils =
 lazy val repositories =
   (project in file("repositories"))
     .settings(
-      libraryDependencies ++= allTestDependencies ++ jsonDependencies :+ cats :+ slick :+ slickPg :+ slickPgCore :+ configHokon :+ playJson :+ catsKernel :+ playFunctional
+      libraryDependencies ++= allTestDependencies ++ jsonDependencies ++ mongoDependencies :+ cats :+ slick :+ slickPg :+ slickPgCore :+ configHokon :+ playJson :+ catsKernel :+ playFunctional
     )
     .configs(IntegrationTest)
     .dependsOn(datasource, model, utils % "compile->compile;test->test")
 
 lazy val services =
   (project in file("services"))
-    .settings(libraryDependencies ++= jsonDependencies ++ cromwellDependencies :+ cats :+ playJson)
+    .settings(libraryDependencies ++= jsonDependencies ++ mongoDependencies ++ cromwellDependencies :+ cats :+ playJson)
     .dependsOn(
       repositories % "compile->compile;test->test",
       utils % "compile->compile;test->test",
@@ -126,6 +126,7 @@ lazy val womtool = (project in file("womtool"))
     libraryDependencies ++= allTestDependencies ++ cromwellDependencies :+ pegdown,
     addCommandAlias("testAll", "; test ; it:test")
   )
+  .dependsOn(repositories)
 
 lazy val model =
   (project in file("model")).settings(libraryDependencies ++= jsonDependencies ++ dbDependencies :+ cats)

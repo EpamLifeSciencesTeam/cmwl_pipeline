@@ -125,13 +125,15 @@ object FileCommit {
 final case class ProjectFile(path: Path, content: String)
 
 object ProjectFile {
-  implicit object ProjectFileFormat extends Format[ProjectFile] {
-    override def reads(json: JsValue): JsResult[ProjectFile] =
-      JsSuccess(ProjectFile(Paths.get((json \ "path").as[String]), (json \ "content").as[String]))
+  implicit object pathFormat extends Format[Path] {
+    override def writes(o: Path): JsValue = JsString(o.toString)
+    override def reads(json: JsValue): JsResult[Path] =
+      json.validate[String].map(s => Paths.get(s))
+  }
 
-    override def writes(o: ProjectFile): JsValue = JsObject(
-      Seq("path" -> JsString(o.path.toString), "content" -> JsString(o.content))
-    )
+  implicit lazy val projectFileFormat: OFormat[ProjectFile] = {
+    ((JsPath \ "path").format[Path] ~ (JsPath \ "content")
+      .format[String])(ProjectFile.apply, unlift(ProjectFile.unapply))
   }
 }
 
@@ -163,6 +165,13 @@ final case class FileContent(content: String)
 
 object FileContent {
   implicit lazy val validateFileRequestFormat: OFormat[FileContent] = Json.format[FileContent]
+}
+
+final case class ProjectBuildConfigurationRequest(projectId: ProjectId, projectFile: ProjectFile)
+
+object ProjectBuildConfigurationRequest {
+  implicit val projectBuildConfigurationRequestFormat: OFormat[ProjectBuildConfigurationRequest] =
+    Json.format[ProjectBuildConfigurationRequest]
 }
 
 final case class ProjectUpdateFileRequest(project: Project, projectFile: ProjectFile, version: Option[PipelineVersion])

@@ -26,6 +26,8 @@ object Dependencies {
     val pegdown = "1.6.0"
     val wireMock = "2.26.3"
     val sl4j = "1.7.28"
+    val mongo = "2.9.0"
+    val mongoCore = "3.12.2"
   }
 
   val configHokon = "com.typesafe" % "config" % "1.3.3"
@@ -59,10 +61,16 @@ object Dependencies {
   val wireMock = "com.github.tomakehurst" % "wiremock" % Version.wireMock % Test
   val sl4j = "org.slf4j" % "slf4j-api" % Version.sl4j
   val pegdown = "org.pegdown" % "pegdown" % Version.pegdown % Test
+  val mongo = "org.mongodb.scala" %% "mongo-scala-driver" % Version.mongo
+  val mongoBson = "org.mongodb.scala" %% "mongo-scala-bson" % Version.mongo
+  val mongoDriver = "org.mongodb.scala" %% "mongo-scala-driver" % Version.mongo
+  val mongoDriverCore = "org.mongodb" % "mongodb-driver-core" % Version.mongoCore
+  val bson = "org.mongodb" % "bson" % Version.mongoCore
 
+  lazy val mongoDependencies = Seq(mongo, mongoBson, mongoDriverCore, bson, mongoDriver)
   lazy val akkaDependencies = Seq(akkaActor, akkaStreams, akkaHttp)
   lazy val jsonDependencies = Seq(playJson, akkaHttpJson, jwtCore)
-  lazy val dbDependencies = Seq(slick, slickPg, hikariCP, postgresql, liquibase, yaml)
+  lazy val dbDependencies = Seq(slick, slickPg, hikariCP, postgresql, liquibase, yaml) ++ mongoDependencies
   lazy val coreTestDependencies =
     Seq(mockito, scalaCheck, scalaTest, scalaMock)
   lazy val allTestDependencies =

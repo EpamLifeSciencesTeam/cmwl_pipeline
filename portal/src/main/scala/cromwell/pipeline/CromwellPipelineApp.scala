@@ -40,7 +40,12 @@ object CromwellPipelineApp extends App {
     .withFallback(RejectionHandler.default)
 
   val route = authController.route ~ securityDirective.authenticated {
-    routeCombiner(userController.route, projectController.route, projectFileController.route)
+    routeCombiner(
+      userController.route,
+      projectController.route,
+      projectFileController.route,
+      configurationController.route
+    )
   }
 
   log.info(s"Server online at http://${webServiceConfig.interface}:${webServiceConfig.port}/")
