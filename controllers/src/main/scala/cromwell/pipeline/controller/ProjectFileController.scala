@@ -4,14 +4,16 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
-import cromwell.pipeline.datastorage.dto.{ FileContent, ProjectUpdateFileRequest, ValidationError }
+import cromwell.pipeline.datastorage.dto.{ FileContent, ProjectBuildConfigurationRequest, ProjectUpdateFileRequest }
 import cromwell.pipeline.service.ProjectFileService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext
 import scala.util.{ Failure, Success }
 
-class ProjectFileController(wdlService: ProjectFileService)(implicit val executionContext: ExecutionContext) {
+class ProjectFileController(wdlService: ProjectFileService)(
+  implicit val executionContext: ExecutionContext
+) {
   val route: AccessTokenContent => Route = _ =>
     concat(
       path("files" / "validation") {
@@ -42,6 +44,17 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
                 case Success((status, message)) => complete(status, message)
                 case Failure(e)                 => complete(StatusCodes.InternalServerError, e.getMessage)
               }
+          }
+        }
+      },
+      path("files" / "configurations") {
+        post {
+          entity(as[ProjectBuildConfigurationRequest]) { request =>
+            onComplete(wdlService.buildConfiguration(request.projectId, request.projectFile)) {
+              case Success(Left(e))              => complete(StatusCodes.UnprocessableEntity, e.errors)
+              case Success(Right(configuration)) => complete(configuration)
+              case Failure(e)                    => complete(StatusCodes.InternalServerError, e.getMessage)
+            }
           }
         }
       }

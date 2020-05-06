@@ -22,6 +22,16 @@ final case class AuthConfig(
   expirationTimeInSeconds: ExpirationTimeInSeconds
 ) extends ConfigComponent
 
+final case class MongoConfig(
+  user: String,
+  password: Array[Char],
+  host: String,
+  port: Int,
+  authenticationDatabase: String,
+  database: String,
+  collection: String
+) extends ConfigComponent
+
 final case class ExpirationTimeInSeconds(accessToken: Long, refreshToken: Long, userSession: Long)
 
 class ApplicationConfig(val config: Config) {
@@ -59,6 +69,18 @@ class ApplicationConfig(val config: Config) {
       token = Map("PRIVATE-TOKEN" -> config.getString("database.gitlab.token")),
       defaultFileVersion = config.getString("database.gitlab.defaultFileVersion"),
       defaultBranch = config.getString("database.gitlab.defaultBranch")
+    )
+  }
+
+  lazy val mongoConfig: MongoConfig = {
+    MongoConfig(
+      user = config.getString("database.mongo.user"),
+      password = config.getString("database.mongo.password").toCharArray,
+      host = config.getString("database.mongo.host"),
+      port = config.getInt("database.mongo.port"),
+      authenticationDatabase = config.getString("database.mongo.authenticationDatabase"),
+      database = config.getString("database.mongo.database"),
+      collection = config.getString("database.mongo.collection")
     )
   }
 

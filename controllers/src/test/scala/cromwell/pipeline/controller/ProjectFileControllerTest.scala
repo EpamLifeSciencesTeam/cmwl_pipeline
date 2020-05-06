@@ -20,8 +20,9 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
   private val projectFileController = new ProjectFileController(projectFileService)
 
   "ProjectFileController" when {
+    val accessToken = AccessTokenContent(TestUserUtils.getDummyUserId)
+
     "validate file" should {
-      val accessToken = AccessTokenContent(TestUserUtils.getDummyUserId)
       val content = FileContent("task hello {}")
 
       "return OK response to valid file" taggedAs Controller in {
@@ -68,12 +69,36 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
         }
       }
 
-      "return InternalServerError for bad request" taggedAs Controller in {
+      "return UnprocessableEntity for bad request" taggedAs Controller in {
         when(projectFileService.uploadFile(project, projectFile, Some(version)))
           .thenReturn(Future.successful(Left(VersioningException("Bad request"))))
         Post("/files", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.UnprocessableEntity
           entityAs[String] shouldBe "Bad request"
+        }
+      }
+    }
+
+    "build configuration" should {
+      val projectId = TestProjectUtils.getDummyProjectId
+      val projectFile = ProjectFile(Paths.get("/home/test/file"), "{some context}")
+      val configuration = ProjectConfiguration(
+        projectId,
+        List(
+          ProjectFileConfiguration(
+            Paths.get("/home/test/file"),
+            List(FileParameter("nodeName", StringTyped(Some("hello"))))
+          )
+        )
+      )
+      val request = ProjectBuildConfigurationRequest(projectId, projectFile)
+
+      "return configuration for file" in {
+        when(projectFileService.buildConfiguration(projectId, projectFile))
+          .thenReturn(Future.successful(Right(configuration)))
+        Post("/files/configurations", request) ~> projectFileController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.OK
+          entityAs[ProjectConfiguration] shouldBe configuration
         }
       }
     }

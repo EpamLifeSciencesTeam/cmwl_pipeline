@@ -1,6 +1,7 @@
 package cromwell.pipeline.womtool
 
 import cats.data.NonEmptyList
+import cromwell.pipeline.datastorage.dto.FileParameter
 import wom.executable.WomBundle
 
 trait WomToolAPI {
@@ -8,4 +9,6 @@ trait WomToolAPI {
   def validate(content: String): Either[NonEmptyList[String], WomBundle]
 
   def inputs(content: String): Either[NonEmptyList[String], String]
+
+  def inputsToList(content: String): Either[NonEmptyList[String], List[FileParameter]]
 }
