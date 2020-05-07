@@ -46,11 +46,11 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       val project = TestProjectUtils.getDummyProject()
       val projectFile = ProjectFile(Paths.get("folder/test.txt"), "file context")
       val request = ProjectUpdateFileRequest(project, projectFile)
-      val validContent = FileContent("task hello {}")
-      val invalidContent = FileContent(projectFile.content)
+      val content = FileContent(projectFile.content)
 
       "return OK response for valid request with a valid file" taggedAs Controller in {
-        when(projectFileService.validateFile(validContent)).thenReturn(Future.successful(Right(())))
+        when(projectFileService.validateFile(content))
+          .thenReturn(Future.successful(Right(())))
         when(projectFileService.uploadFile(project, projectFile)).thenReturn(Future.successful(Right("Success")))
         Post("/files", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
@@ -58,7 +58,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       }
 
       "return Precondition File response for valid request with an invalid file" taggedAs Controller in {
-        when(projectFileService.validateFile(invalidContent))
+        when(projectFileService.validateFile(content))
           .thenReturn(Future.successful(Left(ValidationError(List("Miss close bracket")))))
         when(projectFileService.uploadFile(project, projectFile)).thenReturn(Future.successful(Right("Success")))
         Post("/files", request) ~> projectFileController.route(accessToken) ~> check {
