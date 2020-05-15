@@ -23,7 +23,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
     val accessToken = AccessTokenContent(TestUserUtils.getDummyUserId)
 
     "validate file" should {
-      val content = FileContent("task hello {}")
+      val content = ProjectFileContent("task hello {}")
 
       "return OK response to valid file" taggedAs Controller in {
         when(projectFileService.validateFile(content)).thenReturn(Future.successful(Right(())))
@@ -43,27 +43,29 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
     }
 
     "upload file" should {
+      import cromwell.pipeline.datastorage.dto.SuccessResponseMessage
+
       val version = PipelineVersion("v0.0.2")
       val accessToken = AccessTokenContent(TestUserUtils.getDummyUserId)
       val project = TestProjectUtils.getDummyProject()
-      val projectFile = ProjectFile(Paths.get("folder/test.txt"), "file context")
+      val projectFileContent = ProjectFileContent("file context")
+      val projectFile = ProjectFile(Paths.get("folder/test.txt"), projectFileContent)
       val request = ProjectUpdateFileRequest(project, projectFile, Some(version))
-      val content = FileContent(projectFile.content)
 
       "return OK response for valid request with a valid file" taggedAs Controller in {
-        when(projectFileService.validateFile(content)).thenReturn(Future.successful(Right(())))
+        when(projectFileService.validateFile(projectFileContent)).thenReturn(Future.successful(Right(())))
         when(projectFileService.uploadFile(project, projectFile, Some(version)))
-          .thenReturn(Future.successful(Right("Success")))
+          .thenReturn(Future.successful(Right(SuccessResponseMessage("Success"))))
         Post("/files", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
         }
       }
 
       "return Precondition File response for valid request with an invalid file" taggedAs Controller in {
-        when(projectFileService.validateFile(content))
+        when(projectFileService.validateFile(projectFileContent))
           .thenReturn(Future.successful(Left(ValidationError(List("Miss close bracket")))))
         when(projectFileService.uploadFile(project, projectFile, Some(version)))
-          .thenReturn(Future.successful(Right("Success")))
+          .thenReturn(Future.successful(Right(SuccessResponseMessage("Success"))))
         Post("/files", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.Created
         }
@@ -74,14 +76,14 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
           .thenReturn(Future.successful(Left(VersioningException.HttpException("Bad request"))))
         Post("/files", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.UnprocessableEntity
-          entityAs[String] shouldBe "Bad request"
+          entityAs[String] shouldBe "File have not uploaded due to Bad request"
         }
       }
     }
 
     "build configuration" should {
       val projectId = TestProjectUtils.getDummyProjectId
-      val projectFile = ProjectFile(Paths.get("/home/test/file"), "{some context}")
+      val projectFile = ProjectFile(Paths.get("/home/test/file"), ProjectFileContent("{some context}"))
       val configuration = ProjectConfiguration(
         projectId,
         List(

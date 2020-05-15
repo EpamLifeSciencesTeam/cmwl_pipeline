@@ -1,23 +1,28 @@
 package cromwell.pipeline.controller
 
-import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
-import akka.stream.ActorMaterializer
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration._
-import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
+import cromwell.pipeline.service.SuccessResponseBody
+import cromwell.pipeline.utils.{ AkkaTestSources, DummyObject }
+import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.libs.json.Json
 
-import scala.concurrent.ExecutionContext
-
-class AkkaHttpClientTest extends AsyncWordSpec with Matchers with MockitoSugar with BeforeAndAfterAll {
-  implicit val actorSystem: ActorSystem = ActorSystem()
-  implicit val materializer: ActorMaterializer = ActorMaterializer()
-  implicit val ec: ExecutionContext = actorSystem.dispatcher
+class AkkaHttpClientTest extends AsyncWordSpec with Matchers with MockitoSugar with AkkaTestSources {
 
   val wireMockServer = new WireMockServer(wireMockConfig().dynamicPort())
   val client = new AkkaHttpClient()
+
+  val dummyObject: DummyObject = DummyObject(12345, "something as object content")
+  val stringifiedRespBody = """{"someId":12345,"someString":"something as object content"}"""
+  val successRespBody = SuccessResponseBody(dummyObject)
+  val applicationJson = "application/json"
+
+  val params = Map("id" -> "1")
+  val headers = Map("Language" -> "eng")
+  val payload = dummyObject
 
   override def beforeAll: Unit = {
     super.beforeAll()
@@ -33,129 +38,132 @@ class AkkaHttpClientTest extends AsyncWordSpec with Matchers with MockitoSugar w
 
     "get" should {
       "return OK response status" taggedAs Controller in {
-        val response = aResponse().withStatus(200)
+        val response = aResponse()
+          .withBody(Json.stringify(Json.toJson(dummyObject)))
+          .withStatus(200)
+          .withHeader("Content-Type", applicationJson)
         wireMockServer.stubFor(get(urlEqualTo("/get?id=1")).willReturn(response))
-
         val get_url = s"${wireMockServer.baseUrl()}/get"
-        val params = Map("id" -> "1")
-        val headers = Map("Language" -> "eng")
 
-        client.get(get_url, params, headers).flatMap(_.status shouldBe StatusCodes.OK.intValue)
+        client.get[DummyObject](get_url, params, headers).flatMap(_.status shouldBe StatusCodes.OK.intValue)
       }
 
       "return response with body" taggedAs Controller in {
-        val response = aResponse().withBody("Value").withStatus(200)
+        val response = aResponse()
+          .withBody(Json.stringify(Json.toJson(dummyObject)))
+          .withStatus(200)
+          .withHeader("Content-Type", applicationJson)
         wireMockServer.stubFor(get(urlEqualTo("/get?id=1")).willReturn(response))
-
         val get_url = s"${wireMockServer.baseUrl()}/get"
-        val params = Map("id" -> "1")
-        val headers = Map("Language" -> "eng")
 
-        client.get(get_url, params, headers).flatMap(_.body shouldBe "Value")
+        client.get[DummyObject](get_url, params, headers).flatMap(_.body shouldBe successRespBody)
       }
 
       "return response with headers" taggedAs Controller in {
-        val response = aResponse().withHeader("TestKey", "TestValue").withStatus(200)
+        val response = aResponse()
+          .withBody(Json.stringify(Json.toJson(dummyObject)))
+          .withStatus(200)
+          .withHeader("TestKey", "TestValue")
+          .withHeader("Content-Type", applicationJson)
         wireMockServer.stubFor(get(urlEqualTo("/get?id=1")).willReturn(response))
-
         val get_url = s"${wireMockServer.baseUrl()}/get"
-        val params = Map("id" -> "1")
-        val headers = Map("Language" -> "eng")
 
         client
-          .get(get_url, params, headers)
+          .get[DummyObject](get_url, params, headers)
           .flatMap(_.headers.getOrElse("TestKey", List("failed")) shouldBe List("TestValue"))
       }
     }
 
     "post" should {
       "return OK response status" taggedAs Controller in {
-        val response = aResponse().withStatus(200)
+        val response = aResponse()
+          .withBody(Json.stringify(Json.toJson(dummyObject)))
+          .withStatus(200)
+          .withHeader("Content-Type", applicationJson)
         wireMockServer.stubFor(
-          post(urlEqualTo("/post?id=1")).withRequestBody(equalTo("test payload")).willReturn(response)
+          post(urlEqualTo("/post?id=1")).withRequestBody(equalTo(stringifiedRespBody)).willReturn(response)
         )
-
         val post_url = s"${wireMockServer.baseUrl()}/post"
-        val params = Map("id" -> "1")
-        val headers = Map("Language" -> "eng")
-        val payload = "test payload"
 
-        client.post(post_url, params, headers, payload).flatMap(_.status shouldBe StatusCodes.OK.intValue)
+        client
+          .post[DummyObject, DummyObject](post_url, params, headers, payload)
+          .flatMap(_.status shouldBe StatusCodes.OK.intValue)
       }
 
       "return response with body" taggedAs Controller in {
-        val response = aResponse().withBody("Value").withStatus(200)
+        val response = aResponse()
+          .withBody(Json.stringify(Json.toJson(dummyObject)))
+          .withStatus(200)
+          .withHeader("Content-Type", applicationJson)
         wireMockServer.stubFor(
-          post(urlEqualTo("/post?id=1")).withRequestBody(equalTo("test payload")).willReturn(response)
+          post(urlEqualTo("/post?id=1")).withRequestBody(equalTo(stringifiedRespBody)).willReturn(response)
         )
-
         val post_url = s"${wireMockServer.baseUrl()}/post"
-        val params = Map("id" -> "1")
-        val headers = Map("Language" -> "eng")
-        val payload = "test payload"
 
-        client.post(post_url, params, headers, payload).flatMap(_.body shouldBe "Value")
+        client
+          .post[DummyObject, DummyObject](post_url, params, headers, payload)
+          .flatMap(_.body shouldBe successRespBody)
       }
 
       "return response with headers" taggedAs Controller in {
-        val response = aResponse().withHeader("TestKey", "TestValue").withStatus(200)
+        val response = aResponse()
+          .withBody(Json.stringify(Json.toJson(dummyObject)))
+          .withStatus(200)
+          .withHeader("TestKey", "TestValue")
+          .withHeader("Content-Type", applicationJson)
         wireMockServer.stubFor(
-          post(urlEqualTo("/post?id=1")).withRequestBody(equalTo("test payload")).willReturn(response)
+          post(urlEqualTo("/post?id=1")).withRequestBody(equalTo(stringifiedRespBody)).willReturn(response)
         )
-
         val post_url = s"${wireMockServer.baseUrl()}/post"
-        val params = Map("id" -> "1")
-        val headers = Map("Language" -> "eng")
-        val payload = "test payload"
 
         client
-          .post(post_url, params, headers, payload)
+          .post[DummyObject, DummyObject](post_url, params, headers, payload)
           .flatMap(_.headers.getOrElse("TestKey", List("failed")) shouldBe List("TestValue"))
       }
     }
 
     "put" should {
       "return OK response status" taggedAs Controller in {
-        val response = aResponse().withStatus(200)
+        val response = aResponse()
+          .withBody(Json.stringify(Json.toJson(dummyObject)))
+          .withStatus(200)
+          .withHeader("Content-Type", applicationJson)
         wireMockServer.stubFor(
-          put(urlEqualTo("/put?id=1")).withRequestBody(equalTo("test payload")).willReturn(response)
+          put(urlEqualTo("/put?id=1")).withRequestBody(equalTo(stringifiedRespBody)).willReturn(response)
         )
-
         val put_url = s"${wireMockServer.baseUrl()}/put"
-        val params = Map("id" -> "1")
-        val headers = Map("Language" -> "eng")
-        val payload = "test payload"
 
-        client.put(put_url, params, headers, payload).flatMap(_.status shouldBe StatusCodes.OK.intValue)
+        client
+          .put[DummyObject, DummyObject](put_url, params, headers, payload)
+          .flatMap(_.status shouldBe StatusCodes.OK.intValue)
       }
 
       "return response with body" taggedAs Controller in {
-        val response = aResponse().withBody("Value").withStatus(200)
+        val response = aResponse()
+          .withBody(Json.stringify(Json.toJson(dummyObject)))
+          .withStatus(200)
+          .withHeader("Content-Type", applicationJson)
         wireMockServer.stubFor(
-          put(urlEqualTo("/put?id=1")).withRequestBody(equalTo("test payload")).willReturn(response)
+          put(urlEqualTo("/put?id=1")).withRequestBody(equalTo(stringifiedRespBody)).willReturn(response)
         )
-
         val put_url = s"${wireMockServer.baseUrl()}/put"
-        val params = Map("id" -> "1")
-        val headers = Map("Language" -> "eng")
-        val payload = "test payload"
 
-        client.put(put_url, params, headers, payload).flatMap(_.body shouldBe "Value")
+        client.put[DummyObject, DummyObject](put_url, params, headers, payload).flatMap(_.body shouldBe successRespBody)
       }
 
       "return response with headers" taggedAs Controller in {
-        val response = aResponse().withHeader("TestKey", "TestValue").withStatus(200)
+        val response = aResponse()
+          .withBody(Json.stringify(Json.toJson(dummyObject)))
+          .withStatus(200)
+          .withHeader("TestKey", "TestValue")
+          .withHeader("Content-Type", applicationJson)
         wireMockServer.stubFor(
-          put(urlEqualTo("/put?id=1")).withRequestBody(equalTo("test payload")).willReturn(response)
+          put(urlEqualTo("/put?id=1")).withRequestBody(equalTo(stringifiedRespBody)).willReturn(response)
         )
-
         val put_url = s"${wireMockServer.baseUrl()}/put"
-        val params = Map("id" -> "1")
-        val headers = Map("Language" -> "eng")
-        val payload = "test payload"
 
         client
-          .put(put_url, params, headers, payload)
+          .put[DummyObject, DummyObject](put_url, params, headers, payload)
           .flatMap(_.headers.getOrElse("TestKey", List("failed")) shouldBe List("TestValue"))
       }
     }

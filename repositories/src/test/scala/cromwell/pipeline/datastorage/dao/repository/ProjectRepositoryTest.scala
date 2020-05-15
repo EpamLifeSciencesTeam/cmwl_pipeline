@@ -34,7 +34,6 @@ class ProjectRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAf
           _ <- projectRepository.addProject(dummyProject)
           getById <- projectRepository.getProjectById(dummyProject.projectId)
         } yield getById
-
         result.map(optProject => optProject shouldEqual Some(dummyProject))
       }
     }

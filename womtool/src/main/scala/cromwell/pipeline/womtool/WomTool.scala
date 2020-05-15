@@ -32,12 +32,25 @@ class WomTool(val importResolvers: List[ImportResolver]) extends WomToolAPI {
 
   def validate(content: String): Either[NonEmptyList[String], WomBundle] = read(content)
 
-  def inputsToList(content: String): Either[NonEmptyList[String], List[FileParameter]] =
+  def inputsToList(
+    content: String
+  ): Either[NonEmptyList[String], List[FileParameter]] =
+    inputs(content)((wdl: WomGraphWithResolvedImports) => wdl.graph.externalInputNodes.map(nodeWrite).toList)
+
+  def stringInputs(content: String): Either[NonEmptyList[String], String] =
+    inputs(content)(
+      (wdl: WomGraphWithResolvedImports) =>
+        (wdl.graph.externalInputNodes.toJson(inputNodeWriter).prettyPrint + System.lineSeparator)
+    )
+
+  private def inputs[T](
+    content: String
+  )(func: WomGraphWithResolvedImports => T): Either[NonEmptyList[String], T] =
     for {
       bundle <- read(content)
       callable <- bundle.toExecutableCallable
       wdl = WomGraphWithResolvedImports(callable.graph, bundle.resolvedImportRecords)
-    } yield wdl.graph.externalInputNodes.map(nodeWrite).toList
+    } yield func(wdl)
 
   private def nodeWrite(node: ExternalGraphInputNode): FileParameter =
     node match {
@@ -48,13 +61,6 @@ class WomTool(val importResolvers: List[ImportResolver]) extends WomToolAPI {
       case OptionalGraphInputNodeWithDefault(_, womType, default, nameInInputSet, _) =>
         FileParameter(nameInInputSet, TypedValue.fromPair(womType.stableName, Some(default.sourceString)))
     }
-
-  def inputs(content: String): Either[NonEmptyList[String], String] =
-    for {
-      bundle <- read(content)
-      callable <- bundle.toExecutableCallable
-      wdl = WomGraphWithResolvedImports(callable.graph, bundle.resolvedImportRecords)
-    } yield wdl.graph.externalInputNodes.toJson(inputNodeWriter).prettyPrint + System.lineSeparator
 
   private def inputNodeWriter: JsonWriter[Set[ExternalGraphInputNode]] = set => {
     val valueMap: Seq[(String, JsValue)] = set.toList.collect {

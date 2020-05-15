@@ -58,7 +58,6 @@ class ApplicationConfig(val config: Config) {
     } else if (result.expirationTimeInSeconds.refreshToken >= result.expirationTimeInSeconds.userSession) {
       throw new RuntimeException("Refresh token lifetime should be less than user session lifetime.")
     }
-
     result
   }
 

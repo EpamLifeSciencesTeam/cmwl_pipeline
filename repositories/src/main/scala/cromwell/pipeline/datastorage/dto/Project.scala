@@ -10,13 +10,13 @@ import play.api.libs.json._
 import slick.lifted.MappedTo
 
 final case class Project(
-                          projectId: ProjectId,
-                          ownerId: UserId,
-                          name: String,
-                          active: Boolean,
-                          repository: Option[Repository] = None,
-                          visibility: Visibility = Private
-                        ) {
+  projectId: ProjectId,
+  ownerId: UserId,
+  name: String,
+  active: Boolean,
+  repository: Option[Repository] = None,
+  visibility: Visibility = Private
+) {
   def withRepository(repositoryPath: Option[String]): Project =
     this.copy(repository = repositoryPath.map(Repository(_)))
 }
@@ -65,6 +65,7 @@ object ProjectUpdateRequest {
 }
 
 final case class GitLabVersion(name: PipelineVersion, message: String, target: String, commit: Commit)
+
 object GitLabVersion {
   implicit val gitlabVersionFormat: OFormat[GitLabVersion] = Json.format[GitLabVersion]
 }
@@ -122,24 +123,29 @@ object FileCommit {
   implicit val fileCommitFormat: OFormat[FileCommit] = Json.format[FileCommit]
 }
 
+final case class ProjectFile(path: Path, content: ProjectFileContent)
 final case class FileTree(id: String, name: String, path: String, mode: String)
 object FileTree {
   implicit val fileTreeFormat: OFormat[FileTree] = Json.format[FileTree]
 }
 
-final case class ProjectFile(path: Path, content: String)
-
 object ProjectFile {
+
   implicit object pathFormat extends Format[Path] {
     override def writes(o: Path): JsValue = JsString(o.toString)
-    override def reads(json: JsValue): JsResult[Path] =
-      json.validate[String].map(s => Paths.get(s))
+    override def reads(json: JsValue): JsResult[Path] = json.validate[String].map(s => Paths.get(s))
   }
 
   implicit lazy val projectFileFormat: OFormat[ProjectFile] = {
     ((JsPath \ "path").format[Path] ~ (JsPath \ "content")
-      .format[String])(ProjectFile.apply, unlift(ProjectFile.unapply))
+      .format[ProjectFileContent])(ProjectFile.apply, unlift(ProjectFile.unapply))
   }
+}
+
+final case class ProjectFileContent(content: String)
+
+object ProjectFileContent {
+  implicit val projectFileContentFormat: OFormat[ProjectFileContent] = Json.format[ProjectFileContent]
 }
 
 sealed trait Visibility
@@ -166,12 +172,6 @@ object Visibility {
   def values = Seq(Private, Internal, Public)
 }
 
-final case class FileContent(content: String)
-
-object FileContent {
-  implicit lazy val validateFileRequestFormat: OFormat[FileContent] = Json.format[FileContent]
-}
-
 final case class ProjectBuildConfigurationRequest(projectId: ProjectId, projectFile: ProjectFile)
 
 object ProjectBuildConfigurationRequest {
@@ -188,4 +188,36 @@ object ProjectUpdateFileRequest {
       ProjectUpdateFileRequest.apply,
       unlift(ProjectUpdateFileRequest.unapply)
     )
+}
+
+/**
+ * Class represents dummy object
+ */
+final case class DummyResponseBody()
+object DummyResponseBody {
+  implicit val dummyResponseBodyNonStrictReads = Reads.pure(DummyResponseBody())
+  implicit val dummyResponseBodyWrites = OWrites[DummyResponseBody](_ => Json.obj())
+}
+
+/**
+ * Wrapper type contains success response message from [[cromwell.pipeline.service.SuccessResponseBody]]
+ *
+ * @param message any response info which signals successful request
+ */
+final case class SuccessResponseMessage(message: String) extends AnyVal
+
+object SuccessResponseMessage {
+  implicit lazy val successResponseMessageFormat: OFormat[SuccessResponseMessage] =
+    Json.format[SuccessResponseMessage]
+}
+
+/**
+ * Wrapper type contains empty response message to use in [[cromwell.pipeline.service.HttpClient]]
+ *
+ * @param message empty payload message
+ */
+final case class EmptyPayload(message: String = "")
+
+object EmptyPayload {
+  implicit lazy val emptyPayLoadFormat: OFormat[EmptyPayload] = Json.format[EmptyPayload]
 }

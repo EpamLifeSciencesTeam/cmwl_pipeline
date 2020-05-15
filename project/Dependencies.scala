@@ -49,7 +49,7 @@ object Dependencies {
   val akkaTestKit = "com.typesafe.akka" %% "akka-testkit" % Version.akka % "test,it"
   val akkaHttpTestKit = "com.typesafe.akka" %% "akka-http-testkit" % Version.akkaHttp % "test,it"
   val scalaCheck = "org.scalacheck" %% "scalacheck" % Version.scalaCheck % "test,it"
-  val scalaTest = "org.scalatest" %% "scalatest" % Version.scalaTest % "test,it"
+  val scalaTest = "org.scalatest" %% "scalatest" % Version.scalaTest % "test, it"
   val mockito = "org.mockito" % "mockito-all" % Version.mockito % Test
   val tcCore = "com.dimafeng" %% "testcontainers-scala" % Version.tcCore % Test
   val tcPostgres = "org.testcontainers" % "postgresql" % Version.tcPostgres % Test
