@@ -4,7 +4,7 @@ import java.nio.file.Paths
 
 import cats.data.NonEmptyList
 import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
-import cromwell.pipeline.datastorage.dto.{ FileContent, ProjectFile, ValidationError }
+import cromwell.pipeline.datastorage.dto.{ ProjectFile, ProjectFileContent, SuccessResponseMessage, ValidationError }
 import cromwell.pipeline.womtool.WomTool
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
@@ -27,13 +27,13 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
   "ProjectFileServiceTest" when {
     "validateFile" should {
       "return valid message to valid file" taggedAs Service in {
-        val request = FileContent(correctWdl)
+        val request = ProjectFileContent(correctWdl)
         when(womTool.validate(correctWdl)).thenReturn(Right(any[WomBundle]))
         projectFileService.validateFile(request).map(_ shouldBe Right(()))
       }
 
       "return error message to incorrect file" taggedAs Service in {
-        val request = FileContent(incorrectWdl)
+        val request = ProjectFileContent(incorrectWdl)
         when(womTool.validate(incorrectWdl)).thenReturn(Left(NonEmptyList(errorMessage, Nil)))
         projectFileService.validateFile(request).map(_ shouldBe Left(ValidationError(List(errorMessage))))
       }
@@ -41,13 +41,16 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
 
     "upload file" should {
       val project = TestProjectUtils.getDummyProject()
-      val projectFile = ProjectFile(Paths.get("test.txt"), "File content")
+      val projectFileContent = ProjectFileContent("File content")
+      val projectFile = ProjectFile(Paths.get("test.txt"), projectFileContent)
       val version = TestProjectUtils.getDummyPipeLineVersion()
 
       "return success message for request" taggedAs Service in {
         when(projectVersioning.updateFile(project, projectFile, Some(version)))
-          .thenReturn(Future.successful(Right("Success")))
-        projectFileService.uploadFile(project, projectFile, Some(version)).map(_ shouldBe Right("Success"))
+          .thenReturn(Future.successful(Right(SuccessResponseMessage("Success"))))
+        projectFileService
+          .uploadFile(project, projectFile, Some(version))
+          .map(_ shouldBe Right(SuccessResponseMessage("Success")))
       }
 
       "return error message for error request" taggedAs Service in {

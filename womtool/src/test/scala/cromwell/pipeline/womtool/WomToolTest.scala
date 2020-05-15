@@ -90,7 +90,7 @@ class WomToolTest extends WordSpec with Matchers {
       "return the correct input json" in {
 
         val res: Either[NonEmptyList[String], String] =
-          womTool.inputs(correctWdl)
+          womTool.stringInputs(correctWdl)
 
         res.right.value shouldBe correctInputsAnswer
       }
@@ -98,7 +98,7 @@ class WomToolTest extends WordSpec with Matchers {
       "return the ERROR" in {
 
         val res: Either[NonEmptyList[String], String] =
-          womTool.inputs(inCorrectWdl)
+          womTool.stringInputs(inCorrectWdl)
 
         res.left.value.toString.stripMargin shouldBe inCorrectInputs
       }
