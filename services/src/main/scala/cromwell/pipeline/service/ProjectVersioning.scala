@@ -2,9 +2,9 @@ package cromwell.pipeline.service
 
 import java.nio.file.Path
 
-import cromwell.pipeline.datastorage.dto.{ GitLabVersion, PipelineVersion, Project, ProjectFile }
+import cromwell.pipeline.datastorage.dto.{ GitLabVersion, PipelineVersion, Project, ProjectFile, FileCommit }
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 trait ProjectVersioning[E >: VersioningException] {
   type AsyncResult[T] = Future[Either[E, T]]
@@ -30,9 +30,13 @@ trait ProjectVersioning[E >: VersioningException] {
     implicit ec: ExecutionContext
   ): AsyncResult[Seq[GitLabVersion]]
 
+  def getFileCommits(project: Project, path: Path)(
+    implicit ec: ExecutionContext
+  ): AsyncResult[Seq[FileCommit]]
+
   def getFileVersions(project: Project, path: Path)(
     implicit ec: ExecutionContext
-  ): AsyncResult[List[GitLabVersion]]
+  ): AsyncResult[Seq[GitLabVersion]]
 
   def getFilesVersions(project: Project, path: Path)(
     implicit ec: ExecutionContext

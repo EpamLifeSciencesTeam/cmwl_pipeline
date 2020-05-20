@@ -1,11 +1,12 @@
 package cromwell.pipeline.service
 
 import java.net.URLEncoder
-import java.nio.file.Paths
+import java.nio.file.{ Path, Paths }
 
 import akka.http.scaladsl.model.StatusCodes
 import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto._
+
 import cromwell.pipeline.utils.{ ApplicationConfig, GitLabConfig, HttpStatusCodes }
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
@@ -84,7 +85,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
         }
       }
     }
-
+    
     "updateFile" should {
       val successUpdateMessage = "File was updated"
       val successCreateMessage = "File was created"
@@ -178,7 +179,71 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
           .getFile(activeProject, path, Some(dummyPipelineVersion))
           .map(_ shouldBe Left(VersioningException("Exception. Response status: 404")))
       }
+    }
 
+    "getFileCommits" should {
+      val dummyCommitJson: String = s"${Json.stringify(Json.toJson(List(dummyFileCommit)))}"
+      val path: Path = Paths.get("tmp/foo.txt")
+      val urlEncoder = URLEncoder.encode(path.toString, "UTF-8")
+      def request(project: Project) =
+        mockHttpClient.get(
+          url = s"${gitLabConfig.url}projects/${project.repository.get.value}/repository/files/${urlEncoder}",
+          headers = gitLabConfig.token
+        )
+
+      "return list of Project versions with 200 response" taggedAs Service in {
+        when(request(withRepoProject))
+          .thenReturn(Future.successful(Response(HttpStatusCodes.OK, dummyCommitJson, Map())))
+        gitLabProjectVersioning.getFileCommits(withRepoProject, path).map {
+          _ shouldBe Right(Seq(dummyFileCommit))
+        }
+      }
+
+      "throw new VersioningException with 400 response" taggedAs Service in {
+        when(request(withRepoProject))
+          .thenReturn(Future.successful(Response(HttpStatusCodes.BadRequest, EmptyBody, Map())))
+        gitLabProjectVersioning.getFileCommits(withRepoProject, path).map {
+          _ shouldBe Left(VersioningException("Could not take the file commits. Response status: 400"))
+        }
+      }
+    }
+
+    "getFileVersions" should {
+      val dummyCommitJson: String = s"${Json.stringify(Json.toJson(List(dummyFileCommit, dummyExistingFileCommit)))}"
+      val dummyVersionsJson: String = s"[${Json.stringify(Json.toJson(dummyGitLabVersion))}]"
+      val path: Path = Paths.get("tmp/foo.txt")
+      val urlEncoder = URLEncoder.encode(path.toString, "UTF-8")
+      def projectVersionRequest(project: Project) =
+        mockHttpClient.get(
+          url = s"${gitLabConfig.url}projects/${project.repository.get.value}/repository/tags",
+          headers = gitLabConfig.token
+        )
+
+      def fileCommitsRequest(project: Project) =
+        mockHttpClient.get(
+          url = s"${gitLabConfig.url}projects/${project.repository.get.value}/repository/files/${urlEncoder}",
+          headers = gitLabConfig.token
+        )
+
+      "return list of Project versions with 200 response" taggedAs Service in {
+        when(projectVersionRequest(withRepoProject))
+          .thenReturn(Future.successful(Response(HttpStatusCodes.OK, dummyVersionsJson, Map())))
+        when(fileCommitsRequest(withRepoProject))
+          .thenReturn(Future.successful(Response(HttpStatusCodes.OK, dummyCommitJson, Map())))
+        gitLabProjectVersioning.getFileVersions(withRepoProject, path).map {
+          _ shouldBe Right(Seq(dummyGitLabVersion))
+        }
+      }
+
+      "throw new VersioningException" taggedAs Service in {
+        when(projectVersionRequest(withRepoProject))
+          .thenReturn(Future.successful(Response(HttpStatusCodes.BadRequest, EmptyBody, Map())))
+        when(fileCommitsRequest(withRepoProject))
+          .thenReturn(Future.successful(Response(HttpStatusCodes.BadRequest, EmptyBody, Map())))
+        gitLabProjectVersioning.getFileCommits(withRepoProject, path).map {
+          _ shouldBe Left(VersioningException("Could not take the file commits. Response status: 400"))
+        }
+      }
     }
   }
 
@@ -193,6 +258,8 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
     lazy val dummyPipelineVersion: PipelineVersion = TestProjectUtils.getDummyPipeLineVersion()
     lazy val dummyPipelineVersionHigher: PipelineVersion = dummyPipelineVersion.increaseMinor
     lazy val dummyGitLabVersion: GitLabVersion = TestProjectUtils.getDummyGitLabVersion()
+    lazy val dummyFileCommit: FileCommit = TestProjectUtils.getDummyFileCommit()
+    lazy val dummyExistingFileCommit: FileCommit = FileCommit(dummyGitLabVersion.commit.id)
   }
 
   object ProjectFileContext {
