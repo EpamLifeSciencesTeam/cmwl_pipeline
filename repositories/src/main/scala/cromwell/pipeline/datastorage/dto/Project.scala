@@ -10,10 +10,13 @@ final case class Project(
   projectId: ProjectId,
   ownerId: UserId,
   name: String,
-  repository: String,
   active: Boolean,
+  repository: Option[Repository] = None,
   visibility: Visibility = Private
-)
+) {
+  def withRepository(repositoryPath: Option[String]): Project =
+    this.copy(repository = repositoryPath.map(Repository(_)))
+}
 object Project {
   implicit lazy val projectFormat: OFormat[Project] = Json.format[Project]
   implicit lazy val projectWrites: Writes[Project] = (project: Project) =>
@@ -21,8 +24,8 @@ object Project {
       "projectId" -> project.projectId.value,
       "ownerId" -> project.ownerId,
       "name" -> project.name,
-      "repository" -> project.repository,
       "active" -> project.active,
+      "repository" -> project.repository,
       "visibility" -> Visibility.toString(project.visibility),
       "path" -> project.projectId.value
     )
@@ -32,6 +35,12 @@ final case class ProjectId(value: String) extends MappedTo[String]
 
 object ProjectId {
   implicit lazy val projectIdFormat: Format[ProjectId] = implicitly[Format[String]].inmap(ProjectId.apply, _.value)
+}
+
+final case class Repository(value: String) extends MappedTo[String]
+
+object Repository {
+  implicit lazy val repositoryFormat: Format[Repository] = implicitly[Format[String]].inmap(Repository.apply, _.value)
 }
 
 final case class ProjectAdditionRequest(name: String)
@@ -46,13 +55,21 @@ object ProjectDeleteRequest {
   implicit lazy val projectDeleteFormat: OFormat[ProjectDeleteRequest] = Json.format[ProjectDeleteRequest]
 }
 
-final case class ProjectUpdateRequest(projectId: ProjectId, name: String, repository: String)
+final case class ProjectUpdateRequest(projectId: ProjectId, name: String, repository: Option[Repository])
 
 object ProjectUpdateRequest {
   implicit val updateRequestFormat: OFormat[ProjectUpdateRequest] = Json.format[ProjectUpdateRequest]
 }
 
-final case class Version(value: String) extends AnyVal
+final case class Version(name: String, message: String, target: String, commit: Commit)
+object Version {
+  implicit val versionPlayFormat: OFormat[Version] = Json.format[Version]
+}
+
+final case class Commit(id: String)
+object Commit {
+  implicit val commitFormat: OFormat[Commit] = Json.format[Commit]
+}
 
 final case class ProjectFile(path: Path, content: String)
 
@@ -97,9 +114,13 @@ object FileContent {
   implicit lazy val validateFileRequestFormat: OFormat[FileContent] = Json.format[FileContent]
 }
 
-final case class ProjectUpdateFileRequest(project: Project, projectFile: ProjectFile)
+final case class ProjectUpdateFileRequest(project: Project, projectFile: ProjectFile, version: Option[Version])
 
 object ProjectUpdateFileRequest {
   implicit lazy val projectUpdateFileRequestFormat: OFormat[ProjectUpdateFileRequest] =
-    Json.format[ProjectUpdateFileRequest]
+    ((JsPath \ "project").format[Project] ~ (JsPath \ "projectFile").format[ProjectFile] ~ (JsPath \ "version")
+      .formatNullable[Version])(
+      ProjectUpdateFileRequest.apply,
+      unlift(ProjectUpdateFileRequest.unapply)
+    )
 }

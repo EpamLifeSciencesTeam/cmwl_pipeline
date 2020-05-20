@@ -31,7 +31,7 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
             request =>
               val result = for {
                 validateResponse <- wdlService.validateFile(FileContent(request.projectFile.content))
-                uploadResponse <- wdlService.uploadFile(request.project, request.projectFile)
+                uploadResponse <- wdlService.uploadFile(request.project, request.projectFile, request.version)
               } yield {
                 if (validateResponse.isRight && uploadResponse.isRight) {
                   StatusCodes.OK.intValue -> uploadResponse.right.get

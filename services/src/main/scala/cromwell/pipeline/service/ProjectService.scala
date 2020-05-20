@@ -8,7 +8,9 @@ import cromwell.pipeline.service.Exceptions.{ ProjectAccessDeniedException, Proj
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class ProjectService(projectRepository: ProjectRepository)(implicit executionContext: ExecutionContext) {
+class ProjectService(projectRepository: ProjectRepository, projectVersioning: ProjectVersioning[VersioningException])(
+  implicit executionContext: ExecutionContext
+) {
 
   def getProjectById(projectId: ProjectId): Future[Option[Project]] =
     projectRepository.getProjectById(projectId)
@@ -22,16 +24,18 @@ class ProjectService(projectRepository: ProjectRepository)(implicit executionCon
     }
   }
 
-  def addProject(request: ProjectAdditionRequest, userId: UserId, repoStub: String): Future[ProjectId] = {
+  def addProject(request: ProjectAdditionRequest, userId: UserId): Future[Either[VersioningException, ProjectId]] = {
     val project =
       Project(
         projectId = ProjectId(UUID.randomUUID().toString),
         ownerId = userId,
         name = request.name,
-        repository = repoStub, /* A stub for project repository. The project repository will be appointed later*/
         active = true
       )
-    projectRepository.addProject(project)
+    projectVersioning.createRepository(project).flatMap {
+      case Left(exception)       => Future.successful(Left(exception))
+      case Right(value: Project) => projectRepository.addProject(value).map(Right(_))
+    }
   }
 
   def deactivateProjectById(projectId: ProjectId, userId: UserId): Future[Option[Project]] = {
