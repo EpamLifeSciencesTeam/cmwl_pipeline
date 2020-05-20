@@ -10,13 +10,13 @@ import play.api.libs.json._
 import slick.lifted.MappedTo
 
 final case class Project(
-  projectId: ProjectId,
-  ownerId: UserId,
-  name: String,
-  active: Boolean,
-  repository: Option[Repository] = None,
-  visibility: Visibility = Private
-) {
+                          projectId: ProjectId,
+                          ownerId: UserId,
+                          name: String,
+                          active: Boolean,
+                          repository: Option[Repository] = None,
+                          visibility: Visibility = Private
+                        ) {
   def withRepository(repositoryPath: Option[String]): Project =
     this.copy(repository = repositoryPath.map(Repository(_)))
 }
@@ -115,6 +115,11 @@ object PipelineVersion {
 final case class Commit(id: String)
 object Commit {
   implicit val commitFormat: OFormat[Commit] = Json.format[Commit]
+}
+
+final case class FileCommit(commitId: String)
+object FileCommit {
+  implicit val fileCommitFormat: OFormat[FileCommit] = Json.format[FileCommit]
 }
 
 final case class ProjectFile(path: Path, content: String)

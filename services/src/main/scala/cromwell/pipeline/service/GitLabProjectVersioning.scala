@@ -132,6 +132,30 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
           else {
             val parsedVersions: JsResult[Seq[GitLabVersion]] = Json.parse(resp.body).validate[List[GitLabVersion]]
             parsedVersions match {
+              case JsSuccess(value, _) =>
+                Right(value)
+              case JsError(errors) => Left(VersioningException(s"Could not parse GitLab response. (errors: $errors)"))
+            }
+          }
+      )
+      .recover { case e: Throwable => Left(VersioningException(e.getMessage)) }
+  }
+
+  override def getFileCommits(project: Project, path: Path)(
+    implicit ec: ExecutionContext
+  ): AsyncResult[Seq[FileCommit]] = {
+    val urlEncoder = URLEncoder.encode(path.toString, "UTF-8")
+    val commitsUrl: String =
+      s"${config.url}projects/${project.repository.get.value}/repository/files/${urlEncoder}"
+    httpClient
+      .get(url = commitsUrl, headers = config.token)
+      .map(
+        response =>
+          if (response.status != HttpStatusCodes.OK)
+            Left(VersioningException(s"Could not take the file commits. Response status: ${response.status}"))
+          else {
+            val commitsBody: JsResult[Seq[FileCommit]] = Json.parse(response.body).validate[Seq[FileCommit]]
+            commitsBody match {
               case JsSuccess(value, _) => Right(value)
               case JsError(errors)     => Left(VersioningException(s"Could not parse GitLab response. (errors: $errors)"))
             }
@@ -142,7 +166,25 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
 
   override def getFileVersions(project: Project, path: Path)(
     implicit ec: ExecutionContext
-  ): AsyncResult[List[GitLabVersion]] = ???
+  ): AsyncResult[Seq[GitLabVersion]] = {
+    val projectVersionsF = getProjectVersions(project)
+    val fileCommitsF = getFileCommits(project, path)
+    for {
+      projectVersions <- projectVersionsF
+      fileCommits <- fileCommitsF
+    } yield {
+      (projectVersions, fileCommits) match {
+        case (Right(tagsProject), Right(tagsFiles)) =>
+          Right(for {
+            tagProject <- tagsProject
+            tagFile <- tagsFiles
+            if tagFile.commitId == tagProject.commit.id
+          } yield tagProject)
+        case (_, Left(exception)) => Left(VersioningException(exception.message))
+        case (Left(exception), _) => Left(VersioningException(exception.message))
+      }
+    }
+  }
 
   override def getFilesVersions(project: Project, path: Path)(
     implicit ec: ExecutionContext
