@@ -33,12 +33,11 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
                 validateResponse <- wdlService.validateFile(FileContent(request.projectFile.content))
                 uploadResponse <- wdlService.uploadFile(request.project, request.projectFile, request.version)
               } yield {
-                if (validateResponse.isRight && uploadResponse.isRight) {
-                  StatusCodes.OK.intValue -> uploadResponse.right.get
-                } else if (validateResponse.isLeft && uploadResponse.isRight) {
-                  StatusCodes.Created.intValue -> uploadResponse.right.get
-                } else if (uploadResponse.isLeft) {
-                  StatusCodes.ImATeapot.intValue -> uploadResponse.left.get.message
+                (validateResponse, uploadResponse) match {
+                  case (Right(_), Right(response)) => StatusCodes.OK.intValue -> response
+                  case (Left(_), Right(response))  => StatusCodes.Created.intValue -> response
+                  case (Right(_), Left(response))  => StatusCodes.ImATeapot.intValue -> response.message
+                  case (Left(_), Left(response))   => StatusCodes.ImATeapot.intValue -> response.message
                 }
               }
 
