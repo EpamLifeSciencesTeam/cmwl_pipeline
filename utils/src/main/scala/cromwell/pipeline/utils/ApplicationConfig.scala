@@ -8,8 +8,7 @@ sealed trait ConfigComponent
 
 final case class WebServiceConfig(interface: String, port: Int) extends ConfigComponent
 
-final case class GitLabConfig(url: String, idPath: String, token: Map[String, String], defaultFileVersion: String)
-    extends ConfigComponent
+final case class GitLabConfig(url: String, idPath: String, token: Map[String, String], defaultFileVersion: String) extends ConfigComponent
 
 final case class AuthConfig(
   secretKey: String,

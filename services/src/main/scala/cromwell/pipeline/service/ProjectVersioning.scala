@@ -44,7 +44,7 @@ trait ProjectVersioning[E >: VersioningException] {
 
   def getFile(project: Project, path: Path, version: Option[Version] = None)(
     implicit ec: ExecutionContext
-  ): AsyncResult[String]
+  ): AsyncResult[ProjectFile]
 }
 
 case class VersioningException(message: String) extends Exception(message)
