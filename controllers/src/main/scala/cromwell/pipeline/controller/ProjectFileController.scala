@@ -29,7 +29,7 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
         post {
           entity(as[ProjectUpdateFileRequest]) {
             request =>
-              val result = for {
+              onComplete(for {
                 validateResponse <- wdlService.validateFile(FileContent(request.projectFile.content))
                 uploadResponse <- wdlService.uploadFile(request.project, request.projectFile, request.version)
               } yield {
@@ -39,11 +39,7 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
                   case (Right(_), Left(response))  => StatusCodes.ImATeapot.intValue -> response.message
                   case (Left(_), Left(response))   => StatusCodes.ImATeapot.intValue -> response.message
                 }
-              }
-
-              while (!result.isCompleted) {}
-
-              result.value.get match {
+              }) {
                 case Success(value) =>
                   value match {
                     case tuple @ (status: Int, message: String) => complete(status, message)
