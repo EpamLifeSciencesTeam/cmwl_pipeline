@@ -40,11 +40,8 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
                   case (Left(_), Left(response))   => StatusCodes.ImATeapot.intValue -> response.message
                 }
               }) {
-                case Success(value) =>
-                  value match {
-                    case tuple @ (status: Int, message: String) => complete(status, message)
-                  }
-                case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
+                case Success((status, message)) => complete(status, message)
+                case Failure(e)                 => complete(StatusCodes.InternalServerError, e.getMessage)
               }
           }
         }
