@@ -5,14 +5,7 @@ import java.nio.file.Paths
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.datastorage.dao.repository.utils.{ TestProjectUtils, TestUserUtils }
-import cromwell.pipeline.datastorage.dto.{
-  Commit,
-  FileContent,
-  ProjectFile,
-  ProjectUpdateFileRequest,
-  ValidationError,
-  Version
-}
+import cromwell.pipeline.datastorage.dto.{ FileContent, ProjectFile, ProjectUpdateFileRequest, ValidationError }
 import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
 import cromwell.pipeline.service.{ ProjectFileService, VersioningException }
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
@@ -49,14 +42,14 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
     }
 
     "upload file" should {
-      val version = Version("v.0.0.2", "commit message", "this project", Commit("commit_12"))
+      val versionName = "v.0.0.2"
       val accessToken = AccessTokenContent(TestUserUtils.getDummyUserId)
       val project = TestProjectUtils.getDummyProject()
       val projectFile = ProjectFile(Paths.get("folder/test.txt"), "file context")
-      val request = ProjectUpdateFileRequest(project, projectFile, Some(version))
+      val request = ProjectUpdateFileRequest(project, projectFile, Some(versionName))
 
       "return OK response for valid request" taggedAs Controller in {
-        when(projectFileService.uploadFile(project, projectFile, Some(version)))
+        when(projectFileService.uploadFile(project, projectFile, Some(versionName)))
           .thenReturn(Future.successful(Right("Success")))
         Post("/files", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
@@ -64,7 +57,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       }
 
       "return InternalServerError for bad request" taggedAs Controller in {
-        when(projectFileService.uploadFile(project, projectFile, Some(version)))
+        when(projectFileService.uploadFile(project, projectFile, Some(versionName)))
           .thenReturn(Future.successful(Left(VersioningException("Bad request"))))
         Post("/files", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.ImATeapot // TODO: change status code

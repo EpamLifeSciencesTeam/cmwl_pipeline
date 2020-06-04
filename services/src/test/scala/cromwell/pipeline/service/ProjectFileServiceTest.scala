@@ -42,19 +42,23 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
     "upload file" should {
       val project = TestProjectUtils.getDummyProject()
       val projectFile = ProjectFile(Paths.get("test.txt"), "File content")
+      val versionName = "v.0.0.2"
       val version = Version("v.0.0.2", "new version", "this project", Commit("commit_12"))
+
+      when(projectVersioning.getFilesVersions(project, projectFile.path))
+        .thenReturn(Future.successful(Right(List(version))))
 
       "return success message for request" taggedAs Service in {
         when(projectVersioning.updateFile(project, projectFile, Some(version)))
           .thenReturn(Future.successful(Right("Success")))
-        projectFileService.uploadFile(project, projectFile, Some(version)).map(_ shouldBe Right("Success"))
+        projectFileService.uploadFile(project, projectFile, Some(versionName)).map(_ shouldBe Right("Success"))
       }
 
       "return error message for error request" taggedAs Service in {
         when(projectVersioning.updateFile(project, projectFile, Some(version)))
           .thenReturn(Future.successful(Left(VersioningException("Something wrong"))))
         projectFileService
-          .uploadFile(project, projectFile, Some(version))
+          .uploadFile(project, projectFile, Some(versionName))
           .map(_ shouldBe Left(VersioningException("Something wrong")))
       }
     }

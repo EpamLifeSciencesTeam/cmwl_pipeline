@@ -18,7 +18,14 @@ class ProjectFileService(womTool: WomToolAPI, projectVersioning: ProjectVersioni
   def uploadFile(
     project: Project,
     projectFile: ProjectFile,
-    version: Option[Version]
+    versionName: Option[String]
   ): Future[Either[VersioningException, String]] =
-    projectVersioning.updateFile(project, projectFile, version)
+    versionName match {
+      case Some(value) =>
+        projectVersioning.getFilesVersions(project, projectFile.path).flatMap {
+          case Right(versions) => projectVersioning.updateFile(project, projectFile, versions.find(_.name == value))
+          case Left(exception) => Future(Left(exception))
+        }
+      case None => projectVersioning.updateFile(project, projectFile, None)
+    }
 }
