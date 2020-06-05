@@ -3,15 +3,14 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.ContentTypes.`application/json`
 import akka.http.scaladsl.model.{ HttpEntity, StatusCodes }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
+import cats.implicits._
 import cromwell.pipeline.controller.AuthController._
-import cromwell.pipeline.datastorage.utils.validator.DomainValidation
+import cromwell.pipeline.model.validator.Enable
+import cromwell.pipeline.model.wrapper.{ Name, Password, UserEmail }
 import cromwell.pipeline.service.AuthService
 import cromwell.pipeline.utils.auth.dto.{ AuthResponse, SignInRequest, SignUpRequest }
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ Assertion, Matchers, WordSpec }
-import cats.implicits._
-import cromwell.pipeline.model.validator.Enable
-import cromwell.pipeline.model.wrapper.{ Name, Password, UserEmail }
 
 import scala.concurrent.Future
 
