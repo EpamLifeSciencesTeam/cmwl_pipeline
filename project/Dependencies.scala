@@ -56,8 +56,10 @@ object Dependencies {
   lazy val akkaDependencies = Seq(akkaActor, akkaStreams, akkaHttp)
   lazy val jsonDependencies = Seq(playJson, akkaHttpJson, jwtCore)
   lazy val dbDependencies = Seq(slick, slickPg, hikariCP, postgresql, liquibase, yaml)
-  lazy val testDependencies =
-    Seq(mockito, akkaTestKit, akkaHttpTestKit, scalaCheck, scalaTest, scalaMock, logback, wireMock, pegdown)
+  lazy val coreTestDependencies =
+    Seq(mockito, scalaCheck, scalaTest, scalaMock)
+  lazy val allTestDependencies =
+    coreTestDependencies ++ Seq(akkaTestKit, akkaHttpTestKit, logback, wireMock, pegdown)
   lazy val testContainers = Seq(tcCore, tcPostgres)
   lazy val cromwellDependencies = Seq(womtool)
 }
