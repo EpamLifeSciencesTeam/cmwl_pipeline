@@ -71,11 +71,13 @@ lazy val portal = project
   )
 
 lazy val utils =
-  (project in file("utils")).settings(libraryDependencies ++= jsonDependencies ++ testContainers :+ cats)
+  (project in file("utils"))
+    .configs(IntegrationTest)
+    .settings(libraryDependencies ++= (jsonDependencies ++ coreTestDependencies ++ testContainers) :+ cats)
 
 lazy val repositories =
   (project in file("repositories"))
-    .settings(libraryDependencies ++= akkaDependencies ++ testDependencies ++ jsonDependencies :+ cats)
+    .settings(libraryDependencies ++= akkaDependencies ++ allTestDependencies ++ jsonDependencies :+ cats)
     .configs(IntegrationTest)
     .dependsOn(datasource, model, utils % "compile->compile;test->test")
 
@@ -95,7 +97,7 @@ lazy val womtool = (project in file("womtool"))
     resolvers += Resolver.bintrayRepo("scalalab", "pipeline"),
     name := "WomTool",
     commonSettings,
-    libraryDependencies ++= testDependencies ++ cromwellDependencies,
+    libraryDependencies ++= allTestDependencies ++ cromwellDependencies,
     addCommandAlias("testAll", "; test ; it:test")
   )
 
