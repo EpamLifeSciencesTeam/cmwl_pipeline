@@ -3,12 +3,12 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import cromwell.pipeline.datastorage.dto.{ FileContent, ProjectUpdateFileRequest }
+import cromwell.pipeline.datastorage.dto.{ FileContent, ProjectUpdateFileRequest, ValidationError }
 import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
 import cromwell.pipeline.service.ProjectFileService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success }
 
 class ProjectFileController(wdlService: ProjectFileService)(implicit val executionContext: ExecutionContext) {
@@ -36,8 +36,7 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
                 (validateResponse, uploadResponse) match {
                   case (Right(_), Right(response)) => StatusCodes.OK.intValue -> response
                   case (Left(_), Right(response))  => StatusCodes.Created.intValue -> response
-                  case (Right(_), Left(response))  => StatusCodes.ImATeapot.intValue -> response.message
-                  case (Left(_), Left(response))   => StatusCodes.ImATeapot.intValue -> response.message
+                  case (_, Left(response))         => StatusCodes.UnprocessableEntity.intValue -> response.message
                 }
               }) {
                 case Success((status, message)) => complete(status, message)

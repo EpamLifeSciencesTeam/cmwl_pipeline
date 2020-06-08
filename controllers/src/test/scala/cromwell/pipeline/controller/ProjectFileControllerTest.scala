@@ -42,7 +42,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
     }
 
     "upload file" should {
-      val version = Version("v.0.0.2", "commit message", "this project", Commit("commit_12"))
+      val version = PipelineVersion("v0.0.2")
       val accessToken = AccessTokenContent(TestUserUtils.getDummyUserId)
       val project = TestProjectUtils.getDummyProject()
       val projectFile = ProjectFile(Paths.get("folder/test.txt"), "file context")
@@ -72,7 +72,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
         when(projectFileService.uploadFile(project, projectFile, Some(version)))
           .thenReturn(Future.successful(Left(VersioningException("Bad request"))))
         Post("/files", request) ~> projectFileController.route(accessToken) ~> check {
-          status shouldBe StatusCodes.ImATeapot // TODO: change status code
+          status shouldBe StatusCodes.UnprocessableEntity
           entityAs[String] shouldBe "Bad request"
         }
       }
