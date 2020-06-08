@@ -1,6 +1,6 @@
 package cromwell.pipeline.service
 
-import cromwell.pipeline.datastorage.dto.{ FileContent, Project, ProjectFile, ValidationError, Version }
+import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.womtool.WomToolAPI
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -18,7 +18,7 @@ class ProjectFileService(womTool: WomToolAPI, projectVersioning: ProjectVersioni
   def uploadFile(
     project: Project,
     projectFile: ProjectFile,
-    version: Option[Version]
+    version: Option[PipelineVersion]
   ): Future[Either[VersioningException, String]] =
     projectVersioning.updateFile(project, projectFile, version)
 }

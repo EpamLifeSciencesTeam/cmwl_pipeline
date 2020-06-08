@@ -4,7 +4,7 @@ import java.net.URLEncoder
 import java.nio.file.Path
 
 import cromwell.pipeline.datastorage.dto.File.UpdateFileRequest
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectFile, Version }
+import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.utils.{ GitLabConfig, HttpStatusCodes }
 import play.api.libs.json.{ JsError, JsResult, JsSuccess, Json }
 
@@ -13,38 +13,89 @@ import scala.concurrent.{ ExecutionContext, Future }
 class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
     extends ProjectVersioning[VersioningException] {
 
-  override def updateFile(project: Project, projectFile: ProjectFile, version: Option[Version])(
+  private def getLastProjectVersion(project: Project)(implicit ec: ExecutionContext): Future[Option[PipelineVersion]] =
+    getProjectVersions(project).flatMap {
+      case Left(error)                      => Future.failed(error)
+      case Right(Seq(_))                    => Future.successful(None)
+      case Right(Seq(v: GitLabVersion, _*)) => Future.successful(Some(v.name))
+      case Right(Seq())                     => Future.successful(Some(PipelineVersion(config.defaultFileVersion)))
+    }
+
+  private def getNewProjectVersion(
+    optionProjectVersion: Option[PipelineVersion],
+    optionUserVersion: Option[PipelineVersion]
+  ): Either[VersioningException, PipelineVersion] =
+    (optionProjectVersion, optionUserVersion) match {
+      case (Some(projectVersion), Some(userVersion)) =>
+        if (projectVersion >= userVersion)
+          Left(
+            VersioningException(
+              s"Your version $userVersion is out of date. Current version of project: $projectVersion"
+            )
+          )
+        else Right(userVersion)
+      case (Some(projectVersion), None) => Right(projectVersion.increaseRevision)
+      case (None, Some(userVersion))    => Right(userVersion)
+      case (None, None) =>
+        Left(
+          VersioningException(
+            "Can't take decision what version should it be: no version from user and no version in project yet"
+          )
+        )
+    }
+
+  private def handleCreateTag(repositoryId: Repository, version: PipelineVersion, responseBody: String)(
+    implicit ec: ExecutionContext
+  ): AsyncResult[String] =
+    createTag(repositoryId, version).map {
+      case Right(_)        => Right(responseBody)
+      case Left(exception) => Left(exception)
+    }
+
+  override def updateFile(project: Project, projectFile: ProjectFile, userVersion: Option[PipelineVersion])(
     implicit ec: ExecutionContext
   ): AsyncResult[String] = {
     val path = URLEncoder.encode(projectFile.path.toString, "UTF-8")
-    val fileUrl = s"${config.url}projects/${project.repository}/repository/files/$path"
-    val versionValue = version.map(_.name).getOrElse(config.defaultFileVersion)
+    val repositoryId: Repository =
+      project.repository.getOrElse(throw VersioningException(s"No repository for project: $project"))
+    val fileUrl = s"${config.url}projects/${repositoryId.value}/repository/files/$path"
 
-    httpClient
-      .put(
-        fileUrl,
-        payload = Json.stringify(
-          Json.toJson(UpdateFileRequest(versionValue, projectFile.content, versionValue))
-        ),
-        headers = config.token
-      )
-      .flatMap {
-        case Response(HttpStatusCodes.OK, _, _) =>
-          Future.successful(Right("Success update file"))
-        case Response(HttpStatusCodes.BadRequest, _, _) =>
-          httpClient
-            .post(
-              fileUrl,
-              payload = Json.stringify(
-                Json.toJson(UpdateFileRequest(config.defaultFileVersion, projectFile.content, "Init commit"))
-              ),
-              headers = config.token
-            )
-            .map {
-              case Response(HttpStatusCodes.OK, _, _) => Right("Create new file")
-              case Response(_, body, _)               => Left(VersioningException(body))
+    getLastProjectVersion(project).map(projectVersion => getNewProjectVersion(projectVersion, userVersion)).flatMap {
+      case Left(error) =>
+        Future.successful(Left(error))
+      case Right(newVersion) =>
+        val payload =
+          Json.stringify(
+            Json.toJson(UpdateFileRequest(projectFile.content, newVersion.toString, config.defaultBranch))
+          )
+        httpClient.put(fileUrl, payload = payload, headers = config.token).flatMap {
+          case Response(HttpStatusCodes.OK, body, _) =>
+            handleCreateTag(repositoryId, newVersion, body)
+          case _ =>
+            httpClient.post(fileUrl, payload = payload, headers = config.token).flatMap {
+              case Response(HttpStatusCodes.OK, body, _) =>
+                handleCreateTag(repositoryId, newVersion, body)
+              case Response(_, body, _) => Future.successful(Left(VersioningException(body)))
             }
-        case Response(_, body, _) => Future.successful(Left(VersioningException(body)))
+        }
+    }
+  }
+
+  private def createTag(projectId: Repository, version: PipelineVersion)(
+    implicit ec: ExecutionContext
+  ): AsyncResult[String] = {
+    val emptyPayload = ""
+    val tagUrl = s"${config.url}projects/${projectId.value}/repository/tags"
+    httpClient
+      .post(
+        tagUrl,
+        params = Map("tag_name" -> version.name, "ref" -> config.defaultBranch),
+        headers = config.token,
+        payload = emptyPayload
+      )
+      .map {
+        case Response(HttpStatusCodes.OK, body, _) => Right(body)
+        case Response(_, body, _)                  => Left(VersioningException(body))
       }
   }
 
@@ -70,7 +121,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
 
   override def getFiles(project: Project, path: Path)(implicit ec: ExecutionContext): AsyncResult[List[String]] = ???
 
-  override def getProjectVersions(project: Project)(implicit ec: ExecutionContext): AsyncResult[Seq[Version]] = {
+  override def getProjectVersions(project: Project)(implicit ec: ExecutionContext): AsyncResult[Seq[GitLabVersion]] = {
     val versionsListUrl: String = s"${config.url}projects/${project.repository.get.value}/repository/tags"
     httpClient
       .get(url = versionsListUrl, headers = config.token)
@@ -79,7 +130,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
           if (resp.status != HttpStatusCodes.OK)
             Left(VersioningException(s"Could not take versions. Response status: ${resp.status}"))
           else {
-            val parsedVersions: JsResult[Seq[Version]] = Json.parse(resp.body).validate[Seq[Version]]
+            val parsedVersions: JsResult[Seq[GitLabVersion]] = Json.parse(resp.body).validate[List[GitLabVersion]]
             parsedVersions match {
               case JsSuccess(value, _) => Right(value)
               case JsError(errors)     => Left(VersioningException(s"Could not parse GitLab response. (errors: $errors)"))
@@ -91,23 +142,23 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
 
   override def getFileVersions(project: Project, path: Path)(
     implicit ec: ExecutionContext
-  ): AsyncResult[List[Version]] = ???
+  ): AsyncResult[List[GitLabVersion]] = ???
 
   override def getFilesVersions(project: Project, path: Path)(
     implicit ec: ExecutionContext
-  ): AsyncResult[List[Version]] = ???
+  ): AsyncResult[List[GitLabVersion]] = ???
 
-  override def getFileTree(project: Project, version: Option[Version])(
+  override def getFileTree(project: Project, version: Option[PipelineVersion])(
     implicit ec: ExecutionContext
   ): AsyncResult[List[String]] = ???
 
-  override def getFile(project: Project, path: Path, version: Option[Version])(
+  override def getFile(project: Project, path: Path, version: Option[PipelineVersion])(
     implicit ec: ExecutionContext
   ): AsyncResult[ProjectFile] = {
     val filePath: String = URLEncoder.encode(path.toString, "UTF-8")
     val fileVersion: String = version match {
       case Some(version) => version.name
-      case None => config.defaultFileVersion
+      case None          => config.defaultFileVersion
     }
 
     httpClient

@@ -4,7 +4,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.{ Format, JsPath }
 
 object File {
-  case class UpdateFileRequest(branch: String, content: String, commitMessage: String)
+  case class UpdateFileRequest(content: String, commitMessage: String, branch: String)
 
   object UpdateFileRequest {
     implicit val updateFileRequestFormat: Format[UpdateFileRequest] =

@@ -5,7 +5,6 @@ import java.nio.file.Paths
 
 import akka.http.scaladsl.model.StatusCodes
 import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
-import cromwell.pipeline.datastorage.dto.File.UpdateFileRequest
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.utils.{ ApplicationConfig, GitLabConfig, HttpStatusCodes }
 import org.mockito.Mockito.when
@@ -45,7 +44,8 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
 
       "return new active Project with 201 response" taggedAs Service in {
         val project = withRepoProject
-        when(request(activeProject)).thenReturn(Future.successful(Response(HttpStatusCodes.Created, EmptyBody, Map())))
+        when(request(activeProject))
+          .thenReturn(Future.successful(Response(HttpStatusCodes.Created, EmptyBody, EmptyHeaders)))
         gitLabProjectVersioning.createRepository(activeProject).map {
           _ shouldBe Right(project)
         }
@@ -53,7 +53,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
 
       "throw new VersioningException with 400 response" taggedAs Service in {
         when(request(activeProject))
-          .thenReturn(Future.successful(Response(HttpStatusCodes.BadRequest, EmptyBody, Map())))
+          .thenReturn(Future.successful(Response(HttpStatusCodes.BadRequest, EmptyBody, EmptyHeaders)))
         gitLabProjectVersioning.createRepository(activeProject).map {
           _ shouldBe Left(VersioningException("The repository was not created. Response status: 400"))
         }
@@ -61,7 +61,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
     }
 
     "getProjectVersions" should {
-      val dummyVersionsJson: String = s"[${Json.stringify(Json.toJson(dummyVersion))}]"
+      val dummyVersionsJson: String = s"[${Json.stringify(Json.toJson(dummyGitLabVersion))}]"
 
       def request(project: Project) =
         mockHttpClient.get(
@@ -71,14 +71,14 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
 
       "return list of Project versions with 200 response" taggedAs Service in {
         when(request(withRepoProject))
-          .thenReturn(Future.successful(Response(HttpStatusCodes.OK, dummyVersionsJson, Map())))
+          .thenReturn(Future.successful(Response(HttpStatusCodes.OK, dummyVersionsJson, EmptyHeaders)))
         gitLabProjectVersioning.getProjectVersions(withRepoProject).map {
-          _ shouldBe Right(Seq(dummyVersion))
+          _ shouldBe Right(Seq(dummyGitLabVersion))
         }
       }
       "throw new VersioningException with 400 response" taggedAs Service in {
         when(request(withRepoProject))
-          .thenReturn(Future.successful(Response(HttpStatusCodes.BadRequest, EmptyBody, Map())))
+          .thenReturn(Future.successful(Response(HttpStatusCodes.BadRequest, EmptyBody, EmptyHeaders)))
         gitLabProjectVersioning.getProjectVersions(withRepoProject).map {
           _ shouldBe Left(VersioningException("Could not take versions. Response status: 400"))
         }
@@ -86,101 +86,96 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
     }
 
     "updateFile" should {
+      val successUpdateMessage = "File was updated"
+      val successCreateMessage = "File was created"
+      val tagUrl = s"${gitLabConfig.url}projects/${withRepoProject.repository.get.value}/repository/tags"
+      val gitlabVersion = TestProjectUtils.getDummyGitLabVersion(dummyPipelineVersion)
+      when(
+        mockHttpClient.post(
+          tagUrl,
+          params = Map("tag_name" -> dummyPipelineVersionHigher.name, "ref" -> gitLabConfig.defaultBranch),
+          headers = gitLabConfig.token,
+          payload = EmptyBody
+        )
+      ).thenReturn(Future.successful(Response(StatusCodes.OK.intValue, "Tag was created", EmptyHeaders)))
+
       "return create file response when file is new" taggedAs Service in {
         val path = URLEncoder.encode(newFile.path.toString, "UTF-8")
-        val url = s"${gitLabConfig.url}projects/${withRepoProject.repository}/repository/files/$path"
-
-        when(
-          mockHttpClient.put(
-            url,
-            payload = Json.stringify(
-              Json.toJson(
-                File
-                  .UpdateFileRequest(gitLabConfig.defaultFileVersion, newFile.content, gitLabConfig.defaultFileVersion)
-              )
-            ),
-            headers = gitLabConfig.token
+        val url = s"${gitLabConfig.url}projects/${withRepoProject.repository.get.value}/repository/files/$path"
+        val payload = Json.stringify(
+          Json.toJson(
+            File.UpdateFileRequest(newFile.content, dummyPipelineVersionHigher.name, gitLabConfig.defaultBranch)
           )
-        ).thenReturn(
+        )
+        when(mockHttpClient.get(tagUrl, headers = gitLabConfig.token)).thenReturn(
           Future.successful(
-            Response(StatusCodes.BadRequest.intValue, "File does not exist", Map("error" -> List("true")))
+            Response(StatusCodes.OK.intValue, Json.stringify(Json.toJson(List(gitlabVersion))), EmptyHeaders)
           )
         )
-        when(
-          mockHttpClient.post(
-            url,
-            payload = Json.stringify(
-              Json.toJson(File.UpdateFileRequest(gitLabConfig.defaultFileVersion, newFile.content, "Init commit"))
-            ),
-            headers = gitLabConfig.token
-          )
-        ).thenReturn(
-          Future.successful(Response(StatusCodes.OK.intValue, "Create file", Map("success" -> List("true"))))
-        )
+        when(mockHttpClient.put(url, payload = payload, headers = gitLabConfig.token))
+          .thenReturn(Future.successful(Response(StatusCodes.BadRequest.intValue, "File does not exist", EmptyHeaders)))
+        when(mockHttpClient.post(url, payload = payload, headers = gitLabConfig.token))
+          .thenReturn(Future.successful(Response(StatusCodes.OK.intValue, successCreateMessage, EmptyHeaders)))
 
-        gitLabProjectVersioning.updateFile(withRepoProject, newFile, None).flatMap(_ shouldBe Right("Create new file"))
+        gitLabProjectVersioning.updateFile(withRepoProject, newFile, Some(dummyPipelineVersionHigher)).map {
+          _ shouldBe Right(successCreateMessage)
+        }
       }
 
       "return update file response when file is already exist" taggedAs Service in {
         val path = URLEncoder.encode(existFile.path.toString, "UTF-8")
-        val url = s"${gitLabConfig.url}projects/${withRepoProject.repository}/repository/files/$path"
-
-        when(
-          mockHttpClient.put(
-            url,
-            payload = Json.stringify(Json.toJson(UpdateFileRequest("v.0.0.2", existFile.content, "v.0.0.2"))),
-            headers = gitLabConfig.token
-          )
-        ).thenReturn(
-          Future.successful(
-            Response(StatusCodes.OK.intValue, "File update", Map("success" -> List("true")))
+        val url = s"${gitLabConfig.url}projects/${withRepoProject.repository.get.value}/repository/files/$path"
+        val payload = Json.stringify(
+          Json.toJson(
+            File.UpdateFileRequest(existFile.content, dummyPipelineVersionHigher.name, gitLabConfig.defaultBranch)
           )
         )
-
-        gitLabProjectVersioning
-          .updateFile(
-            withRepoProject,
-            existFile,
-            Some(Version("v.0.0.2", "New version", "this project", Commit("commit_12")))
+        when(mockHttpClient.get(tagUrl, headers = gitLabConfig.token)).thenReturn(
+          Future.successful(
+            Response(StatusCodes.OK.intValue, Json.stringify(Json.toJson(List(gitlabVersion))), EmptyHeaders)
           )
-          .flatMap(_ shouldBe Right("Success update file"))
+        )
+        when(mockHttpClient.put(url, payload = payload, headers = gitLabConfig.token))
+          .thenReturn(Future.successful(Response(StatusCodes.OK.intValue, successUpdateMessage, EmptyHeaders)))
+
+        gitLabProjectVersioning.updateFile(withRepoProject, existFile, Some(dummyPipelineVersionHigher)).map {
+          _ shouldBe Right(successUpdateMessage)
+        }
       }
     }
 
     "getFile" should {
       "return file with 200 response" taggedAs Service in {
-        val project = TestProjectUtils.getDummyProject()
         val path = Paths.get("test.md")
-        val version = dummyVersion;
 
         when(
           mockHttpClient.get(
-            s"${gitLabConfig.url}/projects/${project.repository}/repository/files/${URLEncoder.encode(path.toString, "UTF-8")}/raw",
-            Map("ref" -> version.name),
+            s"${gitLabConfig.url}/projects/${activeProject.repository}/repository/files/${URLEncoder
+              .encode(path.toString, "UTF-8")}/raw",
+            Map("ref" -> dummyPipelineVersion.name),
             gitLabConfig.token
           )
-        ).thenReturn(Future.successful(Response(200, "Test File", Map())))
+        ).thenReturn(Future.successful(Response(200, "Test File", EmptyHeaders)))
 
         gitLabProjectVersioning
-          .getFile(project, path, Some(version))
+          .getFile(activeProject, path, Some(dummyPipelineVersion))
           .map(_ shouldBe (Right(ProjectFile(path, "Test File"))))
       }
 
       "throw new VersioningException with not 200 response" taggedAs Service in {
-        val project = TestProjectUtils.getDummyProject()
         val path = Paths.get("test.md")
-        val version = dummyVersion;
 
         when(
           mockHttpClient.get(
-            s"${gitLabConfig.url}/projects/${project.repository}/repository/files/${URLEncoder.encode(path.toString, "UTF-8")}/raw",
-            Map("ref" -> version.name),
+            s"${gitLabConfig.url}/projects/${activeProject.repository}/repository/files/${URLEncoder
+              .encode(path.toString, "UTF-8")}/raw",
+            Map("ref" -> dummyPipelineVersion.name),
             gitLabConfig.token
           )
-        ).thenReturn(Future.successful(Response(404, "Not Found", Map())))
+        ).thenReturn(Future.successful(Response(404, "Not Found", EmptyHeaders)))
 
         gitLabProjectVersioning
-          .getFile(project, path, Some(version))
+          .getFile(activeProject, path, Some(dummyPipelineVersion))
           .map(_ shouldBe Left(VersioningException("Exception. Response status: 404")))
       }
 
@@ -189,12 +184,15 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
 
   object ProjectContext {
     val EmptyBody: String = ""
+    val EmptyHeaders: Map[String, Seq[String]] = Map()
     lazy val activeProject: Project = TestProjectUtils.getDummyProject()
     lazy val inactiveProject: Project = activeProject.copy(active = false)
     lazy val noRepoProject: Project = activeProject.copy(repository = None)
     lazy val withRepoProject: Project =
       activeProject.withRepository(Some(s"${gitLabConfig.idPath}${activeProject.projectId.value}"))
-    lazy val dummyVersion: Version = TestProjectUtils.getDummyVersion()
+    lazy val dummyPipelineVersion: PipelineVersion = TestProjectUtils.getDummyPipeLineVersion()
+    lazy val dummyPipelineVersionHigher: PipelineVersion = dummyPipelineVersion.increaseMinor
+    lazy val dummyGitLabVersion: GitLabVersion = TestProjectUtils.getDummyGitLabVersion()
   }
 
   object ProjectFileContext {

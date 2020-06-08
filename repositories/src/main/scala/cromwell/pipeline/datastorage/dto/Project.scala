@@ -2,9 +2,11 @@ package cromwell.pipeline.datastorage.dto
 
 import java.nio.file.{ Path, Paths }
 
+import cats.data.Validated
+import cats.implicits._
+import cromwell.pipeline.model.wrapper.{ UserId, VersionValue }
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
-import cromwell.pipeline.model.wrapper.UserId
 import slick.lifted.MappedTo
 
 final case class Project(
@@ -62,9 +64,52 @@ object ProjectUpdateRequest {
   implicit val updateRequestFormat: OFormat[ProjectUpdateRequest] = Json.format[ProjectUpdateRequest]
 }
 
-final case class Version(name: String, message: String, target: String, commit: Commit)
-object Version {
-  implicit val versionPlayFormat: OFormat[Version] = Json.format[Version]
+final case class GitLabVersion(name: PipelineVersion, message: String, target: String, commit: Commit)
+object GitLabVersion {
+  implicit val gitlabVersionFormat: OFormat[GitLabVersion] = Json.format[GitLabVersion]
+}
+
+final case class PipelineVersion(major: VersionValue, minor: VersionValue, revision: VersionValue)
+    extends Ordered[PipelineVersion] {
+  import VersionValue._
+  def name: String = s"v$major.$minor.$revision"
+
+  private val ordering: Ordering[PipelineVersion] = Ordering.by(v => (v.major, v.minor, v.revision))
+
+  override def compare(that: PipelineVersion): Int =
+    ordering.compare(this, that)
+
+  def increaseMajor: PipelineVersion =
+    this.copy(major = increment(this.major))
+
+  def increaseMinor: PipelineVersion =
+    this.copy(minor = increment(this.minor))
+
+  def increaseRevision: PipelineVersion =
+    this.copy(revision = increment(this.revision))
+
+  override def toString: String = this.name
+}
+
+object PipelineVersion {
+  import VersionValue._
+
+  private val pattern = "^v(.+)\\.(.+)\\.(.+)$".r
+  def apply(versionLine: String): PipelineVersion =
+    versionLine match {
+      case pattern(v1, v2, v3) =>
+        val validationResult = (fromString(v1), fromString(v2), fromString(v3)).mapN(PipelineVersion.apply)
+        validationResult match {
+          case Validated.Valid(content)  => content
+          case Validated.Invalid(errors) => throw PipelineVersionException(errors.toString)
+        }
+      case _ => throw PipelineVersionException(s"Format of version name: 'v(int).(int).(int)', but got: $versionLine")
+    }
+
+  final case class PipelineVersionException(message: String) extends Exception
+
+  implicit val pipelineVersionFormat: Format[PipelineVersion] =
+    implicitly[Format[String]].inmap(PipelineVersion.apply, _.name)
 }
 
 final case class Commit(id: String)
@@ -115,12 +160,12 @@ object FileContent {
   implicit lazy val validateFileRequestFormat: OFormat[FileContent] = Json.format[FileContent]
 }
 
-final case class ProjectUpdateFileRequest(project: Project, projectFile: ProjectFile, version: Option[Version])
+final case class ProjectUpdateFileRequest(project: Project, projectFile: ProjectFile, version: Option[PipelineVersion])
 
 object ProjectUpdateFileRequest {
   implicit lazy val projectUpdateFileRequestFormat: OFormat[ProjectUpdateFileRequest] =
     ((JsPath \ "project").format[Project] ~ (JsPath \ "projectFile").format[ProjectFile] ~ (JsPath \ "version")
-      .formatNullable[Version])(
+      .formatNullable[PipelineVersion])(
       ProjectUpdateFileRequest.apply,
       unlift(ProjectUpdateFileRequest.unapply)
     )
