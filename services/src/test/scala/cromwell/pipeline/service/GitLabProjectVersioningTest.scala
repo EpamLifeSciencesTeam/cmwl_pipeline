@@ -7,6 +7,7 @@ import akka.http.scaladsl.model.StatusCodes
 import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto.File.UpdateFileRequest
 import cromwell.pipeline.datastorage.dto._
+import cromwell.pipeline.datastorage.formatters.ProjectFormatters._
 import cromwell.pipeline.utils.{ AkkaTestSources, ApplicationConfig, GitLabConfig, HttpStatusCodes }
 import org.mockito.Mockito.when
 import org.mockito.{ Matchers => MockitoMatchers }

@@ -12,6 +12,10 @@ import cromwell.pipeline.service.AuthService
 import cromwell.pipeline.service.AuthorizationException.IncorrectPasswordException
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ Assertion, Matchers, WordSpec }
+import cats.implicits._
+import cromwell.pipeline.datastorage.dto.{ AuthResponse, SignInRequest, SignUpRequest }
+import cromwell.pipeline.model.validator.Enable
+import cromwell.pipeline.model.wrapper.{ Name, Password, UserEmail }
 
 import scala.concurrent.Future
 

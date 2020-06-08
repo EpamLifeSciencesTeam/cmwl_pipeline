@@ -11,7 +11,6 @@ object UserEmail extends Wrapped.Companion {
   type Type = String
   type Wrapper = UserEmail
   type Error = String
-  implicit lazy val userEmailFormat: Format[UserEmail] = wrapperFormat
   override protected def create(value: String): UserEmail = new UserEmail(value)
   override protected def validate(value: String): ValidationResult[String] = Validated.cond(
     value.matches(
@@ -19,6 +18,10 @@ object UserEmail extends Wrapped.Companion {
         + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$"
     ),
     value,
-    NonEmptyChain.one("Email should match the following pattern <text_1>@<text_2>.<text_3>")
+    NonEmptyChain.one(
+      "Email should match the following pattern <text>@<text>.<domain>," +
+        "where <text> can contain: latin letters, numbers or underscore," +
+        "and <domain> at least two characters and can contain only latin letters."
+    )
   )
 }

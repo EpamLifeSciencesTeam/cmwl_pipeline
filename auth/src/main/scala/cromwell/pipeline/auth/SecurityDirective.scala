@@ -10,6 +10,7 @@ import cromwell.pipeline.utils.AuthConfig
 import pdi.jwt.{ Jwt, JwtClaim }
 import play.api.libs.json.Json
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+import cromwell.pipeline.datastorage.formatters.AuthFormatters._
 
 class SecurityDirective(authConfig: AuthConfig) {
 

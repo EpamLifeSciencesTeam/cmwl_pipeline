@@ -6,6 +6,9 @@ import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
 import cromwell.pipeline.ApplicationComponents
 import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
+import cromwell.pipeline.datastorage.dto.{ PasswordUpdateRequest, User, UserNoCredentials, UserUpdateRequest }
+import cromwell.pipeline.datastorage.formatters.UserFormatters._
+import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
 import cromwell.pipeline.datastorage.dto.{ User, UserNoCredentials }
 import cromwell.pipeline.utils.TestContainersUtils

@@ -11,7 +11,6 @@ object Name extends Wrapped.Companion {
   type Type = String
   type Wrapper = Name
   type Error = String
-  implicit lazy val nameFormat: Format[Name] = wrapperFormat
   override protected def create(value: String): Name = new Name(value)
   override protected def validate(value: String): ValidationResult[String] =
     Validated.cond(
