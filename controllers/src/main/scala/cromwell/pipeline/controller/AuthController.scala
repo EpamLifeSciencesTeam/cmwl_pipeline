@@ -4,7 +4,8 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, SignInRequest, SignUpRequest }
+import cromwell.pipeline.datastorage.dto.{ AuthResponse, SignInRequest, SignUpRequest }
+import cromwell.pipeline.datastorage.formatters.AuthFormatters._
 import cromwell.pipeline.service.AuthService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 

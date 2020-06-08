@@ -5,8 +5,8 @@ import java.time.Instant
 import cats.data.OptionT
 import cats.implicits._
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
-import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, SignInRequest, SignUpRequest }
-import cromwell.pipeline.datastorage.dto.User
+import cromwell.pipeline.datastorage.dto.{ AuthResponse, SignInRequest, SignUpRequest, User }
+import cromwell.pipeline.datastorage.formatters.AuthFormatters._
 import cromwell.pipeline.datastorage.utils.auth.{ AccessTokenContent, AuthContent, AuthUtils, RefreshTokenContent }
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.utils.StringUtils

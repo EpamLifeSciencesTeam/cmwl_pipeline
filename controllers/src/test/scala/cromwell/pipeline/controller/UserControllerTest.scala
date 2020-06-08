@@ -3,7 +3,6 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
-import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
 import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
 import cromwell.pipeline.service.UserService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
@@ -11,9 +10,10 @@ import org.mockito.Mockito._
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
 import cats.implicits._
-import cromwell.pipeline.datastorage.dto.{ User, UserNoCredentials }
+import cromwell.pipeline.datastorage.dto.{ PasswordUpdateRequest, User, UserNoCredentials, UserUpdateRequest }
 import cromwell.pipeline.model.validator.Enable
 import cromwell.pipeline.model.wrapper.{ Password, UserEmail, UserId }
+import cromwell.pipeline.datastorage.formatters.UserFormatters._
 
 import scala.concurrent.Future
 

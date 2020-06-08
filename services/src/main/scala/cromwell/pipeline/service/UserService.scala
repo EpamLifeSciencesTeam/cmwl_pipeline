@@ -1,8 +1,7 @@
 package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
-import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
-import cromwell.pipeline.datastorage.dto.{ User, UserNoCredentials }
+import cromwell.pipeline.datastorage.dto.{ PasswordUpdateRequest, User, UserNoCredentials, UserUpdateRequest }
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.utils.StringUtils._
 

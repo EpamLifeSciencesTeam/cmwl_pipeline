@@ -3,7 +3,7 @@ package cromwell.pipeline.service
 import java.time.Instant
 
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
-import cromwell.pipeline.datastorage.dto.auth.AuthResponse
+import cromwell.pipeline.datastorage.dto.AuthResponse
 import cromwell.pipeline.datastorage.utils.auth.{ AccessTokenContent, AuthContent, AuthUtils, RefreshTokenContent }
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.utils.{ AuthConfig, ExpirationTimeInSeconds }
@@ -12,6 +12,7 @@ import org.scalatest.{ Matchers, WordSpec }
 import pdi.jwt.algorithms.JwtHmacAlgorithm
 import pdi.jwt.{ Jwt, JwtAlgorithm, JwtClaim }
 import play.api.libs.json.Json
+import cromwell.pipeline.datastorage.formatters.AuthFormatters._
 
 import scala.concurrent.ExecutionContext
 

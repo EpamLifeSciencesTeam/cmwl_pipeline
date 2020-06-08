@@ -2,8 +2,7 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
-import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
-import cromwell.pipeline.datastorage.dto.UserNoCredentials
+import cromwell.pipeline.datastorage.dto.{ PasswordUpdateRequest, UserNoCredentials, UserUpdateRequest }
 import cromwell.pipeline.utils.StringUtils._
 import org.mockito.Mockito._
 import cats.implicits._

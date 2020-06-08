@@ -14,7 +14,6 @@ object Password extends Wrapped.Companion {
   type Type = String
   type Wrapper = Password
   type Error = String
-  implicit lazy val passwordFormat: Format[Password] = wrapperFormat
   override protected def create(value: String): Password = new Password(value)
   override protected def validate(value: String): ValidationResult[String] = Validated.cond(
     value.matches("(?=^.{10,}$)((?=.*\\d)|(?=.*\\W+))(?![.\\n])(?=.*[A-Z])(?=.*[a-z]).*$"),

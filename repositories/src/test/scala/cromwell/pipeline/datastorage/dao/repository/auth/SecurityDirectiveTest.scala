@@ -15,6 +15,7 @@ import org.scalatest.{ Matchers, WordSpec }
 import pdi.jwt.algorithms.JwtHmacAlgorithm
 import pdi.jwt.{ Jwt, JwtAlgorithm, JwtClaim }
 import play.api.libs.json.Json
+import cromwell.pipeline.datastorage.formatters.AuthFormatters._
 
 class SecurityDirectiveTest extends WordSpec with Matchers with ScalatestRouteTest {
 

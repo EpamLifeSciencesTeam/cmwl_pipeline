@@ -7,6 +7,7 @@ import akka.http.scaladsl.server.directives.RouteDirectives
 import cromwell.pipeline.utils.{ AuthConfig, MissingAccessTokenRejection }
 import pdi.jwt.{ Jwt, JwtClaim }
 import play.api.libs.json.Json
+import cromwell.pipeline.datastorage.formatters.AuthFormatters._
 
 class SecurityDirective(authConfig: AuthConfig) {
 

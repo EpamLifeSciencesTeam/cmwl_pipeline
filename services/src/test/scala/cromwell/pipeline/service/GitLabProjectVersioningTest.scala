@@ -5,8 +5,8 @@ import java.nio.file.Paths
 
 import akka.http.scaladsl.model.StatusCodes
 import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
-import cromwell.pipeline.datastorage.dto.File.UpdateFileRequest
 import cromwell.pipeline.datastorage.dto._
+import cromwell.pipeline.datastorage.formatters.ProjectFormatters._
 import cromwell.pipeline.utils.{ ApplicationConfig, GitLabConfig, HttpStatusCodes }
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
@@ -95,8 +95,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
             url,
             payload = Json.stringify(
               Json.toJson(
-                File
-                  .UpdateFileRequest(gitLabConfig.defaultFileVersion, newFile.content, gitLabConfig.defaultFileVersion)
+                UpdateFileRequest(gitLabConfig.defaultFileVersion, newFile.content, gitLabConfig.defaultFileVersion)
               )
             ),
             headers = gitLabConfig.token
@@ -110,7 +109,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
           mockHttpClient.post(
             url,
             payload = Json.stringify(
-              Json.toJson(File.UpdateFileRequest(gitLabConfig.defaultFileVersion, newFile.content, "Init commit"))
+              Json.toJson(UpdateFileRequest(gitLabConfig.defaultFileVersion, newFile.content, "Init commit"))
             ),
             headers = gitLabConfig.token
           )

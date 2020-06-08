@@ -4,6 +4,10 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import cromwell.pipeline.datastorage.dto.{ FileContent, ProjectUpdateFileRequest }
+import cromwell.pipeline.datastorage.formatters.ProjectFormatters.{
+  projectUpdateFileRequestFormat,
+  validateFileRequestFormat
+}
 import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
 import cromwell.pipeline.service.ProjectFileService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._

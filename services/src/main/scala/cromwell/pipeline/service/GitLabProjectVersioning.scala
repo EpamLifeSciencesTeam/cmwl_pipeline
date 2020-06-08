@@ -3,8 +3,8 @@ package cromwell.pipeline.service
 import java.net.URLEncoder
 import java.nio.file.Path
 
-import cromwell.pipeline.datastorage.dto.File.UpdateFileRequest
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectFile, Version }
+import cromwell.pipeline.datastorage.dto.{ Project, ProjectFile, UpdateFileRequest, Version }
+import cromwell.pipeline.datastorage.formatters.ProjectFormatters._
 import cromwell.pipeline.utils.{ GitLabConfig, HttpStatusCodes }
 import play.api.libs.json.{ JsError, JsResult, JsSuccess, Json }
 
@@ -107,7 +107,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
     val filePath: String = URLEncoder.encode(path.toString, "UTF-8")
     val fileVersion: String = version match {
       case Some(version) => version.name
-      case None => config.defaultFileVersion
+      case None          => config.defaultFileVersion
     }
 
     httpClient
