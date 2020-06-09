@@ -3,7 +3,7 @@ package cromwell.pipeline.utils.json
 import cromwell.pipeline.utils.json.AdtJsonFormatter._
 import play.api.libs.json._
 
-import scala.reflect.{ClassTag, classTag}
+import scala.reflect.{ ClassTag, classTag }
 import scala.util.control.NoStackTrace
 
 trait AdtJsonFormatter {
