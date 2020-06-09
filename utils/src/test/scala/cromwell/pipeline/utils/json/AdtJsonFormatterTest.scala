@@ -79,7 +79,7 @@ class AdtJsonFormatterTest extends WordSpec with ScalaCheckDrivenPropertyChecks 
         an[Exception] should be thrownBy Json.parse(json).as[DummyTrait]
       }
 
-      "instance contain unexisting typeFieldName" in {
+      "instance contain nonexistent typeFieldName" in {
         val json = """{"$type":"DummyImplC","firstAField":"StringField","secondAField":1}"""
         an[Exception] should be thrownBy Json.parse(json).as[DummyTrait]
       }
