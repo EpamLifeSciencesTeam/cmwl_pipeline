@@ -1,4 +1,4 @@
-package cromwell.pipeline.controller.utils.auth
+package cromwell.pipeline.controller.auth
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directive1
