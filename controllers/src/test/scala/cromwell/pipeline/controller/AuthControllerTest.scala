@@ -5,10 +5,10 @@ import akka.http.scaladsl.model.{ HttpEntity, StatusCodes }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cats.implicits._
 import cromwell.pipeline.controller.AuthController._
+import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, SignInRequest, SignUpRequest }
 import cromwell.pipeline.model.validator.Enable
 import cromwell.pipeline.model.wrapper.{ Name, Password, UserEmail }
 import cromwell.pipeline.service.AuthService
-import cromwell.pipeline.utils.auth.dto.{ AuthResponse, SignInRequest, SignUpRequest }
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ Assertion, Matchers, WordSpec }
 
