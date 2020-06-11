@@ -12,6 +12,7 @@ import cromwell.pipeline.utils.TestContainersUtils
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import cats.implicits._
+import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.model.validator.Enable
 import cromwell.pipeline.model.wrapper.Password
 
