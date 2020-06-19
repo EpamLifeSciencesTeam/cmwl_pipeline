@@ -66,7 +66,7 @@ object Dependencies {
   lazy val coreTestDependencies =
     Seq(mockito, scalaCheck, scalaTest, scalaMock)
   lazy val allTestDependencies =
-    coreTestDependencies ++ Seq(akkaTestKit, akkaHttpTestKit, logback, wireMock, pegdown)
+    coreTestDependencies ++ Seq(akkaTestKit, akkaHttpTestKit, logback, wireMock)
   lazy val testContainers = Seq(tcCore, tcPostgres)
   lazy val cromwellDependencies = Seq(womtool)
 }
