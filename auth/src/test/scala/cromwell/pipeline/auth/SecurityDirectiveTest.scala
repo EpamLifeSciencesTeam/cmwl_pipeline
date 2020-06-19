@@ -8,9 +8,10 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{ RejectionHandler, Route, ValidationRejection }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.auth.SecurityDirective.UnauthorizedMessages
+import cromwell.pipeline.auth.token.MissingAccessTokenRejection
 import cromwell.pipeline.datastorage.dto.auth.{ AccessTokenContent, AuthContent }
 import cromwell.pipeline.model.wrapper.UserId
-import cromwell.pipeline.utils.{ AuthConfig, ExpirationTimeInSeconds, MissingAccessTokenRejection }
+import cromwell.pipeline.utils.{ AuthConfig, ExpirationTimeInSeconds }
 import org.scalatest.{ Matchers, WordSpec }
 import pdi.jwt.algorithms.JwtHmacAlgorithm
 import pdi.jwt.{ Jwt, JwtAlgorithm, JwtClaim }

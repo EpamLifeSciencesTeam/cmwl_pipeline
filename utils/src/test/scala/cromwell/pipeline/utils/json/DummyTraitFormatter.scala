@@ -1,7 +1,7 @@
 package cromwell.pipeline.utils.json
 
 import cromwell.pipeline.utils.json.AdtJsonFormatter._
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{ Json, OFormat }
 
 object DummyTraitFormatter {
 
