@@ -37,4 +37,10 @@ object TestProjectUtils {
   def getDummyFileCommit(
     commitId: String = s"$randomUuidStr"
   ): FileCommit = FileCommit(commitId)
+  def getDummyFileTree(
+    id: String = s"id-$randomUuidStr",
+    name: String = s"name-$randomUuidStr",
+    path: String = s"path-$randomUuidStr",
+    mode: String = s"mode-$randomUuidStr"
+  ): FileTree = FileTree(id, name, path, mode)
 }
