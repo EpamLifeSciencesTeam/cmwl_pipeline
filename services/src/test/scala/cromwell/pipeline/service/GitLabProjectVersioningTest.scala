@@ -6,7 +6,6 @@ import java.nio.file.{ Path, Paths }
 import akka.http.scaladsl.model.StatusCodes
 import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto._
-
 import cromwell.pipeline.utils.{ ApplicationConfig, GitLabConfig, HttpStatusCodes }
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
@@ -85,7 +84,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
         }
       }
     }
-    
+
     "updateFile" should {
       val successUpdateMessage = "File was updated"
       val successCreateMessage = "File was created"
@@ -245,6 +244,57 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
         }
       }
     }
+
+    "getFilesTree" should {
+      val dummyFilesTreeJson: String = s"${Json.stringify(Json.toJson(List(dummyFileTree)))}"
+      val emptyListJson: String = s"${Json.stringify(Json.toJson("[]"))}"
+      val version = dummyPipelineVersion
+      def request(project: Project, version: Option[PipelineVersion]) = {
+        val versionId: Map[String, String] = version match {
+          case Some(version) => Map("ref" -> version.name, "recursive" -> "true")
+          case None          => Map()
+        }
+        mockHttpClient.get(
+          s"${gitLabConfig.url}projects/${project.repository.get.value}/repository/tree",
+          versionId,
+          gitLabConfig.token
+        )
+      }
+
+      "return files tree without version with 200 response" taggedAs Service in {
+        when(request(withRepoProject, Option(null)))
+          .thenReturn(Future.successful(Response(HttpStatusCodes.OK, dummyFilesTreeJson, Map())))
+        gitLabProjectVersioning.getFilesTree(withRepoProject, Option(null)).map(_ shouldBe Right(Seq(dummyFileTree)))
+      }
+
+      "return files tree with version with 200 response" taggedAs Service in {
+        when(request(withRepoProject, Some(version)))
+          .thenReturn(Future.successful(Response(HttpStatusCodes.OK, dummyFilesTreeJson, Map())))
+        gitLabProjectVersioning.getFilesTree(withRepoProject, Some(version)).map(_ shouldBe Right(Seq(dummyFileTree)))
+      }
+
+      "return files tree when there is not version" taggedAs Service in {
+        when(request(withRepoProject, Some(version)))
+          .thenReturn(Future.successful(Response(HttpStatusCodes.OK, emptyListJson, Map())))
+        gitLabProjectVersioning
+          .getFilesTree(withRepoProject, Some(version))
+          .map(
+            _ shouldBe Left(
+              VersioningException(
+                "Could not parse GitLab response. (errors: List((,List(JsonValidationError(List(error.expected.jsarray),WrappedArray())))))"
+              )
+            )
+          )
+      }
+
+      "throw new VersioningException with 400 response" taggedAs Service in {
+        when(request(withRepoProject, Some(version)))
+          .thenReturn(Future.successful(Response(HttpStatusCodes.BadRequest, EmptyBody, Map())))
+        gitLabProjectVersioning
+          .getFilesTree(withRepoProject, Some(version))
+          .map(_ shouldBe Left(VersioningException("Could not take the files tree. Response status: 400")))
+      }
+    }
   }
 
   object ProjectContext {
@@ -260,6 +310,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
     lazy val dummyGitLabVersion: GitLabVersion = TestProjectUtils.getDummyGitLabVersion()
     lazy val dummyFileCommit: FileCommit = TestProjectUtils.getDummyFileCommit()
     lazy val dummyExistingFileCommit: FileCommit = FileCommit(dummyGitLabVersion.commit.id)
+    lazy val dummyFileTree: FileTree = TestProjectUtils.getDummyFileTree()
   }
 
   object ProjectFileContext {

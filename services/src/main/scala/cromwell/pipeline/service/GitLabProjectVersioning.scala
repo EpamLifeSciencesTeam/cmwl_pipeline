@@ -190,9 +190,35 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
     implicit ec: ExecutionContext
   ): AsyncResult[List[GitLabVersion]] = ???
 
-  override def getFileTree(project: Project, version: Option[PipelineVersion])(
+  override def getFilesTree(project: Project, version: Option[PipelineVersion])(
     implicit ec: ExecutionContext
-  ): AsyncResult[List[String]] = ???
+  ): AsyncResult[Seq[FileTree]] = {
+
+    val versionId: Map[String, String] = version match {
+      case Some(version) => Map("ref" -> version.name, "recursive" -> "true")
+      case None          => Map()
+    }
+    val filesTreeUrl: String =
+      s"${config.url}projects/${project.repository.get.value}/repository/tree"
+
+    httpClient
+      .get(url = filesTreeUrl,
+        params = versionId,
+        headers = config.token)
+      .map(
+        response =>
+          if (response.status != HttpStatusCodes.OK)
+            Left(VersioningException(s"Could not take the files tree. Response status: ${response.status}"))
+          else {
+            val commitsBody: JsResult[Seq[FileTree]] = Json.parse(response.body).validate[Seq[FileTree]]
+            commitsBody match {
+              case JsSuccess(value, _) => Right(value)
+              case JsError(errors)     => Left(VersioningException(s"Could not parse GitLab response. (errors: $errors)"))
+            }
+          }
+      )
+      .recover { case e: Throwable => Left(VersioningException(e.getMessage)) }
+  }
 
   override def getFile(project: Project, path: Path, version: Option[PipelineVersion])(
     implicit ec: ExecutionContext

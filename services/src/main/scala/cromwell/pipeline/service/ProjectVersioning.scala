@@ -2,7 +2,7 @@ package cromwell.pipeline.service
 
 import java.nio.file.Path
 
-import cromwell.pipeline.datastorage.dto.{ GitLabVersion, PipelineVersion, Project, ProjectFile, FileCommit }
+import cromwell.pipeline.datastorage.dto.{ GitLabVersion, PipelineVersion, Project, ProjectFile, FileCommit, FileTree }
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -42,9 +42,9 @@ trait ProjectVersioning[E >: VersioningException] {
     implicit ec: ExecutionContext
   ): AsyncResult[List[GitLabVersion]]
 
-  def getFileTree(project: Project, version: Option[PipelineVersion] = None)(
+  def getFilesTree(project: Project, version: Option[PipelineVersion] = None)(
     implicit ec: ExecutionContext
-  ): AsyncResult[List[String]]
+  ): AsyncResult[Seq[FileTree]]
 
   def getFile(project: Project, path: Path, version: Option[PipelineVersion] = None)(
     implicit ec: ExecutionContext
