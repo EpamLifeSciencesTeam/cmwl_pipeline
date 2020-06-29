@@ -77,7 +77,6 @@ lazy val utils =
       libraryDependencies ++= (jsonDependencies ++ testContainers ++ coreTestDependencies) :+ configHokon :+ cats :+ playFunctional,
       commonSettings
     )
-    .dependsOn(model) //todo! utils depends on model?
 
 lazy val repositories =
   (project in file("repositories"))
