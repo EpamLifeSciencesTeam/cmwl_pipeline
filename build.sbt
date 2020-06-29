@@ -67,18 +67,8 @@ lazy val portal = project
     repositories % "compile->compile;test->test",
     services,
     controllers,
-    utils % "compile->compile;test->test",
-    auth
+    utils % "compile->compile;test->test"
   )
-
-lazy val auth =
-  (project in file("auth"))
-    .settings(
-//      libraryDependencies ++= jsonDependencies ++ testContainers ++ testDependencies :+ configHokon :+ playJson :+ playFunctional :+ akkaHttp,
-      libraryDependencies ++= jsonDependencies :+ configHokon :+ playJson :+ playFunctional :+ akkaHttp,
-      commonSettings
-    )
-    .dependsOn(repositories % "compile->compile;test->test", utils % "compile->compile;test->test")
 
 lazy val utils =
   (project in file("utils"))
@@ -100,13 +90,7 @@ lazy val repositories =
 lazy val services =
   (project in file("services"))
     .settings(libraryDependencies ++= jsonDependencies ++ cromwellDependencies :+ cats :+ playJson)
-    .dependsOn(
-      repositories % "compile->compile;test->test",
-      utils % "compile->compile;test->test",
-      womtool,
-      model,
-      auth
-    )
+    .dependsOn(repositories % "compile->compile;test->test", utils % "compile->compile;test->test", womtool, model)
 
 lazy val controllers =
   (project in file("controllers"))

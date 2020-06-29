@@ -1,14 +1,13 @@
-package cromwell.pipeline.auth
+package cromwell.pipeline.controller.auth
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directive1
 import akka.http.scaladsl.server.Directives.{ optionalHeaderValueByName, provide }
 import akka.http.scaladsl.server.directives.RouteDirectives
-import cromwell.pipeline.datastorage.dto.auth.{ AccessTokenContent, AuthContent }
+import cromwell.pipeline.utils.auth.{ AccessTokenContent, AuthContent }
 import cromwell.pipeline.utils.{ AuthConfig, MissingAccessTokenRejection }
 import pdi.jwt.{ Jwt, JwtClaim }
 import play.api.libs.json.Json
-import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
 class SecurityDirective(authConfig: AuthConfig) {
 

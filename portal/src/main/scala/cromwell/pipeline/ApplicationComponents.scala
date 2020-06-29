@@ -3,7 +3,6 @@ package cromwell.pipeline
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.typesafe.config.{ Config, ConfigFactory }
-import cromwell.pipeline.auth.AuthModule
 import cromwell.pipeline.controller.{ AkkaHttpClient, ControllerModule }
 import cromwell.pipeline.datastorage.DatastorageModule
 import cromwell.pipeline.service.{ HttpClient, ServiceModule, WomToolModule }
@@ -19,12 +18,11 @@ final class ApplicationComponents(
 ) {
   lazy val applicationConfig: ApplicationConfig = ApplicationConfig.load(config)
   lazy val utilsModule: UtilsModule = new UtilsModule(applicationConfig)
-  lazy val authModule: AuthModule = new AuthModule(applicationConfig)
   lazy val datastorageModule: DatastorageModule = new DatastorageModule(applicationConfig)
   lazy val httpClient: HttpClient = new AkkaHttpClient()
   lazy val womToolModule: WomToolModule = new WomToolModule()
   lazy val serviceModule: ServiceModule =
-    new ServiceModule(datastorageModule, authModule, httpClient, applicationConfig.gitLabConfig, womToolModule)
+    new ServiceModule(datastorageModule, utilsModule, httpClient, applicationConfig.gitLabConfig, womToolModule)
   lazy val controllerModule: ControllerModule = new ControllerModule(serviceModule, applicationConfig.authConfig)
 
 }

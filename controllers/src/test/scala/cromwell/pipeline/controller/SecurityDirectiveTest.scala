@@ -1,14 +1,15 @@
-package cromwell.pipeline.auth
+package cromwell.pipeline.controller
 
 import java.time.Instant
 
-import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.{ StatusCodes }
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{ RejectionHandler, Route, ValidationRejection }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import cromwell.pipeline.auth.SecurityDirective.UnauthorizedMessages
-import cromwell.pipeline.datastorage.dto.auth.{ AccessTokenContent, AuthContent }
+import cromwell.pipeline.controller.auth.SecurityDirective
+import cromwell.pipeline.controller.auth.SecurityDirective._
+import cromwell.pipeline.utils.auth.{ AccessTokenContent, AuthContent }
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.utils.{ AuthConfig, ExpirationTimeInSeconds, MissingAccessTokenRejection }
 import org.scalatest.{ Matchers, WordSpec }
@@ -66,7 +67,7 @@ class SecurityDirectiveTest extends WordSpec with Matchers with ScalatestRouteTe
 
     "not block secured content with active access token" in {
       val accessToken = getAccessToken(lifetimeInSeconds = 3600)
-      val header = RawHeader(SecurityDirective.AuthorizationHeader, accessToken)
+      val header = RawHeader(AuthorizationHeader, accessToken)
       Get(s"/$securedPath").withHeaders(header) ~> testRoute ~> check {
         status shouldBe StatusCodes.OK
         responseAs[String] shouldBe securedContent
@@ -80,7 +81,7 @@ class SecurityDirectiveTest extends WordSpec with Matchers with ScalatestRouteTe
     }
 
     "block secured content with incorrect access token format" in {
-      val header = RawHeader(SecurityDirective.AuthorizationHeader, "incorrectAccessTokenFormat")
+      val header = RawHeader(AuthorizationHeader, "incorrectAccessTokenFormat")
       Get(s"/$securedPath").withHeaders(header) ~> testRoute ~> check {
         status shouldBe StatusCodes.Unauthorized
         responseAs[String] shouldBe UnauthorizedMessages.InvalidToken
@@ -89,7 +90,7 @@ class SecurityDirectiveTest extends WordSpec with Matchers with ScalatestRouteTe
 
     "block secured content with expired access token" in {
       val accessToken = getAccessToken(lifetimeInSeconds = 0)
-      val header = RawHeader(SecurityDirective.AuthorizationHeader, accessToken)
+      val header = RawHeader(AuthorizationHeader, accessToken)
       Get(s"/$securedPath").withHeaders(header) ~> testRoute ~> check {
         status shouldBe StatusCodes.Unauthorized
         responseAs[String] shouldBe UnauthorizedMessages.InvalidToken

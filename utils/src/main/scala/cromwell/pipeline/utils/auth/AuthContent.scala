@@ -1,7 +1,7 @@
-package cromwell.pipeline.datastorage.dto.auth
+package cromwell.pipeline.utils.auth
 
 import cromwell.pipeline.model.wrapper.UserId
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.json._
 
 sealed trait AuthContent
 object AuthContent {
