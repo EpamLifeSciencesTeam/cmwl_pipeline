@@ -1,4 +1,4 @@
-package cromwell.pipeline.auth.token
+package cromwell.pipeline.utils
 
 import akka.http.scaladsl.server.Rejection
 

@@ -86,7 +86,7 @@ lazy val utils =
   (project in file("utils"))
     .configs(IntegrationTest)
     .settings(
-      libraryDependencies ++= (jsonDependencies ++ testContainers ++ coreTestDependencies) :+ configHokon :+ cats :+ playFunctional :+ pegdown,
+      libraryDependencies ++= (jsonDependencies ++ testContainers ++ coreTestDependencies) :+ configHokon :+ cats :+ playFunctional,
       commonSettings
     )
     .dependsOn(model)
@@ -123,7 +123,7 @@ lazy val womtool = (project in file("womtool"))
     resolvers += Resolver.bintrayRepo("scalalab", "pipeline"),
     name := "WomTool",
     commonSettings,
-    libraryDependencies ++= allTestDependencies ++ cromwellDependencies :+ pegdown,
+    libraryDependencies ++= allTestDependencies ++ cromwellDependencies,
     addCommandAlias("testAll", "; test ; it:test")
   )
 

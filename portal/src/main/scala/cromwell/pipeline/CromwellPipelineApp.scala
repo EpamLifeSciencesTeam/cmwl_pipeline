@@ -6,8 +6,8 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{ RejectionHandler, Route, ValidationRejection }
 import akka.stream.ActorMaterializer
-import cromwell.pipeline.auth.token.MissingAccessTokenRejection
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
+import cromwell.pipeline.utils.MissingAccessTokenRejection
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContextExecutor
