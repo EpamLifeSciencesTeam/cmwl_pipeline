@@ -35,7 +35,6 @@ object Dependencies {
   val akkaHttpCore = "com.typesafe.akka" %% "akka-http-core" % Version.akkaHttp
   val slick = "com.typesafe.slick" %% "slick" % Version.slick
   val slickPg = "com.github.tminglei" %% "slick-pg" % Version.slickPg
-  val slickPgCore = "com.github.tminglei" %% "slick-pg_core" % Version.slickPg
   val hikariCP = "com.typesafe.slick" %% "slick-hikaricp" % Version.hikariCP
   val playJson = "com.typesafe.play" %% "play-json" % Version.playJson
   val playFunctional = "com.typesafe.play" %% "play-functional" % Version.playJson
