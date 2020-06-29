@@ -8,8 +8,8 @@ import cromwell.pipeline.ApplicationComponents
 import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
 import cromwell.pipeline.datastorage.dto.{ User, UserNoCredentials }
+import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
 import cromwell.pipeline.utils.TestContainersUtils
-import cromwell.pipeline.utils.auth.AccessTokenContent
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import cats.implicits._

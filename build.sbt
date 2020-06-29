@@ -74,9 +74,8 @@ lazy val utils =
   (project in file("utils"))
     .configs(IntegrationTest)
     .settings(
-      libraryDependencies ++= (jsonDependencies ++ coreTestDependencies ++ testContainers) :+ configHokon :+ cats :+ playFunctional
+      libraryDependencies ++= (jsonDependencies ++ coreTestDependencies ++ testContainers) :+ configHokon :+ cats
     )
-addCommandAlias("testAll", "; test ; it:test")
 
 lazy val repositories =
   (project in file("repositories"))

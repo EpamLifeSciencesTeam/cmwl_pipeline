@@ -4,9 +4,8 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
-import cromwell.pipeline.datastorage.dto.{ User, UserId, UserNoCredentials }
+import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
 import cromwell.pipeline.service.UserService
-import cromwell.pipeline.utils.auth.AccessTokenContent
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import org.mockito.Mockito._
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }

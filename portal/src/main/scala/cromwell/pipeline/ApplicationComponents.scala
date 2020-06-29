@@ -6,7 +6,7 @@ import com.typesafe.config.{ Config, ConfigFactory }
 import cromwell.pipeline.controller.{ AkkaHttpClient, ControllerModule }
 import cromwell.pipeline.datastorage.DatastorageModule
 import cromwell.pipeline.service.{ HttpClient, ServiceModule, WomToolModule }
-import cromwell.pipeline.utils.{ ApplicationConfig, UtilsModule }
+import cromwell.pipeline.utils.ApplicationConfig
 
 import scala.concurrent.ExecutionContext
 
@@ -17,12 +17,11 @@ final class ApplicationComponents(
   val materializer: ActorMaterializer
 ) {
   lazy val applicationConfig: ApplicationConfig = ApplicationConfig.load(config)
-  lazy val utilsModule: UtilsModule = new UtilsModule(applicationConfig)
   lazy val datastorageModule: DatastorageModule = new DatastorageModule(applicationConfig)
   lazy val httpClient: HttpClient = new AkkaHttpClient()
   lazy val womToolModule: WomToolModule = new WomToolModule()
   lazy val serviceModule: ServiceModule =
-    new ServiceModule(datastorageModule, utilsModule, httpClient, applicationConfig.gitLabConfig, womToolModule)
-  lazy val controllerModule: ControllerModule = new ControllerModule(serviceModule, applicationConfig.authConfig)
+    new ServiceModule(datastorageModule, httpClient, applicationConfig.gitLabConfig, womToolModule)
+  lazy val controllerModule: ControllerModule = new ControllerModule(serviceModule)
 
 }
