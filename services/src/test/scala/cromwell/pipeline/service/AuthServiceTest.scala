@@ -5,6 +5,7 @@ import java.time.Instant
 import cromwell.pipeline.auth.AuthUtils
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dto.auth.{ AccessTokenContent, AuthContent, AuthResponse, RefreshTokenContent }
+//import cromwell.pipeline.utils.auth.RefreshTokenContent
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.utils.{ AuthConfig, ExpirationTimeInSeconds }
 import org.scalamock.scalatest.MockFactory

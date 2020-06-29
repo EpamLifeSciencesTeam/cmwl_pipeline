@@ -1,9 +1,9 @@
 package cromwell.pipeline.auth
 
-import cromwell.pipeline.utils.{ AuthConfig }
+import cromwell.pipeline.utils.ApplicationConfig
 
-class AuthModule(authConfig: AuthConfig) {
+class AuthModule(applicationConfig: ApplicationConfig) {
 
-  lazy val authUtils: AuthUtils = new AuthUtils(authConfig)
-  lazy val securityDirective: SecurityDirective = new SecurityDirective(authConfig)
+  lazy val authUtils: AuthUtils = new AuthUtils(applicationConfig.authConfig)
+  lazy val securityDirective: SecurityDirective = new SecurityDirective(applicationConfig.authConfig)
 }

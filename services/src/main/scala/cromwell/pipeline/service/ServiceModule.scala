@@ -2,6 +2,7 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.auth.AuthModule
 import cromwell.pipeline.datastorage.DatastorageModule
+import cromwell.pipeline.utils.UtilsModule
 import cromwell.pipeline.utils.GitLabConfig
 
 import scala.concurrent.ExecutionContext

@@ -74,13 +74,11 @@ lazy val portal = project
 lazy val auth =
   (project in file("auth"))
     .settings(
-      libraryDependencies ++= jsonDependencies :+ configHokon :+ playJson :+ akkaHttp,
+//      libraryDependencies ++= jsonDependencies ++ testContainers ++ testDependencies :+ configHokon :+ playJson :+ playFunctional :+ akkaHttp,
+      libraryDependencies ++= jsonDependencies :+ configHokon :+ playJson :+ playFunctional :+ akkaHttp,
       commonSettings
     )
-    .dependsOn(
-      repositories % "compile->compile;test->test",
-      utils % "compile->compile;test->test"
-    )
+    .dependsOn(repositories % "compile->compile;test->test", utils % "compile->compile;test->test")
 
 lazy val utils =
   (project in file("utils"))
