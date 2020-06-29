@@ -89,7 +89,7 @@ lazy val repositories =
 
 lazy val services =
   (project in file("services"))
-    .settings(libraryDependencies ++= jsonDependencies ++ cromwellDependencies :+ cats :+ playJson)
+    .settings(libraryDependencies ++= jsonDependencies ++ cromwellDependencies :+ cats :+ akkaHttpCore :+ playJson)
     .dependsOn(repositories % "compile->compile;test->test", utils % "compile->compile;test->test", womtool, model)
 
 lazy val controllers =

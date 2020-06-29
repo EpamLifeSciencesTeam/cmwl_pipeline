@@ -2,13 +2,13 @@ package cromwell.pipeline.controller
 
 import java.time.Instant
 
-import akka.http.scaladsl.model.{ StatusCodes }
+import akka.http.scaladsl.model.{ ContentTypes, HttpEntity, HttpResponse, StatusCodes }
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{ RejectionHandler, Route, ValidationRejection }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import cromwell.pipeline.controller.auth.SecurityDirective
-import cromwell.pipeline.controller.auth.SecurityDirective._
+import cromwell.pipeline.controller.utils.auth.SecurityDirective
+import cromwell.pipeline.controller.utils.auth.SecurityDirective._
 import cromwell.pipeline.utils.auth.{ AccessTokenContent, AuthContent }
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.utils.{ AuthConfig, ExpirationTimeInSeconds, MissingAccessTokenRejection }
