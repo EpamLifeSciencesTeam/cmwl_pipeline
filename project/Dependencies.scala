@@ -8,7 +8,7 @@ object Dependencies {
     val slick = "3.3.2"
     val slickPg = "0.18.0"
     val hikariCP = "3.3.1"
-    val playJson = "2.7.4"
+    val playJson = "2.7.3"
     val akkaHttpJson = "1.29.1"
     val jwtCore = "4.1.0"
     val cats = "2.0.0"
@@ -25,23 +25,18 @@ object Dependencies {
     val logback = "1.2.3"
     val pegdown = "1.6.0"
     val wireMock = "2.26.3"
-    val sl4j = "1.7.28"
   }
 
-  val configHokon = "com.typesafe" % "config" % "1.3.3"
   val akkaActor = "com.typesafe.akka" %% "akka-actor" % Version.akka
   val akkaStreams = "com.typesafe.akka" %% "akka-stream" % Version.akka
   val akkaHttp = "com.typesafe.akka" %% "akka-http" % Version.akkaHttp
-  val akkaHttpCore = "com.typesafe.akka" %% "akka-http-core" % Version.akkaHttp
   val slick = "com.typesafe.slick" %% "slick" % Version.slick
   val slickPg = "com.github.tminglei" %% "slick-pg" % Version.slickPg
   val hikariCP = "com.typesafe.slick" %% "slick-hikaricp" % Version.hikariCP
   val playJson = "com.typesafe.play" %% "play-json" % Version.playJson
-  val playFunctional = "com.typesafe.play" %% "play-functional" % Version.playJson
   val akkaHttpJson = "de.heikoseeberger" %% "akka-http-play-json" % Version.akkaHttpJson
   val jwtCore = "com.pauldijou" %% "jwt-core" % Version.jwtCore
   val cats = "org.typelevel" %% "cats-core" % Version.cats
-  val catsKernel = "org.typelevel" %% "cats-kernel" % Version.cats
   val scalaMock = "org.scalamock" %% "scalamock" % Version.scalaMock % Test
   val akkaTestKit = "com.typesafe.akka" %% "akka-testkit" % Version.akka % "test,it"
   val akkaHttpTestKit = "com.typesafe.akka" %% "akka-http-testkit" % Version.akkaHttp % "test,it"
@@ -56,7 +51,6 @@ object Dependencies {
   val womtool = "pipeline" % "womtool" % Version.womtool
   val logback = "ch.qos.logback" % "logback-classic" % Version.logback
   val wireMock = "com.github.tomakehurst" % "wiremock" % Version.wireMock % Test
-  val sl4j = "org.slf4j" % "slf4j-api" % Version.sl4j
   val pegdown = "org.pegdown" % "pegdown" % Version.pegdown % Test
 
   lazy val akkaDependencies = Seq(akkaActor, akkaStreams, akkaHttp)
