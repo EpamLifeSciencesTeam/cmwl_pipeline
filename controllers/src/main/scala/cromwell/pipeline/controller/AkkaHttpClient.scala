@@ -13,6 +13,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class AkkaHttpClient(implicit actorSystem: ActorSystem, materializer: ActorMaterializer) extends HttpClient {
   private val expirationTime: FiniteDuration = 300.millis
+
   override def get(url: String, params: Map[String, String] = Map(), headers: Map[String, String] = Map())(
     implicit ec: ExecutionContext
   ): Future[Response] = {
