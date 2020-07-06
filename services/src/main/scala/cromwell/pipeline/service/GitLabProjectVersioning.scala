@@ -119,6 +119,32 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
         .recover { case e: Throwable => Left(VersioningException(e.getMessage)) }
     }
 
+  override def deleteFile(
+    project: Project,
+    path: Path,
+    branchName: String = config.defaultBranch,
+    commitMessage: String
+  )(
+    implicit ec: ExecutionContext
+  ): AsyncResult[String] = {
+
+    val filePath: String = URLEncoder.encode(path.toString, "UTF-8")
+    val deleteMessage: String = s"$filePath file has been deleted from $branchName"
+
+    httpClient
+      .delete(
+        s"${config.url}/projects/${project.repository}/repository/files/$filePath/raw",
+        config.token
+      )
+      .map { resp =>
+        resp.status match {
+          case HttpStatusCodes.OK => Right(deleteMessage)
+          case _                  => Left(VersioningException(s"Exception. Response status: ${resp.status}"))
+        }
+      }
+      .recover { case e: Throwable => Left(VersioningException(e.getMessage)) }
+  }
+
   override def getFiles(project: Project, path: Path)(implicit ec: ExecutionContext): AsyncResult[List[String]] = ???
 
   override def getProjectVersions(project: Project)(implicit ec: ExecutionContext): AsyncResult[Seq[GitLabVersion]] = {

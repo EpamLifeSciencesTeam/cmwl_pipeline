@@ -22,6 +22,15 @@ class AkkaHttpClient(implicit actorSystem: ActorSystem, materializer: ActorMater
     responsify(futureResponse)
   }
 
+  override def delete(url: String, headers: Map[String, String] = Map())(
+    implicit ec: ExecutionContext
+  ): Future[Response] = {
+    val futureResponse: Future[HttpResponse] = Http().singleRequest(
+      HttpRequest(method = HttpMethods.DELETE, uri = Uri(url)).withHeaders(parseHeaders(headers))
+    )
+    responsify(futureResponse)
+  }
+
   private def responsify(futureResponse: Future[HttpResponse])(implicit ec: ExecutionContext): Future[Response] =
     futureResponse.flatMap { response =>
       response.entity.toStrict(expirationTime).map { body =>

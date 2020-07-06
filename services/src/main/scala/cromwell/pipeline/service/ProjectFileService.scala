@@ -1,5 +1,7 @@
 package cromwell.pipeline.service
 
+import java.nio.file.Path
+
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.womtool.WomToolAPI
 
@@ -8,6 +10,20 @@ import scala.concurrent.{ ExecutionContext, Future }
 class ProjectFileService(womTool: WomToolAPI, projectVersioning: ProjectVersioning[VersioningException])(
   implicit executionContext: ExecutionContext
 ) {
+  def deleteFile(
+    project: Project,
+    path: Path,
+    branchName: String,
+    commitMessage: String,
+  ): Future[Either[VersioningException, String]] =
+    projectVersioning.deleteFile(project, path, branchName, commitMessage)
+
+  def getFile(
+    project: Project,
+    path: Path,
+    version: Option[PipelineVersion]
+  ): Future[Either[VersioningException, ProjectFile]] =
+    projectVersioning.getFile(project, path, version)
 
   def validateFile(fileContent: FileContent): Future[Either[ValidationError, Unit]] =
     Future(womTool.validate(fileContent.content)).map {

@@ -1,16 +1,15 @@
 package cromwell.pipeline.service
 
 import java.net.URLEncoder
-import java.nio.file.{ Path, Paths }
+import java.nio.file.{Path, Paths}
 
 import akka.http.scaladsl.model.StatusCodes
 import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto._
-
-import cromwell.pipeline.utils.{ ApplicationConfig, GitLabConfig, HttpStatusCodes }
+import cromwell.pipeline.utils.{ApplicationConfig, GitLabConfig, HttpStatusCodes}
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{ AsyncWordSpec, Matchers }
+import org.scalatest.{AsyncWordSpec, Matchers}
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 
@@ -85,7 +84,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
         }
       }
     }
-    
+
     "updateFile" should {
       val successUpdateMessage = "File was updated"
       val successCreateMessage = "File was created"
@@ -179,71 +178,46 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
           .getFile(activeProject, path, Some(dummyPipelineVersion))
           .map(_ shouldBe Left(VersioningException("Exception. Response status: 404")))
       }
+
     }
 
-    "getFileCommits" should {
-      val dummyCommitJson: String = s"${Json.stringify(Json.toJson(List(dummyFileCommit)))}"
-      val path: Path = Paths.get("tmp/foo.txt")
-      val urlEncoder = URLEncoder.encode(path.toString, "UTF-8")
-      def request(project: Project) =
-        mockHttpClient.get(
-          url = s"${gitLabConfig.url}projects/${project.repository.get.value}/repository/files/${urlEncoder}",
-          headers = gitLabConfig.token
-        )
+    "deleteFile" should {
+      "return file with 200 response" taggedAs Service in {
+        val path: Path = Paths.get("test.md")
+        val branchName: String = gitLabConfig.defaultBranch
+        val commitMessage: String = s"$path file has been deleted from $branchName"
 
-      "return list of Project versions with 200 response" taggedAs Service in {
-        when(request(withRepoProject))
-          .thenReturn(Future.successful(Response(HttpStatusCodes.OK, dummyCommitJson, Map())))
-        gitLabProjectVersioning.getFileCommits(withRepoProject, path).map {
-          _ shouldBe Right(Seq(dummyFileCommit))
-        }
+        when(
+          mockHttpClient.delete(
+            s"${gitLabConfig.url}/projects/${activeProject.repository}/repository/files/${URLEncoder
+              .encode(path.toString, "UTF-8")}/raw",
+            gitLabConfig.token
+          )
+        ).thenReturn(Future.successful(Response(200, "test.md file has been deleted from master", EmptyHeaders)))
+
+        gitLabProjectVersioning
+          .deleteFile(activeProject, path, branchName, commitMessage)
+          .map(_ shouldBe (Right("test.md file has been deleted from master")))
       }
 
-      "throw new VersioningException with 400 response" taggedAs Service in {
-        when(request(withRepoProject))
-          .thenReturn(Future.successful(Response(HttpStatusCodes.BadRequest, EmptyBody, Map())))
-        gitLabProjectVersioning.getFileCommits(withRepoProject, path).map {
-          _ shouldBe Left(VersioningException("Could not take the file commits. Response status: 400"))
-        }
-      }
-    }
+      "throw new VersioningException with not 200 response" taggedAs Service in {
+        val path = Paths.get("test.md")
+        val branchName: String = gitLabConfig.defaultBranch
+        val commitMessage: String = s"$path file has been deleted from $branchName"
 
-    "getFileVersions" should {
-      val dummyCommitJson: String = s"${Json.stringify(Json.toJson(List(dummyFileCommit, dummyExistingFileCommit)))}"
-      val dummyVersionsJson: String = s"[${Json.stringify(Json.toJson(dummyGitLabVersion))}]"
-      val path: Path = Paths.get("tmp/foo.txt")
-      val urlEncoder = URLEncoder.encode(path.toString, "UTF-8")
-      def projectVersionRequest(project: Project) =
-        mockHttpClient.get(
-          url = s"${gitLabConfig.url}projects/${project.repository.get.value}/repository/tags",
-          headers = gitLabConfig.token
-        )
+        when(
+          mockHttpClient.delete(
+            s"${gitLabConfig.url}/projects/${activeProject.repository}/repository/files/${URLEncoder
+              .encode(path.toString, "UTF-8")}/raw",
+            gitLabConfig.token
+          )
+        ).thenReturn(Future.successful(Response(404, "Not Found", EmptyHeaders)))
 
-      def fileCommitsRequest(project: Project) =
-        mockHttpClient.get(
-          url = s"${gitLabConfig.url}projects/${project.repository.get.value}/repository/files/${urlEncoder}",
-          headers = gitLabConfig.token
-        )
-
-      "return list of Project versions with 200 response" taggedAs Service in {
-        when(projectVersionRequest(withRepoProject))
-          .thenReturn(Future.successful(Response(HttpStatusCodes.OK, dummyVersionsJson, Map())))
-        when(fileCommitsRequest(withRepoProject))
-          .thenReturn(Future.successful(Response(HttpStatusCodes.OK, dummyCommitJson, Map())))
-        gitLabProjectVersioning.getFileVersions(withRepoProject, path).map {
-          _ shouldBe Right(Seq(dummyGitLabVersion))
-        }
+        gitLabProjectVersioning
+          .deleteFile(activeProject, path, branchName, commitMessage)
+          .map(_ shouldBe Left(VersioningException("Exception. Response status: 404")))
       }
 
-      "throw new VersioningException" taggedAs Service in {
-        when(projectVersionRequest(withRepoProject))
-          .thenReturn(Future.successful(Response(HttpStatusCodes.BadRequest, EmptyBody, Map())))
-        when(fileCommitsRequest(withRepoProject))
-          .thenReturn(Future.successful(Response(HttpStatusCodes.BadRequest, EmptyBody, Map())))
-        gitLabProjectVersioning.getFileCommits(withRepoProject, path).map {
-          _ shouldBe Left(VersioningException("Could not take the file commits. Response status: 400"))
-        }
-      }
     }
   }
 
@@ -258,8 +232,6 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
     lazy val dummyPipelineVersion: PipelineVersion = TestProjectUtils.getDummyPipeLineVersion()
     lazy val dummyPipelineVersionHigher: PipelineVersion = dummyPipelineVersion.increaseMinor
     lazy val dummyGitLabVersion: GitLabVersion = TestProjectUtils.getDummyGitLabVersion()
-    lazy val dummyFileCommit: FileCommit = TestProjectUtils.getDummyFileCommit()
-    lazy val dummyExistingFileCommit: FileCommit = FileCommit(dummyGitLabVersion.commit.id)
   }
 
   object ProjectFileContext {

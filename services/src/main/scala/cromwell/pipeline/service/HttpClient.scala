@@ -12,6 +12,9 @@ trait HttpClient {
   def put(url: String, params: Map[String, String] = Map(), headers: Map[String, String] = Map(), payload: String)(
     implicit ec: ExecutionContext
   ): Future[Response]
+  def delete(url: String, headers: Map[String, String] = Map())(
+    implicit ec: ExecutionContext
+  ): Future[Response]
 }
 
 case class Response(status: Int, body: String, headers: Map[String, Seq[String]])
