@@ -39,7 +39,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
 
       "throw new VersioningException for inactive project" taggedAs Service in {
         whenReady(gitLabProjectVersioning.createRepository(inactiveProject).failed) {
-          _ shouldBe VersioningException("Could not create a repository for deleted project.")
+          _ shouldBe VersioningException.RepositoryException("Could not create a repository for deleted project.")
         }
       }
 
@@ -56,7 +56,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
         when(request(activeProject))
           .thenReturn(Future.successful(Response(HttpStatusCodes.BadRequest, EmptyBody, EmptyHeaders)))
         gitLabProjectVersioning.createRepository(activeProject).map {
-          _ shouldBe Left(VersioningException("The repository was not created. Response status: 400"))
+          _ shouldBe Left(VersioningException.RepositoryException("The repository was not created. Response status: 400"))
         }
       }
     }
@@ -81,7 +81,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
         when(request(withRepoProject))
           .thenReturn(Future.successful(Response(HttpStatusCodes.BadRequest, EmptyBody, EmptyHeaders)))
         gitLabProjectVersioning.getProjectVersions(withRepoProject).map {
-          _ shouldBe Left(VersioningException("Could not take versions. Response status: 400"))
+          _ shouldBe Left(VersioningException.ProjectException("Could not take versions. Response status: 400"))
         }
       }
     }
@@ -177,7 +177,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
 
         gitLabProjectVersioning
           .getFile(activeProject, path, Some(dummyPipelineVersion))
-          .map(_ shouldBe Left(VersioningException("Exception. Response status: 404")))
+          .map(_ shouldBe Left(VersioningException.HttpException("Exception. Response status: 404")))
       }
     }
 
@@ -203,7 +203,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
         when(request(withRepoProject))
           .thenReturn(Future.successful(Response(HttpStatusCodes.BadRequest, EmptyBody, Map())))
         gitLabProjectVersioning.getFileCommits(withRepoProject, path).map {
-          _ shouldBe Left(VersioningException("Could not take the file commits. Response status: 400"))
+          _ shouldBe Left(VersioningException.FileException("Could not take the file commits. Response status: 400"))
         }
       }
     }
@@ -241,7 +241,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
         when(fileCommitsRequest(withRepoProject))
           .thenReturn(Future.successful(Response(HttpStatusCodes.BadRequest, EmptyBody, Map())))
         gitLabProjectVersioning.getFileCommits(withRepoProject, path).map {
-          _ shouldBe Left(VersioningException("Could not take the file commits. Response status: 400"))
+          _ shouldBe Left(VersioningException.FileException("Could not take the file commits. Response status: 400"))
         }
       }
     }

@@ -38,7 +38,7 @@ class ProjectFileController(wdlService: ProjectFileService)(
                 (validateResponse, uploadResponse) match {
                   case (Right(_), Right(response)) => StatusCodes.OK.intValue -> response
                   case (Left(_), Right(response))  => StatusCodes.Created.intValue -> response
-                  case (_, Left(response))         => StatusCodes.UnprocessableEntity.intValue -> response.message
+                  case (_, Left(response))         => StatusCodes.UnprocessableEntity.intValue -> response.getMessage
                 }
               }) {
                 case Success((status, message)) => complete(status, message)
