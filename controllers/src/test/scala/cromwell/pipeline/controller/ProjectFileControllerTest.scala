@@ -71,7 +71,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
 
       "return UnprocessableEntity for bad request" taggedAs Controller in {
         when(projectFileService.uploadFile(project, projectFile, Some(version)))
-          .thenReturn(Future.successful(Left(VersioningException("Bad request"))))
+          .thenReturn(Future.successful(Left(VersioningException.HttpException("Bad request"))))
         Post("/files", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.UnprocessableEntity
           entityAs[String] shouldBe "Bad request"
