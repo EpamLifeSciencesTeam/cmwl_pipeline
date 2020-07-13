@@ -50,5 +50,3 @@ trait ProjectVersioning[E >: VersioningException] {
     implicit ec: ExecutionContext
   ): AsyncResult[ProjectFile]
 }
-
-case class VersioningException(message: String) extends Exception(message)
