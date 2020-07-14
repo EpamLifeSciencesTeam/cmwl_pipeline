@@ -41,7 +41,10 @@ class ProjectFileController(wdlService: ProjectFileService)(
                   case (Left(_), Right(response))  => StatusCodes.Created.intValue -> response
                   case (_, Left(response))         => response match {
                     case HttpException(message) => StatusCodes.UnprocessableEntity.intValue -> message
-                    case _ => StatusCodes.UnprocessableEntity.intValue -> "Bad request"
+                    case FileException(message) => StatusCodes.UnprocessableEntity.intValue -> message
+                    case GitException(message) => StatusCodes.UnprocessableEntity.intValue -> message
+                    case RepositoryException(message) => StatusCodes.UnprocessableEntity.intValue -> message
+                    case ProjectException(message) => StatusCodes.UnprocessableEntity.intValue -> message
                   }
                 }
               }) {
