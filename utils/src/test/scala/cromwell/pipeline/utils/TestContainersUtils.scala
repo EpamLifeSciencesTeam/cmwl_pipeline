@@ -38,7 +38,7 @@ object TestContainersUtils {
   def getConfigForMongoDBContainer(container: MongoDBContainer): Config = ConfigFactory
     .parseMap(
       Map(
-        "database.mongo" ->  container.mappedPort(mongoPort)
+        "database.mongo" -> container.mappedPort(mongoPort)
       ).asJava
     )
     .withFallback(ConfigFactory.load())
