@@ -5,7 +5,7 @@ import java.nio.file.Paths
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import cromwell.pipeline.datastorage.dto.ProjectBuildConfigurationRequest.ProjectUpdateFileRequest
+import cromwell.pipeline.datastorage.dto.ProjectUpdateFileRequest
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.{FileContent, PipelineVersion, ProjectBuildConfigurationRequest, ProjectId}
 import cromwell.pipeline.service.{ProjectFileService, ProjectService, VersioningException}
