@@ -5,6 +5,7 @@ import java.nio.file.Paths
 import com.mongodb.client.result.UpdateResult
 import cromwell.pipeline.datastorage.dao.repository.DocumentRepository
 import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
+import cromwell.pipeline.datastorage.dto.project.configuration.ProjectConfigurationEntity
 import cromwell.pipeline.datastorage.dto.{ FileParameter, ProjectConfiguration, ProjectFileConfiguration, StringTyped }
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
@@ -23,30 +24,44 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
         ProjectFileConfiguration(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello")))))
       )
     )
+    val configurationRequest =
+      ProjectConfigurationEntity(configuration.projectId, configuration.projectFileConfigurations)
+    val configurationResponse =
+      ProjectConfigurationEntity(configuration.projectId, configuration.projectFileConfigurations)
     val document = ProjectConfiguration.toDocument(configuration)
     val updateResult = mock[UpdateResult]
+    val projectId = configuration.projectId
 
     "add configuration" should {
       "return complete status for creating configuration" in {
         when(updateResult.toString).thenReturn("Success update")
-        when(configurationRepository.updateOne(document, "projectId", configuration.projectId.value))
+        when(configurationRepository.replaceOne(document, "projectId", configuration.projectId.value))
           .thenReturn(Future.successful(updateResult))
-        configurationService.addConfiguration(configuration).map(_ shouldBe "Success update")
+        configurationService.addConfiguration(configurationRequest).map(_ shouldBe "Success update")
       }
     }
 
     "get configuration by project id" should {
-      val projectId = configuration.projectId
-
       "return nodes by project id" in {
         when(configurationRepository.getByParam("projectId", projectId.value))
           .thenReturn(Future.successful(List(document)))
-        configurationService.getById(projectId).map(_ shouldBe Some(configuration))
+        configurationService.getById(projectId).map(_ shouldBe Some(configurationResponse))
       }
 
       "return None if no configuration was matched" in {
         when(configurationRepository.getByParam("projectId", projectId.value)).thenReturn(Future.successful(List()))
         configurationService.getById(projectId).map(_ shouldBe None)
+      }
+    }
+
+    "deactivate configuration" should {
+      "return complete status for deactivated configuration" in {
+        when(updateResult.toString).thenReturn("Deactivation success")
+        when(configurationRepository.getByParam("projectId", projectId.value))
+          .thenReturn(Future.successful(List(document)))
+        when(configurationRepository.updateOneField("projectId", projectId.value, "isActive", false))
+          .thenReturn(Future.successful(updateResult))
+        configurationService.deactivateConfiguration(configuration.projectId).map(_ shouldBe "Deactivation success")
       }
     }
   }

@@ -7,6 +7,7 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.datastorage.dao.repository.utils.{ TestProjectUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
+import cromwell.pipeline.datastorage.dto.project.configuration.ProjectConfigurationEntity
 import cromwell.pipeline.service.ProjectConfigurationService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import org.mockito.Mockito.when
@@ -27,12 +28,16 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
         ProjectFileConfiguration(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello")))))
       )
     )
+    val configurationRequest =
+      ProjectConfigurationEntity(configuration.projectId, configuration.projectFileConfigurations)
+    val configurationResponse =
+      ProjectConfigurationEntity(configuration.projectId, configuration.projectFileConfigurations)
+    val error = new RuntimeException("Something went wrong")
 
     "update configuration" should {
-      val error = new RuntimeException("Something went wrong")
 
       "return success for update configuration" in {
-        when(configurationService.addConfiguration(configuration)).thenReturn(Future.successful("Success"))
+        when(configurationService.addConfiguration(configurationRequest)).thenReturn(Future.successful("Success"))
         Put("/configurations", configuration) ~> configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
           entityAs[String] shouldBe "Success"
@@ -40,7 +45,7 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
       }
 
       "return InternalServerError when failure update configuration" in {
-        when(configurationService.addConfiguration(configuration)).thenReturn(Future.failed(error))
+        when(configurationService.addConfiguration(configurationRequest)).thenReturn(Future.failed(error))
         Put("/configurations", configuration) ~> configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
           entityAs[String] shouldBe "Something went wrong"
@@ -52,10 +57,10 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
       val projectId = TestProjectUtils.getDummyProjectId
 
       "return configuration by existing project id" in {
-        when(configurationService.getById(projectId)).thenReturn(Future.successful(Some(configuration)))
+        when(configurationService.getById(projectId)).thenReturn(Future.successful(Some(configurationResponse)))
         Get("/configurations?project_id=" + projectId.value) ~> configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
-          entityAs[ProjectConfiguration] shouldBe configuration
+          entityAs[ProjectConfigurationEntity] shouldBe configurationResponse
         }
       }
 
@@ -64,6 +69,30 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
         Get("/configurations?project_id=" + projectId.value) ~> configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NotFound
           entityAs[String] shouldBe s"There is no configuration with project_id: ${projectId.value}"
+        }
+      }
+    }
+
+    "deactivate configuration" should {
+
+      "return success for deactivation configuration" in {
+        when(configurationService.deactivateConfiguration(configuration.projectId))
+          .thenReturn(Future.successful("Success"))
+        Delete("/configurations?project_id=" + configuration.projectId.value) ~> configurationController.route(
+          accessToken
+        ) ~> check {
+          status shouldBe StatusCodes.OK
+          entityAs[String] shouldBe "Success"
+        }
+      }
+
+      "return InternalServerError when failure deactivation configuration" in {
+        when(configurationService.deactivateConfiguration(configuration.projectId)).thenReturn(Future.failed(error))
+        Delete("/configurations?project_id=" + configuration.projectId.value) ~> configurationController.route(
+          accessToken
+        ) ~> check {
+          status shouldBe StatusCodes.InternalServerError
+          entityAs[String] shouldBe "Something went wrong"
         }
       }
     }

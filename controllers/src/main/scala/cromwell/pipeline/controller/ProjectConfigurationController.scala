@@ -4,7 +4,8 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
-import cromwell.pipeline.datastorage.dto.{ ProjectConfiguration, ProjectId }
+import cromwell.pipeline.datastorage.dto.project.configuration.ProjectConfigurationEntity
+import cromwell.pipeline.datastorage.dto.ProjectId
 import cromwell.pipeline.service.ProjectConfigurationService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
@@ -18,7 +19,7 @@ class ProjectConfigurationController(projectConfigurationService: ProjectConfigu
     path("configurations") {
       concat(
         put {
-          entity(as[ProjectConfiguration]) { request =>
+          entity(as[ProjectConfigurationEntity]) { request =>
             onComplete(projectConfigurationService.addConfiguration(request)) {
               case Failure(e)            => complete(StatusCodes.InternalServerError, e.getMessage)
               case Success(updateResult) => complete(updateResult)
@@ -26,16 +27,22 @@ class ProjectConfigurationController(projectConfigurationService: ProjectConfigu
           }
         },
         get {
-          concat(
-            parameter('project_id.as[String]) { projectId =>
-              onComplete(projectConfigurationService.getById(ProjectId(projectId))) {
-                case Failure(e)                   => complete(StatusCodes.InternalServerError, e.getMessage)
-                case Success(Some(configuration)) => complete(configuration)
-                case Success(None) =>
-                  complete(StatusCodes.NotFound, s"There is no configuration with project_id: $projectId")
-              }
+          parameter("project_id".as[String]) { projectId =>
+            onComplete(projectConfigurationService.getById(ProjectId(projectId))) {
+              case Failure(e)                   => complete(StatusCodes.InternalServerError, e.getMessage)
+              case Success(Some(configuration)) => complete(configuration)
+              case Success(None) =>
+                complete(StatusCodes.NotFound, s"There is no configuration with project_id: $projectId")
             }
-          )
+          }
+        },
+        delete {
+          parameter("project_id".as[String]) { projectId =>
+            onComplete(projectConfigurationService.deactivateConfiguration(ProjectId(projectId))) {
+              case Failure(e)            => complete(StatusCodes.InternalServerError, e.getMessage)
+              case Success(updateResult) => complete(updateResult)
+            }
+          }
         }
       )
     }
