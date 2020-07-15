@@ -26,8 +26,4 @@ class ProjectConfigurationControllerItTest
     super.beforeAll()
     components.datastorageModule.pipelineDatabaseEngine.updateSchema()
   }
-
-  "ProjectConfigurationController" when {
-    ""
-  }
 }
