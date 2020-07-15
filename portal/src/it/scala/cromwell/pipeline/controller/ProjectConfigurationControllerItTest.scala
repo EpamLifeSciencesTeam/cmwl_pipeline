@@ -1,12 +1,12 @@
 package cromwell.pipeline.controller
 
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import com.dimafeng.testcontainers.{ForAllTestContainer, MongoDBContainer}
+import com.dimafeng.testcontainers.{ ForAllTestContainer, MongoDBContainer }
 import com.typesafe.config.Config
 import cromwell.pipeline.ApplicationComponents
 import cromwell.pipeline.utils.TestContainersUtils
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
-import org.scalatest.{AsyncWordSpec, Matchers}
+import org.scalatest.{ AsyncWordSpec, Matchers }
 
 class ProjectConfigurationControllerItTest
     extends AsyncWordSpec
@@ -25,5 +25,9 @@ class ProjectConfigurationControllerItTest
   override protected def beforeAll(): Unit = {
     super.beforeAll()
     components.datastorageModule.pipelineDatabaseEngine.updateSchema()
+  }
+
+  "ProjectConfigurationController" when {
+    ""
   }
 }
