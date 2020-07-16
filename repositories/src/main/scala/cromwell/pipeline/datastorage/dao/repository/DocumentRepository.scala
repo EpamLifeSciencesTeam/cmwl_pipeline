@@ -16,5 +16,5 @@ class DocumentRepository(collection: MongoCollection[Document]) {
     collection.replaceOne(equal(fieldName, name), document, ReplaceOptions().upsert(true)).toFuture()
 
   def getByParam(field: String, name: String): Future[Seq[Document]] =
-    collection.find(regex(field, name)).toFuture()
+    collection.find(equal(field, name)).toFuture()
 }
