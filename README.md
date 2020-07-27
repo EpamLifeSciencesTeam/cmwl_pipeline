@@ -70,9 +70,9 @@ sbt undeclaredCompileDependencies
 
 Default configuration can be overloaded in application.properties file located in the same directory as service jar
 ## Local database usage
-Locally we could start Postgres db instance via
+Locally we could start Postgres and Mongo db instances via
 ```
-docker-compose up
+docker-compose -f postgres-mongo.yml up
 ```
 ## Build With
 * [SBT](https://www.scala-sbt.org/) Build and dependency management
