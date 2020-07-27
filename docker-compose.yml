@@ -1,18 +1,5 @@
-version: "3"
+version: '3'
 services:
-  #  Create a service named db.
-  db:
-    image: "postgres:12-alpine"
-    container_name: "pipeline_db"
-    #   Setup the username, password, and database name
-    environment:
-      - POSTGRES_USER=pipeline
-      - POSTGRES_PASSWORD=pipeline
-      - POSTGRES_DB=pipeline
-    #   Map port 6432 (localhost) to port 5432 on the container
-    ports:
-      - "6432:5432"
-
   gitlab:
     image: 'gitlab/gitlab-ce:latest'
     restart: always
@@ -29,3 +16,25 @@ services:
       - '/srv/gitlab/config:/etc/gitlab'
       - '/srv/gitlab/logs:/var/log/gitlab'
       - '/srv/gitlab/data:/var/opt/gitlab'
+
+  postgres:
+    image: "postgres"
+    container_name: "postgres"
+    environment:
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: postgres
+      PG_DATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    restart: always
+
+    mongo:
+      image: "mongo"
+      container_name: "mongo"
+      environment:
+        MONGO_INITDB_ROOT_USERNAME: mongoUser
+        MONGO_INITDB_ROOT_PASSWORD: password
+        MONGO_INITDB_DATABASE: mongo
+      ports:
+        - "27017:27017"
+      restart: always
