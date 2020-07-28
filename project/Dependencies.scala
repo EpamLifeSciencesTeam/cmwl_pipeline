@@ -68,8 +68,9 @@ object Dependencies {
   val mongoDriver = "org.mongodb.scala" %% "mongo-scala-driver" % Version.mongo
   val mongoDriverCore = "org.mongodb" % "mongodb-driver-core" % Version.mongoCore
   val bson = "org.mongodb" % "bson" % Version.mongoCore
+  val osinka = "com.osinka.subset" %% "subset" % "2.2.3"
 
-  lazy val mongoDependencies = Seq(mongo, mongoBson, mongoDriverCore, bson, mongoDriver)
+  lazy val mongoDependencies = Seq(mongo, mongoBson, mongoDriverCore, bson, mongoDriver, osinka)
   lazy val akkaDependencies = Seq(akkaActor, akkaStreams, akkaHttp)
   lazy val jsonDependencies = Seq(playJson, akkaHttpJson, jwtCore)
   lazy val dbDependencies = Seq(slick, slickPg, hikariCP, postgresql, liquibase, yaml) ++ mongoDependencies
