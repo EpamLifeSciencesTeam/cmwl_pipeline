@@ -26,15 +26,13 @@ class ProjectConfigurationControllerItTest
   import components.controllerModule.configurationController
   import components.datastorageModule.configurationRepository
 
-  val doc: Document = DBO(
+  val doc = DBO(
     "_id" -> 0,
     "name" -> "MongoDB",
     "type" -> "database",
     "count" -> 1,
     "info" -> Document("x" -> 203, "y" -> 102)
   )
-
-  val parsedDoc = ("Hello")
 
   override protected def beforeAll(): Unit = {
     super.beforeAll()
@@ -45,3 +43,4 @@ class ProjectConfigurationControllerItTest
 //  TODO
 // import Document repository before tests
 // doc. Rep. addOne(DummyProjectConf? id + list of files(none)  ).map(_ => ...)
+//  val parsedDoc = ("Hello")
