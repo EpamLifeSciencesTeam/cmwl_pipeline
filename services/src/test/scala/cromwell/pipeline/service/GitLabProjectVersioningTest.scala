@@ -280,7 +280,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
           .getFilesTree(withRepoProject, Some(version))
           .map(
             _ shouldBe Left(
-              VersioningException(
+              VersioningException.GitException(
                 "Could not parse GitLab response. (errors: List((,List(JsonValidationError(List(error.expected.jsarray),WrappedArray())))))"
               )
             )
@@ -292,7 +292,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with ScalaFutures with M
           .thenReturn(Future.successful(Response(HttpStatusCodes.BadRequest, EmptyBody, Map())))
         gitLabProjectVersioning
           .getFilesTree(withRepoProject, Some(version))
-          .map(_ shouldBe Left(VersioningException("Could not take the files tree. Response status: 400")))
+          .map(_ shouldBe Left(VersioningException.FileException("Could not take the files tree. Response status: 400")))
       }
     }
   }
