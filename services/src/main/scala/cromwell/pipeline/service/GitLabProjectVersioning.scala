@@ -208,16 +208,16 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
       .map(
         response =>
           if (response.status != HttpStatusCodes.OK)
-            Left(VersioningException(s"Could not take the files tree. Response status: ${response.status}"))
+            Left(VersioningException.FileException(s"Could not take the files tree. Response status: ${response.status}"))
           else {
             val commitsBody: JsResult[Seq[FileTree]] = Json.parse(response.body).validate[Seq[FileTree]]
             commitsBody match {
               case JsSuccess(value, _) => Right(value)
-              case JsError(errors)     => Left(VersioningException(s"Could not parse GitLab response. (errors: $errors)"))
+              case JsError(errors)     => Left(VersioningException.GitException(s"Could not parse GitLab response. (errors: $errors)"))
             }
           }
       )
-      .recover { case e: Throwable => Left(VersioningException(e.getMessage)) }
+      .recover { case e: Throwable => Left(VersioningException.HttpException(e.getMessage)) }
   }
 
   override def getFile(project: Project, path: Path, version: Option[PipelineVersion])(
