@@ -57,7 +57,9 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
   ): AsyncResult[String] = {
     val path = URLEncoder.encode(projectFile.path.toString, "UTF-8")
     val repositoryId: Repository =
-      project.repository.getOrElse(throw VersioningException.RepositoryException(s"No repository for project: $project"))
+      project.repository.getOrElse(
+        throw VersioningException.RepositoryException(s"No repository for project: $project")
+      )
     val fileUrl = s"${config.url}projects/${repositoryId.value}/repository/files/$path"
 
     getLastProjectVersion(project).map(projectVersion => getNewProjectVersion(projectVersion, userVersion)).flatMap {
@@ -113,7 +115,10 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
         .map(
           resp =>
             if (resp.status != HttpStatusCodes.Created)
-              Left(VersioningException.RepositoryException(s"The repository was not created. Response status: ${resp.status}"))
+              Left(
+                VersioningException
+                  .RepositoryException(s"The repository was not created. Response status: ${resp.status}")
+              )
             else Right(project.withRepository(Some(s"${config.idPath}${project.projectId.value}")))
         )
         .recover { case e: Throwable => Left(VersioningException.HttpException(e.getMessage)) }
@@ -134,7 +139,8 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
             parsedVersions match {
               case JsSuccess(value, _) =>
                 Right(value)
-              case JsError(errors) => Left(VersioningException.GitException(s"Could not parse GitLab response. (errors: $errors)"))
+              case JsError(errors) =>
+                Left(VersioningException.GitException(s"Could not parse GitLab response. (errors: $errors)"))
             }
           }
       )
@@ -152,12 +158,15 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
       .map(
         response =>
           if (response.status != HttpStatusCodes.OK)
-            Left(VersioningException.FileException(s"Could not take the file commits. Response status: ${response.status}"))
+            Left(
+              VersioningException.FileException(s"Could not take the file commits. Response status: ${response.status}")
+            )
           else {
             val commitsBody: JsResult[Seq[FileCommit]] = Json.parse(response.body).validate[Seq[FileCommit]]
             commitsBody match {
               case JsSuccess(value, _) => Right(value)
-              case JsError(errors)     => Left(VersioningException.GitException(s"Could not parse GitLab response. (errors: $errors)"))
+              case JsError(errors) =>
+                Left(VersioningException.GitException(s"Could not parse GitLab response. (errors: $errors)"))
             }
           }
       )
@@ -202,22 +211,23 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
       s"${config.url}projects/${project.repository.get.value}/repository/tree"
 
     httpClient
-      .get(url = filesTreeUrl,
-        params = versionId,
-        headers = config.token)
+      .get(url = filesTreeUrl, params = versionId, headers = config.token)
       .map(
         response =>
           if (response.status != HttpStatusCodes.OK)
-            Left(VersioningException(s"Could not take the files tree. Response status: ${response.status}"))
+            Left(
+              VersioningException.FileException(s"Could not take the files tree. Response status: ${response.status}")
+            )
           else {
             val commitsBody: JsResult[Seq[FileTree]] = Json.parse(response.body).validate[Seq[FileTree]]
             commitsBody match {
               case JsSuccess(value, _) => Right(value)
-              case JsError(errors)     => Left(VersioningException(s"Could not parse GitLab response. (errors: $errors)"))
+              case JsError(errors) =>
+                Left(VersioningException.GitException(s"Could not parse GitLab response. (errors: $errors)"))
             }
           }
       )
-      .recover { case e: Throwable => Left(VersioningException(e.getMessage)) }
+      .recover { case e: Throwable => Left(VersioningException.HttpException(e.getMessage)) }
   }
 
   override def getFile(project: Project, path: Path, version: Option[PipelineVersion])(
