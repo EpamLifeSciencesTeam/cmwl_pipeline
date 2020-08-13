@@ -12,6 +12,7 @@ import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
+import cromwell.pipeline.datastorage.formatters.ProjectFormatters._
 
 import scala.concurrent.Future
 

@@ -8,14 +8,7 @@ import cromwell.pipeline.auth.AuthUtils
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dto.{ AuthResponse, SignInRequest, SignUpRequest, User }
 import cromwell.pipeline.datastorage.formatters.AuthFormatters._
-import cromwell.pipeline.datastorage.dto.auth.{
-  AccessTokenContent,
-  AuthContent,
-  AuthResponse,
-  RefreshTokenContent,
-  SignInRequest,
-  SignUpRequest
-}
+import cromwell.pipeline.datastorage.dto.auth.{ AccessTokenContent, AuthContent, RefreshTokenContent }
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.service.AuthService.authorizationFailure
 import cromwell.pipeline.service.AuthorizationException.IncorrectPasswordException

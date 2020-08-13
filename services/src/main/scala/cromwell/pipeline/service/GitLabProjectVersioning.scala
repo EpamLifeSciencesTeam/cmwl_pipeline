@@ -3,12 +3,13 @@ package cromwell.pipeline.service
 import java.net.URLEncoder
 import java.nio.file.Path
 
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectFile, UpdateFileRequest, Version }
+import cromwell.pipeline.datastorage.dto.{ Project, ProjectFile }
+import cromwell.pipeline.datastorage.formatters.ProjectFormatters
 import cromwell.pipeline.datastorage.formatters.ProjectFormatters._
-import cromwell.pipeline.datastorage.dto.Project._
 import cromwell.pipeline.datastorage.dto.File.UpdateFileRequest
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.utils.{ GitLabConfig, HttpStatusCodes }
+import cromwell.pipeline.datastorage.dto.SuccessResponseMessage
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -166,7 +167,6 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
           )
         )
     }
-    //      .recover { case e: Throwable => Left(VersioningException.HttpException(e.getMessage)) }
   }
 
   override def getFileVersions(project: Project, path: Path)(

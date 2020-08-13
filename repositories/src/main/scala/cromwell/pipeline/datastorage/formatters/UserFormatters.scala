@@ -12,9 +12,4 @@ object UserFormatters {
     Json.format[UserNoCredentials]
   implicit lazy val updatePasswordRequestFormat: OFormat[PasswordUpdateRequest] = Json.format[PasswordUpdateRequest]
   implicit lazy val updateRequestFormat: OFormat[UserUpdateRequest] = Json.format[UserUpdateRequest]
-
-  implicit lazy val nameFormat: Format[Name] = Name.wrapperFormat
-  implicit lazy val passwordFormat: Format[Password] = Password.wrapperFormat
-  implicit lazy val userEmailFormat: Format[UserEmail] = UserEmail.wrapperFormat
-  implicit lazy val userIdFormat: Format[UserId] = UserId.wrapperFormat
 }

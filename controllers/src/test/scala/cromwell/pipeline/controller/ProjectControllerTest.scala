@@ -6,7 +6,6 @@ import cromwell.pipeline.datastorage.dao.repository.utils.{ TestProjectUtils, Te
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.{ Project, ProjectDeleteRequest, ProjectUpdateRequest }
 import cromwell.pipeline.datastorage.formatters.ProjectFormatters._
-import cromwell.pipeline.datastorage.utils.auth.AccessTokenContent
 import cromwell.pipeline.service.ProjectService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import org.mockito.Mockito.when
@@ -70,10 +69,12 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
     }
 
     "update project" should {
+
       "return status code NoContent if the update was successful" taggedAs Controller in {
         val userId = TestUserUtils.getDummyUserId
         val accessToken = AccessTokenContent(userId)
         val dummyProject = TestProjectUtils.getDummyProject()
+
         val request = ProjectUpdateRequest(dummyProject.projectId, dummyProject.name, dummyProject.repository)
 
         when(projectService.updateProject(request, userId)).thenReturn(Future.successful(1))
@@ -85,7 +86,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
 
       "return InternalServerError status if the update failed" taggedAs Controller in {
         val userId = TestUserUtils.getDummyUserId
-        val accessToken = AccessTokenContent(TestUserUtils.getDummyUserId)
+        val accessToken = AccessTokenContent(userId)
         val dummyProject = TestProjectUtils.getDummyProject()
         val request = ProjectUpdateRequest(dummyProject.projectId, dummyProject.name, dummyProject.repository)
 

@@ -2,15 +2,10 @@ package cromwell.pipeline.model.wrapper
 
 import cats.data.{ NonEmptyChain, Validated }
 import cromwell.pipeline.model.validator.Wrapped
-import play.api.libs.json.Format
-import cats.implicits.catsStdShowForString
 
 final class UserEmail private (override val unwrap: String) extends AnyVal with Wrapped[String]
 
-object UserEmail extends Wrapped.Companion {
-  type Type = String
-  type Wrapper = UserEmail
-  type Error = String
+object UserEmail extends Wrapped.Factory[String, String, UserEmail] {
   override protected def create(value: String): UserEmail = new UserEmail(value)
   override protected def validate(value: String): ValidationResult[String] = Validated.cond(
     value.matches(

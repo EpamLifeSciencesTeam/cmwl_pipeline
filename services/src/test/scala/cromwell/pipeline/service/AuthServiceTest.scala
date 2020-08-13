@@ -5,12 +5,10 @@ import java.time.Instant
 import cats.implicits.catsStdShowForString
 import cromwell.pipeline.auth.AuthUtils
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
-import cromwell.pipeline.datastorage.dto.AuthResponse
-import cromwell.pipeline.datastorage.dto.auth.{ AccessTokenContent, AuthContent, AuthUtils, RefreshTokenContent }
-import cromwell.pipeline.datastorage.dto.auth.{ AccessTokenContent, AuthContent, AuthResponse, RefreshTokenContent }
-import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
-import cromwell.pipeline.datastorage.dto.auth._
+import cromwell.pipeline.datastorage.dto.{ AuthResponse, SignInRequest }
+import cromwell.pipeline.datastorage.dto.auth.{ AccessTokenContent, AuthContent, RefreshTokenContent }
+import cromwell.pipeline.datastorage.formatters.AuthFormatters._
 import cromwell.pipeline.model.validator.Enable
 import cromwell.pipeline.model.wrapper.{ Password, UserEmail, UserId }
 import cromwell.pipeline.service.AuthorizationException.IncorrectPasswordException
@@ -21,7 +19,6 @@ import org.scalatest.{ Matchers, WordSpec }
 import pdi.jwt.algorithms.JwtHmacAlgorithm
 import pdi.jwt.{ Jwt, JwtAlgorithm, JwtClaim }
 import play.api.libs.json.Json
-import cromwell.pipeline.datastorage.formatters.AuthFormatters._
 
 import scala.concurrent.{ ExecutionContext, Future }
 

@@ -168,7 +168,6 @@ class GitLabProjectVersioningTest
         val url = s"${gitLabConfig.url}projects/${withRepoProject.repository.get.value}/repository/files/$path"
         val payload =
           File.UpdateFileRequest(newFile.content, dummyPipelineVersionHigher.name, gitLabConfig.defaultBranch)
-
         when(
           mockHttpClient.get[List[GitLabVersion]](
             tagUrl,

@@ -1,6 +1,6 @@
 package cromwell.pipeline.datastorage.dto
 
-import java.nio.file.Path
+import java.nio.file.{ Path, Paths }
 
 import cats.data.Validated
 import cats.implicits._
@@ -8,6 +8,7 @@ import cromwell.pipeline.model.wrapper.{ UserId, VersionValue }
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import slick.lifted.MappedTo
+import cromwell.pipeline.datastorage.formatters.ProjectFormatters._
 
 final case class Project(
   projectId: ProjectId,
@@ -147,13 +148,6 @@ object Visibility {
   def values = Seq(Private, Internal, Public)
 }
 
-//final case class FileContent(content: String)
-
-final case class ProjectUpdateFileRequest(project: Project, projectFile: ProjectFile, version: Option[Version])
-object FileContent {
-  implicit lazy val validateFileRequestFormat: OFormat[FileContent] = Json.format[FileContent]
-}
-
 final case class ProjectBuildConfigurationRequest(projectId: ProjectId, projectFile: ProjectFile)
 
 object ProjectBuildConfigurationRequest {
@@ -162,8 +156,6 @@ object ProjectBuildConfigurationRequest {
 }
 
 final case class ProjectUpdateFileRequest(project: Project, projectFile: ProjectFile, version: Option[PipelineVersion])
-
-final case class UpdateFileRequest(branch: String, content: String, commitMessage: String)
 
 object ProjectUpdateFileRequest {
   implicit lazy val projectUpdateFileRequestFormat: OFormat[ProjectUpdateFileRequest] =

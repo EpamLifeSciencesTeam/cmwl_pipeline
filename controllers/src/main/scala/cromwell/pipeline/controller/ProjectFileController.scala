@@ -6,6 +6,7 @@ import akka.http.scaladsl.server.Route
 import cromwell.pipeline.datastorage.dto.SuccessResponseMessage
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.formatters.ProjectFormatters.{
+  projectConfigurationFormat,
   projectUpdateFileRequestFormat,
   validateFileRequestFormat
 }
@@ -15,13 +16,13 @@ import cromwell.pipeline.service.VersioningException.{
   HttpException,
   ProjectException,
   RepositoryException
-
 }
 import cromwell.pipeline.datastorage.dto.{
   ProjectBuildConfigurationRequest,
   ProjectFileContent,
   ProjectUpdateFileRequest
-}import cromwell.pipeline.service.{ ProjectFileService }
+}
+import cromwell.pipeline.service.{ ProjectFileService }
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
 import scala.concurrent.{ ExecutionContext }

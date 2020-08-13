@@ -1,7 +1,7 @@
 package cromwell.pipeline.datastorage.formatters
 
+import cromwell.pipeline.datastorage.dto.auth.{ AccessTokenContent, AuthContent, RefreshTokenContent }
 import cromwell.pipeline.datastorage.dto.{ AuthResponse, SignInRequest, SignUpRequest }
-import cromwell.pipeline.datastorage.utils.auth.{ AccessTokenContent, AuthContent, RefreshTokenContent }
 import play.api.libs.json.{ Json, OFormat }
 import cromwell.pipeline.datastorage.formatters.UserFormatters._
 

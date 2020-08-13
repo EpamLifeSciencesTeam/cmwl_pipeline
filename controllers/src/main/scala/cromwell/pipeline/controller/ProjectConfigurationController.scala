@@ -7,6 +7,7 @@ import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.{ ProjectConfiguration, ProjectId }
 import cromwell.pipeline.service.ProjectConfigurationService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+import cromwell.pipeline.datastorage.formatters.ProjectFormatters._
 
 import scala.concurrent.ExecutionContext
 import scala.util.{ Failure, Success }
