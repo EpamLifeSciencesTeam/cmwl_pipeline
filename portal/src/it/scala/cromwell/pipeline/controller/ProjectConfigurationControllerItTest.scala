@@ -10,6 +10,8 @@ import org.scalatest.{ AsyncWordSpec, Matchers }
 import cromwell.pipeline.datastorage.dao.repository.DocumentRepository
 import org.mongodb.scala.{ Document, MongoClient }
 import com.osinka.subset._
+import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectConfigurationUtils
+import cromwell.pipeline.datastorage.dto.ProjectConfiguration
 
 class ProjectConfigurationControllerItTest
     extends AsyncWordSpec
@@ -26,19 +28,16 @@ class ProjectConfigurationControllerItTest
   import components.controllerModule.configurationController
   import components.datastorageModule.configurationRepository
 
-  val doc = DBO(
-    "_id" -> 0,
-    "name" -> "MongoDB",
-    "type" -> "database",
-    "count" -> 1,
-    "info" -> Document("x" -> 203, "y" -> 102)
-  )
+  val projectConfiguration = TestProjectConfigurationUtils.projectConfigurationGen.sample.get
+  val doc = ProjectConfiguration.toDocument(projectConfiguration)
+  val id = projectConfiguration.projectId
 
   override protected def beforeAll(): Unit = {
     super.beforeAll()
     components.datastorageModule.pipelineDatabaseEngine.updateSchema()
     val x = configurationRepository.addOne(doc)
   }
+
 }
 //  TODO
 // import Document repository before tests
