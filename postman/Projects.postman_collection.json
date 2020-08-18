@@ -1,0 +1,123 @@
+{
+	"info": {
+		"_postman_id": "39a490b7-afc9-43af-ba4f-6fad13181e58",
+		"name": "Projects",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get project by name",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{projects_url}}?name=HelloWorldProject",
+					"host": [
+						"{{projects_url}}"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "HelloWorldProject"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create project",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"HelloWorldProject\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{projects_url}}",
+					"host": [
+						"{{projects_url}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete project by Id",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"projectId\": \"\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{projects_url}}",
+					"host": [
+						"{{projects_url}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Change project name and repository (optional)",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"projectId\": \"\",\r\n    \"name\": \"\",\r\n    \"repository\": \"\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{projects_url}}",
+					"host": [
+						"{{projects_url}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
