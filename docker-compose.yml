@@ -1,5 +1,32 @@
 version: '3'
 services:
+  postgres:
+    image: "postgres"
+    container_name: "postgres"
+    environment:
+      POSTGRES_USER: ${CMWL_DB_USER}
+      POSTGRES_PASSWORD: ${CMWL_DB_PASSWORD}
+      POSTGRES_DB: ${CMWL_DB_NAME}
+      PG_DATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      ./docker/postgres:/var/lib/postgresql/data
+    restart: always
+
+  mongo:
+    image: "mongo"
+    container_name: "mongo"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${CMWL_MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${CMWL_MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: ${CMWL_MONGO_DB}
+    ports:
+      - "27017:27017"
+    volumes:
+      ./docker/mongo:/data/db
+    restart: always
+
   gitlab:
     image: 'gitlab/gitlab-ce:latest'
     restart: always
@@ -16,25 +43,3 @@ services:
       - '/srv/gitlab/config:/etc/gitlab'
       - '/srv/gitlab/logs:/var/log/gitlab'
       - '/srv/gitlab/data:/var/opt/gitlab'
-
-  postgres:
-    image: "postgres"
-    container_name: "postgres"
-    environment:
-      POSTGRES_PASSWORD: docker
-      POSTGRES_DB: postgres
-      PG_DATA: /var/lib/postgresql/data/pgdata
-    ports:
-      - "5432:5432"
-    restart: always
-
-    mongo:
-      image: "mongo"
-      container_name: "mongo"
-      environment:
-        MONGO_INITDB_ROOT_USERNAME: mongoUser
-        MONGO_INITDB_ROOT_PASSWORD: password
-        MONGO_INITDB_DATABASE: mongo
-      ports:
-        - "27017:27017"
-      restart: always
