@@ -9,6 +9,8 @@ services:
       PG_DATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
+    volumes:
+      ./docker/postgres:/var/lib/postgresql/data
     restart: always
 
   mongo:
@@ -20,4 +22,6 @@ services:
       MONGO_INITDB_DATABASE: mongo
     ports:
       - "27017:27017"
+    volumes:
+      ./docker/mongo:/data/db
     restart: always
