@@ -1,0 +1,71 @@
+{
+	"info": {
+		"_postman_id": "321b7ae0-fc71-4659-bf30-112d2bf9af78",
+		"name": "Configurations",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Add configuration to MongoDB",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"projectId\": \"\",\r\n    \"projectConfigurations\": [\r\n        {\"path\": \"\", \"inputs\": [\r\n            {\"name\": \"\", \"typedValue\": {\"_type\": \"\", \"value\": \"\"}},\r\n            {\"name\": \"\", \"typedValue\": {\"_type\": \"\", \"value\": \"\"}}\r\n            ]}\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/configurations",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"configurations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get configuration by project Id",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/configurations?project_id=project_id",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"configurations"
+					],
+					"query": [
+						{
+							"key": "project_id",
+							"value": "project_id"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}

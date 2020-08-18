@@ -1,0 +1,229 @@
+{
+	"info": {
+		"_postman_id": "9b5588fb-dcd3-4376-9398-27abe3d9211f",
+		"name": "Authorization",
+		"description": "Request for authorization - **signIn**, **signUp** and **refreshToken**.\r\nIf you are a new user, make sure that you've done signUp request.\r\nOtherwise use signIn for sign in and get **authorization token** in response.\r\nWhen **authorization token** is over, use refresh token to refresh **authorization token**.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Sign up",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "7f9f08e5-ccbc-46d4-8124-2e11ba48c11f",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "c154d39e-fa14-4cf0-90a7-e8082af9fffc",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"\",\r\n    \"password\": \"\",\r\n    \"firstName\": \"\",\r\n    \"lastName\": \"\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/auth/signUp",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"signUp"
+					]
+				},
+				"description": "# Request for sign up.\r\n|url|auth/signUp|\r\n|method|POST|\r\n|Request body type|JSON|\r\n### Request body fields\r\n|email|user unique email, used as login to sign in|\r\n|password|user secret password|\r\n|firstName|user first name|\r\n|lastName|user last name|\r\n### Responce body fields\r\n|accessToken|token to access to all api functionality|\r\n|refreshToken|token to use when need to refresh token|\r\n|accessTokenExpritation|lifetime of **accessToken**|"
+			},
+			"response": [
+				{
+					"name": "SignUp Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"\",\r\n    \"password\": \"\",\r\n    \"firstName\": \"\",\r\n    \"lastName\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{CromwellUrl}}/auth/signUp",
+							"host": [
+								"{{CromwellUrl}}"
+							],
+							"path": [
+								"auth",
+								"signUp"
+							]
+						}
+					},
+					"_postman_previewlanguage": null,
+					"header": null,
+					"cookie": [],
+					"body": "{\r\n    \"email\": \"example@mail.ru\",\r\n    \"password\": \"strongPassword1_\",\r\n    \"firstName\": \"Ivan\",\r\n    \"lastName\": \"Ivanov\"\r\n}"
+				}
+			]
+		},
+		{
+			"name": "Sign in",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "07b173b6-98ce-4fbf-bbaa-9348d3d53844",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"example@mail.ru\",\r\n    \"password\": \"strongPassword1_\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/auth/signIn",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"signIn"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "SignIn Example",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"\",\r\n    \"password\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{auth_url}}/signIn",
+							"host": [
+								"{{auth_url}}"
+							],
+							"path": [
+								"signIn"
+							]
+						}
+					},
+					"_postman_previewlanguage": null,
+					"header": null,
+					"cookie": [],
+					"body": "{\r\n    \"email\": \"example@mail.ru\",\r\n    \"password\": \"strongPassword1_\"\r\n}"
+				}
+			]
+		},
+		{
+			"name": "Refresh token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a7c745e0-d8ee-416f-9c91-aceb84de53ca",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/auth/refresh?refreshToken={{refresh_token}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"refresh"
+					],
+					"query": [
+						{
+							"key": "refreshToken",
+							"value": "{{refresh_token}}"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "24ff9b2f-1295-48ce-a024-4e2e71b7186f",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "7bb17ab2-daf9-4adb-a166-1a1e5281eb9c",
+				"type": "text/javascript",
+				"exec": [
+					"if (pm.response.code === 200) {",
+					"    var headers = pm.response.headers;",
+					"    pm.environment.set(\"auth_token\", headers.get(\"Access-Token\"));",
+					"    pm.environment.set(\"refresh_token\", headers.get(\"Refresh-Token\"));",
+					"}"
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}

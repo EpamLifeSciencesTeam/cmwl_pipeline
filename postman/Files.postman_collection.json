@@ -1,0 +1,108 @@
+{
+	"info": {
+		"_postman_id": "6e84958c-79ee-4725-af35-14e2b75ffa8b",
+		"name": "Files",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Validate WDL file",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"content\": \"{{valid_wdl_file}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/files/validation",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"files",
+						"validation"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload file to project",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"project\": {\r\n        \"projectId\": \"\",\r\n        \"ownerId\": \"\",\r\n        \"name\": \"\",\r\n        \"active\": true\r\n    },\r\n    \"projectFile\": {\r\n        \"path\": \"\",\r\n        \"context\": \"{{valid_wdl_file}}\"\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/files",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"files"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Build project configuration by project",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"projectId\": \"\",\r\n    \"projectFile\": {\r\n        \"path\": \"\",\r\n        \"content\": \"{{valid_wdl_file}}\"\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/files/configurations",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"files",
+						"configurations"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}

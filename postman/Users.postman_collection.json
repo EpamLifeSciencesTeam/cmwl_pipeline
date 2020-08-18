@@ -1,0 +1,287 @@
+{
+	"info": {
+		"_postman_id": "f5d8e17f-cbb6-4568-8c9c-c572d5dc90a9",
+		"name": "Users",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Find user by email",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/users?email=example@mail.ru",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"users"
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "example@mail.ru"
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Find user by email example",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{users_url}}?email=example@mail.ru",
+							"host": [
+								"{{users_url}}"
+							],
+							"query": [
+								{
+									"key": "email",
+									"value": "example@mail.ru"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Server",
+							"value": "akka-http/10.1.10"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 09 Aug 2020 11:00:07 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "292"
+						}
+					],
+					"cookie": [],
+					"body": "[\n    {\n        \"userId\": \"26774154-8946-4764-b8ab-37dfeccd3453\",\n        \"email\": \"example@mail.ru\",\n        \"passwordHash\": \"cf782b422149fa27479539d019b4481b8675063f4c2c8d0b5adc73e94f4a8128\",\n        \"passwordSalt\": \"43b2f99730d7ed9c\",\n        \"firstName\": \"Ivan\",\n        \"lastName\": \"Ivanov\",\n        \"active\": true\n    }\n]"
+				}
+			]
+		},
+		{
+			"name": "Deactivate yourself",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "0512ac4e-d273-4139-a80c-2617f2886b4d",
+						"exec": [
+							"if (pm.response.code === 200) {\r",
+							"    pm.environment.unset(\"auth_token\");\r",
+							"    pm.environment.unset(\"refresh_token\");\r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/users",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update user information",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"\",\r\n    \"firstName\": \"\",\r\n    \"lasName\": \"\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/users",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Update user information example",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"\",\r\n    \"firstName\": \"\",\r\n    \"lasName\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{users_url}}",
+							"host": [
+								"{{users_url}}"
+							]
+						}
+					},
+					"_postman_previewlanguage": "json",
+					"header": null,
+					"cookie": [],
+					"body": "{\r\n    \"email\": \"example@mail.ru\",\r\n    \"firstName\": \"Semyon\",\r\n    \"lastName\": \"Semyonov\"\r\n}"
+				}
+			]
+		},
+		{
+			"name": "Update password",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"currentPassword\": \"strongPassword1_\",\r\n    \"newPassword\": \"strongPassword2_\",\r\n    \"repeatPassword\": \"strongPassword2_\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/users",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Update password example",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"currentPassword\": \"strongPassword1_\",\r\n    \"newPassword\": \"strongPassword2_\",\r\n    \"repeatPassword\": \"strongPassword2_\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{users_url}}",
+							"host": [
+								"{{users_url}}"
+							]
+						}
+					},
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Server",
+							"value": "akka-http/10.1.10"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 09 Aug 2020 11:22:58 GMT"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"currentPassword\": \"strongPassword1_\",\n    \"newPassword\": \"strongPassword2_\",\n    \"repeatPassword\": \"strongPassword2_\"\n}"
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "37121c31-0101-4c58-9d9b-f2de4c702feb",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "831cc249-48bc-4ed5-8b6f-af269297b121",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
