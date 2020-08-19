@@ -28,6 +28,9 @@ object TestProjectUtils {
     v3: Int = 1 + randomInt(12)
   ): PipelineVersion =
     PipelineVersion(s"v$v1.$v2.$v3")
+  def getDummyRepositoryId(
+    id: String = randomUuidStr
+  ): RepositoryId = RepositoryId(id)
   def getDummyGitLabVersion(
     version: PipelineVersion = getDummyPipeLineVersion(),
     message: String = s"message-$randomUuidStr",

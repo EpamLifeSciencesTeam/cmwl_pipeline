@@ -46,11 +46,11 @@ class GitLabProjectVersioningTest
 
     "createRepository" should {
 
-      def request(project: Project) =
-        mockHttpClient.post[Project, Project](
+      def request(postProject: PostProject) =
+        mockHttpClient.post[RepositoryId, PostProject](
           url = gitLabConfig.url + "projects",
           headers = gitLabConfig.token,
-          payload = project
+          payload = postProject
         )
 
       "throw new VersioningException for inactive project" taggedAs Service in {
@@ -60,21 +60,24 @@ class GitLabProjectVersioningTest
       }
 
       "return new active Project with 201 response" taggedAs Service in {
-        val project = withRepoProject
-        when(request(activeProject)).thenReturn(
+
+        val project = withGitlabProject
+
+        when(request(postProject)).thenReturn(
           Future.successful(
-            Response[Project](HttpStatusCodes.Created, SuccessResponseBody[Project](withRepoProject), EmptyHeaders)
+            Response[RepositoryId](HttpStatusCodes.Created, SuccessResponseBody[RepositoryId](repositoryId), EmptyHeaders)
           )
         )
+
         gitLabProjectVersioning.createRepository(activeProject).map {
           _ shouldBe Right(project)
         }
       }
 
       "throw new VersioningException with 400 response" taggedAs Service in {
-        when(request(activeProject)).thenReturn(
+        when(request(postProject)).thenReturn(
           Future.successful(
-            Response[Project](
+            Response[RepositoryId](
               HttpStatusCodes.BadRequest,
               FailureResponseBody("The repository was not created. Response status: 400"),
               EmptyHeaders
@@ -475,10 +478,14 @@ class GitLabProjectVersioningTest
   object ProjectContext {
     val EmptyHeaders: Map[String, Seq[String]] = Map()
     lazy val activeProject: Project = TestProjectUtils.getDummyProject()
+    lazy val postProject: PostProject = PostProject(name = activeProject.name)
+    lazy val repositoryId: RepositoryId = TestProjectUtils.getDummyRepositoryId()
     lazy val inactiveProject: Project = activeProject.copy(active = false)
     lazy val noRepoProject: Project = activeProject.copy(repository = None)
     lazy val withRepoProject: Project =
       activeProject.withRepository(Some(s"${gitLabConfig.idPath}${activeProject.projectId.value}"))
+    lazy val withGitlabProject: Project =
+      activeProject.withRepository(Some(s"${gitLabConfig.idPath}${repositoryId.id}"))
     lazy val dummyPipelineVersion: PipelineVersion = TestProjectUtils.getDummyPipeLineVersion()
     lazy val dummyPipelineVersionHigher: PipelineVersion = dummyPipelineVersion.increaseMinor
     lazy val dummyGitLabVersion: GitLabVersion = TestProjectUtils.getDummyGitLabVersion()
