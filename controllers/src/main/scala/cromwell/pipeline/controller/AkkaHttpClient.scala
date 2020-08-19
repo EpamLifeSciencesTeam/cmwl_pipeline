@@ -23,7 +23,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.model.{ HttpMethods, HttpRequest, HttpResponse, Uri }
+import akka.http.scaladsl.model.{ ContentTypes, HttpEntity, HttpMethods, HttpRequest, HttpResponse, Uri }
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
 import cromwell.pipeline.service.{ FailureResponseBody, HttpClient, Response, SuccessResponseBody }
@@ -60,7 +60,7 @@ class AkkaHttpClient(implicit actorSystem: ActorSystem, materializer: ActorMater
   )(implicit ec: ExecutionContext, bf: Reads[B], pf: Writes[P]): Future[Response[B]] = {
     val futureResponse: Future[HttpResponse] = Http().singleRequest(
       HttpRequest(method = HttpMethods.POST, uri = Uri(url).withQuery(Query(params)))
-        .withEntity(Json.stringify(Json.toJson(payload)))
+        .withEntity(HttpEntity(ContentTypes.`application/json`, Json.stringify(Json.toJson(payload))))
         .withHeaders(parseHeaders(headers))
     )
     responsify[B](futureResponse)
@@ -74,7 +74,7 @@ class AkkaHttpClient(implicit actorSystem: ActorSystem, materializer: ActorMater
   )(implicit ec: ExecutionContext, bf: Reads[B], pf: Writes[P]): Future[Response[B]] = {
     val futureResponse: Future[HttpResponse] = Http().singleRequest(
       HttpRequest(method = HttpMethods.PUT, uri = Uri(url).withQuery(Query(params)))
-        .withEntity(Json.stringify(Json.toJson(payload)))
+        .withEntity(HttpEntity(ContentTypes.`application/json`, Json.stringify(Json.toJson(payload))))
         .withHeaders(parseHeaders(headers))
     )
     responsify(futureResponse)
