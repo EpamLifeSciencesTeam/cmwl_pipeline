@@ -115,17 +115,18 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
       Future.failed(VersioningException.RepositoryException("Could not create a repository for deleted project."))
     else {
       val createRepoUrl: String = s"${config.url}projects"
+      val postProject = PostProject(name = project.name)
       httpClient
-        .post[Project, Project](url = createRepoUrl, headers = config.token, payload = project)
-        .map(
-          resp =>
-            if (resp.status != HttpStatusCodes.Created)
-              Left(
-                VersioningException
-                  .RepositoryException(s"The repository was not created. Response status: ${resp.status}")
-              )
-            else Right(project.withRepository(Some(s"${config.idPath}${project.projectId.value}")))
-        )
+        .post[RepositoryId, PostProject](url = createRepoUrl, headers = config.token, payload = postProject)
+        .map {
+          case Response(_, SuccessResponseBody(gitLabProject), _) =>
+            Right(project.withRepository(Some(s"${config.idPath}${gitLabProject.id}")))
+          case Response(statusCode, FailureResponseBody(_), _) =>
+            Left(
+              VersioningException
+                .RepositoryException(s"The repository was not created. Response status: ${statusCode}")
+            )
+        }
         .recover { case e: Throwable => Left(VersioningException.HttpException(e.getMessage)) }
     }
 

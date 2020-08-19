@@ -34,6 +34,12 @@ object Project {
     )
 }
 
+final case class PostProject(name: String)
+
+object PostProject {
+  implicit lazy val postProject: OFormat[PostProject] = Json.format[PostProject]
+}
+
 final case class ProjectId(value: String) extends MappedTo[String]
 
 object ProjectId {
@@ -62,6 +68,12 @@ final case class ProjectUpdateRequest(projectId: ProjectId, name: String, reposi
 
 object ProjectUpdateRequest {
   implicit val updateRequestFormat: OFormat[ProjectUpdateRequest] = Json.format[ProjectUpdateRequest]
+}
+
+final case class RepositoryId(id: String)
+
+object RepositoryId {
+  implicit val gitlabProjectFormat: OFormat[RepositoryId] = Json.format[RepositoryId]
 }
 
 final case class GitLabVersion(name: PipelineVersion, message: String, target: String, commit: Commit)
