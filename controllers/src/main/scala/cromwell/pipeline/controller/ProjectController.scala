@@ -4,14 +4,14 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
-import cromwell.pipeline.datastorage.dto.{ ProjectAdditionRequest, ProjectDeleteRequest, ProjectUpdateRequest }
+import cromwell.pipeline.datastorage.dto.{ProjectAdditionRequest, ProjectDeleteRequest, ProjectId, ProjectUpdateRequest}
 import cromwell.pipeline.model.wrapper.UserId
-import cromwell.pipeline.service.Exceptions.{ ProjectAccessDeniedException, ProjectNotFoundException }
-import cromwell.pipeline.service.ProjectService
+import cromwell.pipeline.service.Exceptions.{ProjectAccessDeniedException, ProjectNotFoundException}
+import cromwell.pipeline.service.{ProjectService, VersioningException}
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
 import scala.concurrent.ExecutionContext
-import scala.util.{ Failure, Success }
+import scala.util.{Failure, Success}
 
 class ProjectController(projectService: ProjectService)(
   implicit executionContext: ExecutionContext
@@ -32,7 +32,10 @@ class ProjectController(projectService: ProjectService)(
         post {
           entity(as[ProjectAdditionRequest]) { request =>
             onComplete(projectService.addProject(request, accessToken.userId)) {
-              case Success(_) => complete(StatusCodes.OK)
+              case Success(a:Either[VersioningException, ProjectId]) => complete(a match {
+                case Left(msg) => msg.message
+                case Right(value) => value
+              })
               case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
             }
           }
