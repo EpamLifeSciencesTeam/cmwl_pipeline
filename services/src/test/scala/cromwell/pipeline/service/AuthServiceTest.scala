@@ -2,18 +2,23 @@ package cromwell.pipeline.service
 
 import java.time.Instant
 
+import cats.implicits.catsStdShowForString
 import cromwell.pipeline.auth.AuthUtils
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
-import cromwell.pipeline.datastorage.dto.auth.{ AccessTokenContent, AuthContent, AuthResponse, RefreshTokenContent }
-import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
+import cromwell.pipeline.datastorage.dto.auth._
+import cromwell.pipeline.model.validator.Enable
+import cromwell.pipeline.model.wrapper.{ Password, UserEmail, UserId }
+import cromwell.pipeline.service.AuthorizationException.IncorrectPasswordException
 import cromwell.pipeline.utils.{ AuthConfig, ExpirationTimeInSeconds }
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.concurrent.ScalaFutures.whenReady
 import org.scalatest.{ Matchers, WordSpec }
 import pdi.jwt.algorithms.JwtHmacAlgorithm
 import pdi.jwt.{ Jwt, JwtAlgorithm, JwtClaim }
 import play.api.libs.json.Json
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ ExecutionContext, Future }
 
 class AuthServiceTest extends WordSpec with Matchers with MockFactory {
 
@@ -31,6 +36,11 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
   private val authUtils: AuthUtils = stub[AuthUtils]
   private val authService: AuthService = new AuthService(userRepository, authUtils)
   private val userId = UserId.random
+
+  private val userPassword = "Password213"
+  private val incorrectUserPassword = "Password2134"
+  private val dummyUser = TestUserUtils.getDummyUser(password = userPassword)
+  private val userEmail = dummyUser.email
 
   "AuthServiceTest" when {
 
@@ -67,6 +77,22 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
         (authUtils.getOptJwtClaims _ when wrongToken).returns(None)
 
         authService.refreshTokens(wrongToken) shouldBe None
+      }
+    }
+
+    "authorization fails if " should {
+      "return Failed future when user is inactive" taggedAs Service in {
+        (userRepository.getUserByEmail _ when userEmail).returns(Future(Some(dummyUser)))
+        whenReady(
+          authService
+            .signIn(
+              SignInRequest(
+                UserEmail(userEmail.unwrap, Enable.Unsafe),
+                Password(incorrectUserPassword, Enable.Unsafe)
+              )
+            )
+            .failed
+        ) { _ shouldBe IncorrectPasswordException(AuthService.authorizationFailure) }
       }
     }
   }

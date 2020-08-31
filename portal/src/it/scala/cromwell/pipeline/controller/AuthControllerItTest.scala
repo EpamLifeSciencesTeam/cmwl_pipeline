@@ -14,6 +14,7 @@ import org.scalatest.compatible.Assertion
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.{ Matchers, WordSpec }
 import TestUserUtils._
+import cromwell.pipeline.service.AuthService
 
 class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTest with ForAllTestContainer {
 
@@ -42,6 +43,20 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
           Post("/auth/signIn", httpEntity) ~> authController.route ~> check {
             status shouldBe StatusCodes.OK
             checkAuthTokens
+          }
+        }
+      }
+
+      "return status Unauthorized if password is incorrect" in {
+        val dummyUser: User = TestUserUtils.getDummyUser(active = false)
+        val incorrectPassword = dummyUser.email + "x"
+        whenReady(userRepository.addUser(dummyUser)) { _ =>
+          val signInRequestStr =
+            s"""{"email":"${dummyUser.email}","password":"${incorrectPassword}"}"""
+          val httpEntity = HttpEntity(`application/json`, signInRequestStr)
+          Post("/auth/signIn", httpEntity) ~> authController.route ~> check {
+            status shouldBe StatusCodes.Unauthorized
+            responseAs[String] shouldEqual AuthService.authorizationFailure
           }
         }
       }
