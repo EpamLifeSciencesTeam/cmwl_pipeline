@@ -7,15 +7,10 @@ import cats.implicits._
 import cromwell.pipeline.auth.AuthUtils
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dto.User
-import cromwell.pipeline.datastorage.dto.auth.{
-  AccessTokenContent,
-  AuthContent,
-  AuthResponse,
-  RefreshTokenContent,
-  SignInRequest,
-  SignUpRequest
-}
+import cromwell.pipeline.datastorage.dto.auth._
 import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.service.AuthService.authorizationFailure
+import cromwell.pipeline.service.AuthorizationException.IncorrectPasswordException
 import cromwell.pipeline.utils.StringUtils
 import play.api.libs.json.Json
 
@@ -27,15 +22,21 @@ class AuthService(userRepository: UserRepository, authUtils: AuthUtils)(implicit
   import authUtils._
 
   def signIn(request: SignInRequest): Future[Option[AuthResponse]] =
-    OptionT(userRepository.getUserByEmail(request.email))
-      .filter(user => user.passwordHash == StringUtils.calculatePasswordHash(request.password.value, user.passwordSalt))
-      .map { user =>
-        val accessTokenContent = AccessTokenContent(user.userId)
-        val refreshTokenContent = RefreshTokenContent(user.userId, None)
-        getAuthResponse(accessTokenContent, refreshTokenContent, Instant.now.getEpochSecond)
+    takeUserFromRequest(request).subflatMap(responseFromUser).value
+
+  def takeUserFromRequest(request: SignInRequest): OptionT[Future, User] =
+    OptionT(userRepository.getUserByEmail(request.email)).semiflatMap[User] { user =>
+      if (passwordCorrect(request, user)) Future.successful(user)
+      else {
+        Future.failed(IncorrectPasswordException(authorizationFailure))
       }
-      .value
-      .map(_.flatten)
+    }
+
+  def responseFromUser(user: User): Option[AuthResponse] = {
+    val accessTokenContent = AccessTokenContent(user.userId)
+    val refreshTokenContent = RefreshTokenContent(user.userId, None)
+    getAuthResponse(accessTokenContent, refreshTokenContent, Instant.now.getEpochSecond)
+  }
 
   def signUp(request: SignUpRequest): Future[Option[AuthResponse]] = {
     val passwordSalt = Random.nextLong().toHexString
@@ -71,5 +72,19 @@ class AuthService(userRepository: UserRepository, authUtils: AuthUtils)(implicit
       }
       .flatten
   }
+
+  def passwordCorrect(request: SignInRequest, user: User) =
+    user.passwordHash == StringUtils.calculatePasswordHash(request.password.value, user.passwordSalt)
+}
+
+object AuthService {
+  final val authorizationFailure = "invalid email or password"
+}
+
+sealed abstract class AuthorizationException extends Exception { val message: String }
+
+object AuthorizationException {
+
+  case class IncorrectPasswordException(message: String) extends AuthorizationException()
 
 }

@@ -1,15 +1,16 @@
 package cromwell.pipeline.controller
 
-import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.{ HttpResponse, StatusCodes }
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, SignInRequest, SignUpRequest }
 import cromwell.pipeline.service.AuthService
+import cromwell.pipeline.service.AuthorizationException.IncorrectPasswordException
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
 import scala.concurrent.ExecutionContext
-import scala.util.Success
+import scala.util.{ Failure, Success }
 
 class AuthController(authService: AuthService)(implicit executionContext: ExecutionContext) {
 
@@ -22,7 +23,9 @@ class AuthController(authService: AuthService)(implicit executionContext: Execut
           entity(as[SignInRequest]) { request =>
             onComplete(authService.signIn(request)) {
               case Success(Some(authResponse)) => setSuccessAuthRoute(authResponse)
-              case _                           => complete(StatusCodes.Unauthorized)
+              case Failure(IncorrectPasswordException(message)) =>
+                complete(HttpResponse(StatusCodes.Unauthorized, entity = message))
+              case _ => complete(StatusCodes.Unauthorized)
             }
           }
         }
