@@ -25,7 +25,7 @@ class ProjectService(projectRepository: ProjectRepository, projectVersioning: Pr
     }
   }
 
-  def addProject(request: ProjectAdditionRequest, userId: UserId): Future[Either[VersioningException, ProjectId]] = {
+  def addProject(request: ProjectAdditionRequest, userId: UserId): Future[ProjectId] = {
     val project =
       Project(
         projectId = ProjectId(UUID.randomUUID().toString),
@@ -35,7 +35,7 @@ class ProjectService(projectRepository: ProjectRepository, projectVersioning: Pr
       )
     projectVersioning.createRepository(project).flatMap {
       case Left(exception)       => Future.failed(exception)
-      case Right(value: Project) => projectRepository.addProject(value).map(Right(_))
+      case Right(value: Project) => projectRepository.addProject(value)
     }
   }
 
