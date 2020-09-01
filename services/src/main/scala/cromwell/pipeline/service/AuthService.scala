@@ -7,10 +7,17 @@ import cats.implicits._
 import cromwell.pipeline.auth.AuthUtils
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dto.User
-import cromwell.pipeline.datastorage.dto.auth._
+import cromwell.pipeline.datastorage.dto.auth.{
+  AccessTokenContent,
+  AuthContent,
+  AuthResponse,
+  RefreshTokenContent,
+  SignInRequest,
+  SignUpRequest
+}
 import cromwell.pipeline.model.wrapper.UserId
-import cromwell.pipeline.service.AuthService.authorizationFailure
-import cromwell.pipeline.service.AuthorizationException.IncorrectPasswordException
+import cromwell.pipeline.service.AuthService.{ authorizationFailure, inactiveUserMessage }
+import cromwell.pipeline.service.AuthorizationException.{ InactiveUserException, IncorrectPasswordException }
 import cromwell.pipeline.utils.StringUtils
 import play.api.libs.json.Json
 
@@ -26,9 +33,10 @@ class AuthService(userRepository: UserRepository, authUtils: AuthUtils)(implicit
 
   def takeUserFromRequest(request: SignInRequest): OptionT[Future, User] =
     OptionT(userRepository.getUserByEmail(request.email)).semiflatMap[User] { user =>
-      if (passwordCorrect(request, user)) Future.successful(user)
-      else {
-        Future.failed(IncorrectPasswordException(authorizationFailure))
+      val checkFilters = passwordCorrect(request, user).orElse(userIsActive(user))
+      checkFilters match {
+        case Some(value) => Future.failed(value)
+        case None        => Future.successful(user)
       }
     }
 
@@ -73,18 +81,23 @@ class AuthService(userRepository: UserRepository, authUtils: AuthUtils)(implicit
       .flatten
   }
 
-  def passwordCorrect(request: SignInRequest, user: User) =
-    user.passwordHash == StringUtils.calculatePasswordHash(request.password.value, user.passwordSalt)
+  def passwordCorrect(request: SignInRequest, user: User): Option[Throwable] =
+    if (user.passwordHash == StringUtils.calculatePasswordHash(request.password.value, user.passwordSalt)) None
+    else Some(IncorrectPasswordException(authorizationFailure))
+
+  def userIsActive(user: User): Option[Throwable] =
+    if (user.active) None else Some(InactiveUserException(inactiveUserMessage))
 }
 
 object AuthService {
-  final val authorizationFailure = "invalid email or password"
+  val authorizationFailure = "invalid email or password"
+  val inactiveUserMessage = "User is not active"
 }
 
 sealed abstract class AuthorizationException extends Exception { val message: String }
 
 object AuthorizationException {
-
   case class IncorrectPasswordException(message: String) extends AuthorizationException()
+  case class InactiveUserException(message: String) extends AuthorizationException()
 
 }

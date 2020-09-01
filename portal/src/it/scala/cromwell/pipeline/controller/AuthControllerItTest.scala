@@ -47,6 +47,19 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
         }
       }
 
+      "return status Forbidden if user is inactive" in {
+        val dummyUser: User = TestUserUtils.getDummyUser(active = false)
+        whenReady(userRepository.addUser(dummyUser)) { _ =>
+          val signInRequestStr =
+            s"""{"email":"${dummyUser.email}","password":"${userPassword}"}"""
+          val httpEntity = HttpEntity(`application/json`, signInRequestStr)
+          Post("/auth/signIn", httpEntity) ~> authController.route ~> check {
+            status shouldBe StatusCodes.Forbidden
+            responseAs[String] shouldEqual "User is not active"
+          }
+        }
+      }
+
       "return status Unauthorized if password is incorrect" in {
         val dummyUser: User = TestUserUtils.getDummyUser(active = false)
         val incorrectPassword = dummyUser.email + "x"
