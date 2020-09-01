@@ -9,7 +9,7 @@ import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
 import cromwell.pipeline.datastorage.dto.auth._
 import cromwell.pipeline.model.validator.Enable
 import cromwell.pipeline.model.wrapper.{ Password, UserEmail, UserId }
-import cromwell.pipeline.service.AuthorizationException.IncorrectPasswordException
+import cromwell.pipeline.service.AuthorizationException.{ InactiveUserException, IncorrectPasswordException }
 import cromwell.pipeline.utils.{ AuthConfig, ExpirationTimeInSeconds }
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures.whenReady
@@ -36,11 +36,13 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
   private val authUtils: AuthUtils = stub[AuthUtils]
   private val authService: AuthService = new AuthService(userRepository, authUtils)
   private val userId = UserId.random
-
   private val userPassword = "Password213"
   private val incorrectUserPassword = "Password2134"
   private val dummyUser = TestUserUtils.getDummyUser(password = userPassword)
   private val userEmail = dummyUser.email
+  private val inactiveUserPassword = "Password213"
+  private val inactiveUser = TestUserUtils.getDummyUser(active = false, password = inactiveUserPassword)
+  private val inactiveUserEmail = inactiveUser.email
 
   "AuthServiceTest" when {
 
@@ -81,7 +83,22 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
     }
 
     "authorization fails if " should {
+
       "return Failed future when user is inactive" taggedAs Service in {
+        (userRepository.getUserByEmail _ when inactiveUserEmail).returns(Future(Some(inactiveUser)))
+        whenReady(
+          authService
+            .signIn(
+              SignInRequest(
+                UserEmail(inactiveUserEmail.unwrap, Enable.Unsafe),
+                Password(inactiveUserPassword, Enable.Unsafe)
+              )
+            )
+            .failed
+        ) { _ shouldBe InactiveUserException(AuthService.inactiveUserMessage) }
+      }
+
+      "return Failed future when password is incorrect" taggedAs Service in {
         (userRepository.getUserByEmail _ when userEmail).returns(Future(Some(dummyUser)))
         whenReady(
           authService
@@ -94,6 +111,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
             .failed
         ) { _ shouldBe IncorrectPasswordException(AuthService.authorizationFailure) }
       }
+
     }
   }
 
