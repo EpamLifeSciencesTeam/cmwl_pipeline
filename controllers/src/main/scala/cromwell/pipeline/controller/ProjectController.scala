@@ -6,7 +6,7 @@ import akka.http.scaladsl.server.Route
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.{ ProjectAdditionRequest, ProjectDeleteRequest, ProjectUpdateRequest }
 import cromwell.pipeline.service.Exceptions.{ ProjectAccessDeniedException, ProjectNotFoundException }
-import cromwell.pipeline.service.ProjectService
+import cromwell.pipeline.service.{ ProjectService, VersioningException }
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
 import scala.concurrent.ExecutionContext
@@ -31,7 +31,11 @@ class ProjectController(projectService: ProjectService)(
         post {
           entity(as[ProjectAdditionRequest]) { request =>
             onComplete(projectService.addProject(request, accessToken.userId)) {
-              case Success(_) => complete(StatusCodes.OK)
+              case Success(projectId) =>
+                projectId match {
+                  case Right(_)                     => complete(StatusCodes.OK)
+                  case Left(e: VersioningException) => complete(StatusCodes.InternalServerError, e.getMessage)
+                }
               case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
             }
           }
