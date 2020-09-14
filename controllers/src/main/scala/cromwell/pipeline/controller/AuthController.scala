@@ -6,7 +6,11 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, SignInRequest, SignUpRequest }
 import cromwell.pipeline.service.AuthService
-import cromwell.pipeline.service.AuthorizationException.{ InactiveUserException, IncorrectPasswordException }
+import cromwell.pipeline.service.AuthorizationException.{
+  DuplicateUserException,
+  InactiveUserException,
+  IncorrectPasswordException
+}
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
 import scala.concurrent.ExecutionContext
@@ -38,7 +42,9 @@ class AuthController(authService: AuthService)(implicit executionContext: Execut
           entity(as[SignUpRequest]) { request =>
             onComplete(authService.signUp(request)) {
               case Success(Some(authResponse)) => setSuccessAuthRoute(authResponse)
-              case _                           => complete(StatusCodes.BadRequest)
+              case Failure(DuplicateUserException(message)) =>
+                complete(HttpResponse(StatusCodes.BadRequest, entity = message))
+              case _ => complete(StatusCodes.BadRequest)
             }
           }
         }

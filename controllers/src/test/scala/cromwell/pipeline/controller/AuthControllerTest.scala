@@ -9,7 +9,11 @@ import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, SignInRequest, Sig
 import cromwell.pipeline.model.validator.Enable
 import cromwell.pipeline.model.wrapper.{ Name, Password, UserEmail }
 import cromwell.pipeline.service.AuthService
-import cromwell.pipeline.service.AuthorizationException.{ InactiveUserException, IncorrectPasswordException }
+import cromwell.pipeline.service.AuthorizationException.{
+  DuplicateUserException,
+  InactiveUserException,
+  IncorrectPasswordException
+}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ Assertion, Matchers, WordSpec }
 
@@ -127,6 +131,22 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
           Name(firstName, Enable.Unsafe),
           Name(lastName, Enable.Unsafe)
         )).returns(Future(throw new RuntimeException("Something wrong.")))
+
+        Post("/auth/signUp", httpEntity) ~> authController.route ~> check {
+          status shouldBe StatusCodes.BadRequest
+        }
+      }
+
+      "return BadRequest status if user already exists" taggedAs Controller in {
+        val signUpRequestStr =
+          s"""{"email":"${email}","password":"${password}","firstName":"${firstName}","lastName":"${lastName}"}"""
+        val httpEntity = HttpEntity(`application/json`, signUpRequestStr)
+        (authService.signUp _ when SignUpRequest(
+          UserEmail(email, Enable.Unsafe),
+          Password(password, Enable.Unsafe),
+          Name(firstName, Enable.Unsafe),
+          Name(lastName, Enable.Unsafe)
+        )).returns(Future.failed(DuplicateUserException(s"${email} already exists")))
 
         Post("/auth/signUp", httpEntity) ~> authController.route ~> check {
           status shouldBe StatusCodes.BadRequest
