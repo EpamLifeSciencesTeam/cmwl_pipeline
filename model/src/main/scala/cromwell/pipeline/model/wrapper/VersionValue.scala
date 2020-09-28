@@ -5,6 +5,8 @@ import cats.implicits.catsStdShowForString
 import cromwell.pipeline.model.validator.Wrapped
 import play.api.libs.json.Format
 
+import scala.util.Random
+
 final class VersionValue private (override val unwrap: Int) extends AnyVal with Wrapped[Int]
 
 object VersionValue extends Wrapped.Companion {
@@ -30,4 +32,6 @@ object VersionValue extends Wrapped.Companion {
     value,
     NonEmptyChain.one("Value should be not negative")
   )
+
+  def random: VersionValue = new VersionValue(Math.abs(Random.nextInt()))
 }
