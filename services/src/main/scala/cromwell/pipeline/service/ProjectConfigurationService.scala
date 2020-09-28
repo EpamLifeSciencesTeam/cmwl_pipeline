@@ -19,11 +19,11 @@ class ProjectConfigurationService(repository: DocumentRepository)(implicit ec: E
       .map(_.toString)
 
   def getById(projectId: ProjectId): Future[Option[ProjectConfigurationEntity]] =
-    repository.getByParam("projectId", projectId.value).flatMap { optDocument =>
-      Future(optDocument.filter(document => fromDocument(document).isActive).flatMap { document =>
+    repository.getByParam("projectId", projectId.value).map { optDocument =>
+      optDocument.filter(document => fromDocument(document).isActive).map { document =>
         val config = fromDocument(document)
-        Some(ProjectConfigurationEntity(config.projectId, config.projectFileConfigurations))
-      })
+        ProjectConfigurationEntity(config.projectId, config.projectFileConfigurations)
+      }
     }
 
   def deactivateConfiguration(projectId: ProjectId): Future[String] =
