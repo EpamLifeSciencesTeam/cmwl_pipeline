@@ -16,9 +16,14 @@ class DocumentRepository(collection: MongoCollection[Document]) {
   def replaceOne(document: Document, fieldName: String, name: String): Future[UpdateResult] =
     collection.replaceOne(equal(fieldName, name), document, ReplaceOptions().upsert(true)).toFuture()
 
-  def getByParam(field: String, name: String): Future[Seq[Document]] =
-    collection.find(equal(field, name)).toFuture()
+  def getByParam(field: String, name: String): Future[Option[Document]] =
+    collection.find(equal(field, name)).first().toFutureOption()
 
-  def updateOneField(fieldName: String, fieldValue: String, updatedField: String, updatedValue: AnyVal): Future[UpdateResult] =
+  def updateOneField(
+    fieldName: String,
+    fieldValue: String,
+    updatedField: String,
+    updatedValue: AnyVal
+  ): Future[UpdateResult] =
     collection.updateOne(equal(fieldName, fieldValue), set(updatedField, updatedValue)).toFuture()
 }

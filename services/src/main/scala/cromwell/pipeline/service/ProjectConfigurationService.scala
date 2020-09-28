@@ -19,16 +19,17 @@ class ProjectConfigurationService(repository: DocumentRepository)(implicit ec: E
       .map(_.toString)
 
   def getById(projectId: ProjectId): Future[Option[ProjectConfigurationEntity]] =
-    repository.getByParam("projectId", projectId.value).map(_.headOption.map(fromDocument)).map {
-      case Some(conf) if conf.isActive =>
-        Some(ProjectConfigurationEntity(conf.projectId, conf.projectFileConfigurations))
-      case _ => None
+    repository.getByParam("projectId", projectId.value).flatMap { optDocument =>
+      Future(optDocument.filter(document => fromDocument(document).isActive).flatMap { document =>
+        val config = fromDocument(document)
+        Some(ProjectConfigurationEntity(config.projectId, config.projectFileConfigurations))
+      })
     }
 
   def deactivateConfiguration(projectId: ProjectId): Future[String] =
     getById(projectId).flatMap {
       case Some(_) =>
         repository.updateOneField("projectId", projectId.value, "isActive", false).map(_.toString)
-      case _ => Future.successful("There is no project to deactivate")
+      case _ => Future.failed(new RuntimeException("There is no project to deactivate"))
     }
 }

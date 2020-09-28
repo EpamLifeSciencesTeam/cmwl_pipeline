@@ -44,12 +44,12 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
     "get configuration by project id" should {
       "return nodes by project id" in {
         when(configurationRepository.getByParam("projectId", projectId.value))
-          .thenReturn(Future.successful(List(document)))
+          .thenReturn(Future.successful(Some(document)))
         configurationService.getById(projectId).map(_ shouldBe Some(configurationResponse))
       }
 
       "return None if no configuration was matched" in {
-        when(configurationRepository.getByParam("projectId", projectId.value)).thenReturn(Future.successful(List()))
+        when(configurationRepository.getByParam("projectId", projectId.value)).thenReturn(Future.successful(None))
         configurationService.getById(projectId).map(_ shouldBe None)
       }
     }
@@ -58,7 +58,7 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
       "return complete status for deactivated configuration" in {
         when(updateResult.toString).thenReturn("Deactivation success")
         when(configurationRepository.getByParam("projectId", projectId.value))
-          .thenReturn(Future.successful(List(document)))
+          .thenReturn(Future.successful(Some(document)))
         when(configurationRepository.updateOneField("projectId", projectId.value, "isActive", false))
           .thenReturn(Future.successful(updateResult))
         configurationService.deactivateConfiguration(configuration.projectId).map(_ shouldBe "Deactivation success")
