@@ -1,5 +1,6 @@
 package cromwell.pipeline.controller
 
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.dimafeng.testcontainers.{ ForAllTestContainer, MongoDBContainer }
 import com.typesafe.config.Config
@@ -10,8 +11,14 @@ import org.scalatest.{ AsyncWordSpec, Matchers }
 import cromwell.pipeline.datastorage.dao.repository.DocumentRepository
 import org.mongodb.scala.{ Document, MongoClient }
 import com.osinka.subset._
-import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectConfigurationUtils
-import cromwell.pipeline.datastorage.dto.ProjectConfiguration
+import cromwell.pipeline.datastorage.dao.repository.utils.{
+  TestProjectConfigurationUtils,
+  TestProjectUtils,
+  TestUserUtils
+}
+import cromwell.pipeline.datastorage.dto.ProjectConfiguration.toDocument
+import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
+import cromwell.pipeline.datastorage.dto.{ ProjectConfiguration, User }
 
 class ProjectConfigurationControllerItTest
     extends AsyncWordSpec
@@ -38,8 +45,19 @@ class ProjectConfigurationControllerItTest
     val x = configurationRepository.addOne(doc)
   }
 
+  "project configuration controller" when {
+    "add some project configuration" should {
+      "return OK status code" in {
+        val dummyUser: User = TestUserUtils.getDummyUser()
+        val dummyProject = TestProjectUtils.getDummyProject()
+        val projectConfiguration = ProjectConfiguration(dummyProject.projectId, List())
+        val accessToken = AccessTokenContent(dummyUser.userId)
+        configurationRepository.addOne(toDocument(projectConfiguration)).flatMap { _ =>
+          Get("/configurations?=" + dummyProject.projectId) ~> configurationController.route(accessToken) ~> check {
+            status shouldBe StatusCodes.OK
+          }
+        }
+      }
+    }
+  }
 }
-//  TODO
-// import Document repository before tests
-// doc. Rep. addOne(DummyProjectConf? id + list of files(none)  ).map(_ => ...)
-//  val parsedDoc = ("Hello")
