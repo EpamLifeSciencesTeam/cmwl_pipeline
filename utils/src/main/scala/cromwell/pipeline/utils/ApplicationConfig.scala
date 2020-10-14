@@ -32,6 +32,12 @@ final case class MongoConfig(
   collection: String
 ) extends ConfigComponent
 
+final case class CromwellConfig(
+  host: String,
+  version: String,
+  enginePath: String
+) extends ConfigComponent
+
 final case class ExpirationTimeInSeconds(accessToken: Long, refreshToken: Long, userSession: Long)
 
 class ApplicationConfig(val config: Config) {
@@ -83,6 +89,12 @@ class ApplicationConfig(val config: Config) {
     )
   }
 
+  lazy val cromwellConfig: CromwellConfig =
+    CromwellConfig(
+      host = config.getString("cromwell-backend.host"),
+      version = config.getString("cromwell-backend.version"),
+      enginePath = config.getString("cromwell-backend.enginePath")
+    )
 }
 
 object ApplicationConfig {

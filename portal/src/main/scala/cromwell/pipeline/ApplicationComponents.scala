@@ -22,8 +22,14 @@ final class ApplicationComponents(
   lazy val datastorageModule: DatastorageModule = new DatastorageModule(applicationConfig)
   lazy val httpClient: HttpClient = new AkkaHttpClient()
   lazy val womToolModule: WomToolModule = new WomToolModule()
-  lazy val serviceModule: ServiceModule =
-    new ServiceModule(datastorageModule, authModule, httpClient, applicationConfig.gitLabConfig, womToolModule)
+  lazy val serviceModule: ServiceModule = new ServiceModule(
+    datastorageModule,
+    authModule,
+    httpClient,
+    applicationConfig.gitLabConfig,
+    applicationConfig.cromwellConfig,
+    womToolModule
+  )
   lazy val controllerModule: ControllerModule = new ControllerModule(serviceModule, applicationConfig.authConfig)
 
 }

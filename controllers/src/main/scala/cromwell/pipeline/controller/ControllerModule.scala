@@ -15,4 +15,5 @@ class ControllerModule(serviceModule: ServiceModule, authConfig: AuthConfig)(
   lazy val projectController: ProjectController = new ProjectController(serviceModule.projectService)
   lazy val projectFileController: ProjectFileController = new ProjectFileController(serviceModule.projectFileService)
   lazy val configurationController = new ProjectConfigurationController(serviceModule.configurationService)
+  lazy val cromwellController = new CromwellController(serviceModule.cromwellService)
 }

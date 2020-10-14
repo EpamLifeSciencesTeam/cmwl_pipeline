@@ -2,7 +2,7 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.auth.AuthModule
 import cromwell.pipeline.datastorage.DatastorageModule
-import cromwell.pipeline.utils.GitLabConfig
+import cromwell.pipeline.utils.{CromwellConfig, GitLabConfig}
 
 import scala.concurrent.ExecutionContext
 
@@ -11,6 +11,7 @@ class ServiceModule(
   authModule: AuthModule,
   httpClient: HttpClient,
   config: GitLabConfig,
+  cromwellConfig: CromwellConfig,
   womToolModule: WomToolModule
 )(
   implicit executionContext: ExecutionContext
@@ -23,4 +24,5 @@ class ServiceModule(
 
   lazy val projectFileService: ProjectFileService = new ProjectFileService(womToolModule.womTool, projectVersioning)
   lazy val configurationService = new ProjectConfigurationService(datastorageModule.configurationRepository)
+  lazy val cromwellService: CromwellService = new CromwellService(httpClient, cromwellConfig)
 }
