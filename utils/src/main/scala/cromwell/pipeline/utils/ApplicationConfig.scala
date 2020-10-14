@@ -3,8 +3,64 @@ package cromwell.pipeline.utils
 import com.typesafe.config.{ Config, ConfigFactory }
 import pdi.jwt.JwtAlgorithm
 import pdi.jwt.algorithms.JwtHmacAlgorithm
+import play.api.libs.json.{ JsObject, Json, Writes }
 
 sealed trait ConfigComponent
+object ConfigComponent {
+  implicit val webserviceWrites = new Writes[WebServiceConfig] {
+    def writes(config: WebServiceConfig) = Json.obj(
+      "interface" -> config.interface,
+      "port" -> config.port
+    )
+  }
+
+  implicit val gitlabWrites = new Writes[GitLabConfig] {
+    def writes(config: GitLabConfig) = Json.obj(
+      "url" -> config.url,
+      "idPath" -> config.idPath,
+      "token" -> config.token.map { case (k, v) => k -> v.map(_ => '*') },
+      "defaultFileVersion" -> config.defaultFileVersion,
+      "defaultBranch" -> config.defaultBranch
+    )
+  }
+
+  implicit val expTimeWrites = new Writes[ExpirationTimeInSeconds] {
+    def writes(token: ExpirationTimeInSeconds) = Json.obj(
+      "accessToken" -> token.accessToken,
+      "refreshToken" -> token.refreshToken,
+      "userSession" -> token.userSession
+    )
+  }
+
+  implicit val authWrites = new Writes[AuthConfig] {
+    def writes(config: AuthConfig) = Json.obj(
+      "secretKey" -> config.secretKey.map(_ => '*'),
+      "hmacAlgorithm" -> config.hmacAlgorithm.toString,
+      "expirationTimeInSeconds" -> Json.toJson(config.expirationTimeInSeconds)
+    )
+  }
+
+  implicit val mongoWrites = new Writes[MongoConfig] {
+    def writes(config: MongoConfig) = Json.obj(
+      "user" -> config.user,
+      "password" -> config.password.map(_ => '*'),
+      "host" -> config.host,
+      "port" -> config.port,
+      "authenticationDatabase" -> config.authenticationDatabase,
+      "database" -> config.database,
+      "collection" -> config.collection
+    )
+  }
+  implicit val postgresWrites = new Writes[PostgresConfig] {
+    def writes(config: PostgresConfig) = Json.obj(
+      "user" -> config.user,
+      "password" -> config.password.map(_ => '*'),
+      "host" -> config.host,
+      "port" -> config.port,
+      "database" -> config.database
+    )
+  }
+}
 
 final case class WebServiceConfig(interface: String, port: Int) extends ConfigComponent
 
@@ -30,6 +86,14 @@ final case class MongoConfig(
   authenticationDatabase: String,
   database: String,
   collection: String
+) extends ConfigComponent
+
+final case class PostgresConfig(
+  user: String,
+  password: String,
+  host: String,
+  port: Int,
+  database: String
 ) extends ConfigComponent
 
 final case class ExpirationTimeInSeconds(accessToken: Long, refreshToken: Long, userSession: Long)
@@ -90,6 +154,15 @@ class ApplicationConfig(val config: Config) {
     )
   }
 
+  lazy val postgresConfig: PostgresConfig = {
+    PostgresConfig(
+      user = config.getString("database.postgres_dc.db.properties.user"),
+      password = config.getString("database.postgres_dc.db.properties.password"),
+      host = config.getString("database.postgres_dc.db.properties.serverName"),
+      port = config.getInt("database.postgres_dc.db.properties.portNumber"),
+      database = config.getString("database.postgres_dc.db.properties.databaseName")
+    )
+  }
 }
 
 object ApplicationConfig {

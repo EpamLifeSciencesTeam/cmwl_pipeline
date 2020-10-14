@@ -8,7 +8,9 @@ import akka.http.scaladsl.server.{ RejectionHandler, Route, ValidationRejection 
 import akka.stream.ActorMaterializer
 import cromwell.pipeline.auth.token.MissingAccessTokenRejection
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
+import cromwell.pipeline.utils.ApplicationConfig
 import org.slf4j.LoggerFactory
+import play.api.libs.json._
 
 import scala.concurrent.ExecutionContextExecutor
 
@@ -20,6 +22,18 @@ object CromwellPipelineApp extends App {
 
   val log = LoggerFactory.getLogger(CromwellPipelineApp.getClass)
   val components = new ApplicationComponents()
+
+  log.info(
+    Json.prettyPrint(
+      Json.obj(
+        "auth" -> Json.toJson(ApplicationConfig.load().authConfig),
+        "webservice" -> Json.toJson(ApplicationConfig.load().webServiceConfig),
+        "mongo" -> Json.toJson(ApplicationConfig.load().mongoConfig),
+        "postgres" -> Json.toJson(ApplicationConfig.load().postgresConfig),
+        "gitlab" -> Json.toJson(ApplicationConfig.load().gitLabConfig)
+      )
+    )
+  )
 
   import components.applicationConfig.webServiceConfig
   import components.controllerModule._

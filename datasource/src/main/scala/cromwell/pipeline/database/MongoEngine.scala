@@ -17,7 +17,7 @@ class MongoEngine(mongoConfig: MongoConfig) extends AutoCloseable {
   lazy val mongoCredential: MongoCredential = MongoCredential.createCredential(
     mongoConfig.user,
     mongoConfig.authenticationDatabase,
-    mongoConfig.password
+    mongoConfig.password.toCharArray
   )
   lazy val mongoSettings: MongoClientSettings = MongoClientSettings
     .builder()
