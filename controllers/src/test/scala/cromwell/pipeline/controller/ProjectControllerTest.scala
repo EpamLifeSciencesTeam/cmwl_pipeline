@@ -5,6 +5,7 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.datastorage.dao.repository.utils.{ TestProjectUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.{ Project, ProjectDeleteRequest, ProjectUpdateRequest }
+import cromwell.pipeline.service.Exceptions.{ ProjectAccessDeniedException, ProjectNotFoundException }
 import cromwell.pipeline.service.ProjectService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import org.mockito.Mockito.when
@@ -32,6 +33,31 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
         Get("/projects?name=" + projectByName) ~> projectController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
           responseAs[Option[Project]] shouldEqual (getProjectByNameResponse)
+        }
+      }
+
+      "return 404 if the project isn't found" in {
+        val projectByName: String = "dummyProject"
+        val dummyProject: Project = TestProjectUtils.getDummyProject()
+        val accessToken = AccessTokenContent(dummyProject.ownerId)
+        when(projectService.getProjectByName(projectByName, accessToken.userId))
+          .thenReturn(Future.failed(new ProjectNotFoundException))
+
+        Get("/projects?name=" + projectByName) ~> projectController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.NotFound
+        }
+      }
+
+      "return 403 if the project isn't found" in {
+        val projectByName: String = "dummyProject"
+        val dummyProject: Project = TestProjectUtils.getDummyProject()
+
+        val accessToken = AccessTokenContent(dummyProject.ownerId)
+        when(projectService.getProjectByName(projectByName, accessToken.userId))
+          .thenReturn(Future.failed(new ProjectAccessDeniedException))
+
+        Get("/projects?name=" + projectByName) ~> projectController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.Forbidden
         }
       }
     }
@@ -87,8 +113,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
         val dummyProject = TestProjectUtils.getDummyProject()
         val request = ProjectUpdateRequest(dummyProject.projectId, dummyProject.name, dummyProject.repository)
 
-        when(projectService.updateProject(request, userId))
-          .thenReturn(Future.failed(new RuntimeException("Something wrong")))
+        when(projectService.updateProject(request, userId)).thenReturn(Future.failed(new ProjectAccessDeniedException))
 
         Put("/projects", request) ~> projectController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
