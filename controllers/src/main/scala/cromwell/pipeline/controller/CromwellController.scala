@@ -18,7 +18,7 @@ class CromwellController(cromwellBackendService: CromwellService)(
       concat(
         get {
           onComplete(cromwellBackendService.getEngineStatus()) {
-            case Success(Right(status)) => complete(status.toString)
+            case Success(Right(state)) => complete(StatusCodes.OK, state.toString)
             case Success(Left(exception)) => complete(StatusCodes.UnprocessableEntity, exception.getMessage)
             case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
           }
