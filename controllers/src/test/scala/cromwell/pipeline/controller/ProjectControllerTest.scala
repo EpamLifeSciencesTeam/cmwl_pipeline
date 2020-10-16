@@ -36,7 +36,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
         }
       }
 
-      "return 404 if the project isn't found" in {
+      "return 404 if the project isn't found" taggedAs Controller in {
         val projectByName: String = "dummyProject"
         val dummyProject: Project = TestProjectUtils.getDummyProject()
         val accessToken = AccessTokenContent(dummyProject.ownerId)
@@ -48,7 +48,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
         }
       }
 
-      "return 403 if the project isn't found" in {
+      "return 403 if the project isn't found" taggedAs Controller in {
         val projectByName: String = "dummyProject"
         val dummyProject: Project = TestProjectUtils.getDummyProject()
 
@@ -61,7 +61,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
         }
       }
 
-      "return 500 if the project isn't found" in {
+      "return 500 if the project isn't found" taggedAs Controller in {
         val projectByName: String = "dummyProject"
         val dummyProject: Project = TestProjectUtils.getDummyProject()
 
@@ -99,6 +99,32 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
 
         when(projectService.deactivateProjectById(request.projectId, userId))
           .thenReturn(Future.failed(new RuntimeException("Something wrong")))
+
+        Delete("/projects", request) ~> projectController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.InternalServerError
+        }
+      }
+
+      "return 403 if access is denied" taggedAs Controller in {
+        val userId = TestUserUtils.getDummyUserId
+        val request = ProjectDeleteRequest(TestProjectUtils.getDummyProject().projectId)
+        val accessToken = AccessTokenContent(userId)
+
+        when(projectService.deactivateProjectById(request.projectId, userId))
+          .thenReturn(Future.failed(new ProjectAccessDeniedException))
+
+        Delete("/projects", request) ~> projectController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.Forbidden
+        }
+      }
+
+      "return 404 if the project isn't found" taggedAs Controller in {
+        val userId = TestUserUtils.getDummyUserId
+        val request = ProjectDeleteRequest(TestProjectUtils.getDummyProject().projectId)
+        val accessToken = AccessTokenContent(userId)
+
+        when(projectService.deactivateProjectById(request.projectId, userId))
+          .thenReturn(Future.failed(new ProjectNotFoundException))
 
         Delete("/projects", request) ~> projectController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
