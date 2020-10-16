@@ -127,7 +127,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
           .thenReturn(Future.failed(new ProjectNotFoundException))
 
         Delete("/projects", request) ~> projectController.route(accessToken) ~> check {
-          status shouldBe StatusCodes.InternalServerError
+          status shouldBe StatusCodes.NotFound
         }
       }
     }
