@@ -5,6 +5,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.service.CromwellService
+import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
 import scala.concurrent.ExecutionContext
 import scala.util.{ Failure, Success }
@@ -18,7 +19,7 @@ class CromwellController(cromwellBackendService: CromwellService)(
       concat(
         get {
           onComplete(cromwellBackendService.getEngineStatus()) {
-            case Success(Right(state)) => complete(StatusCodes.OK, state.toString)
+            case Success(Right(state)) => complete(StatusCodes.OK, state)
             case Success(Left(exception)) => complete(StatusCodes.UnprocessableEntity, exception.getMessage)
             case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
           }
