@@ -10,5 +10,6 @@
     <property name="binary_data.type" value="BYTEA" dbms="postgresql"/>
     <property name="text.type" value="TEXT" dbms="postgresql"/>
     <property name="boolean.type" value="BOOLEAN" dbms="postgresql"/>
+    <property name="timestamp.type" value="TIMESTAMP" dbms="postgresql"/>
 
 </databaseChangeLog>
