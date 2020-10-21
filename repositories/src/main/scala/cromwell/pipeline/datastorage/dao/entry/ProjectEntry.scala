@@ -1,37 +1,11 @@
 package cromwell.pipeline.datastorage.dao
 
-import com.github.tminglei.slickpg.PgEnumSupport
 import cromwell.pipeline.datastorage.Profile
 import cromwell.pipeline.datastorage.dao.entry.UserEntry
+import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectId, Repository, Visibility }
-import slick.basic.Capability
-import slick.jdbc.{ JdbcType, PostgresProfile }
 
-trait ProjectProfileWithEnumSupport extends PostgresProfile with PgEnumSupport {
-  override protected def computeCapabilities: Set[Capability] =
-    super.computeCapabilities + slick.jdbc.JdbcCapabilities.insertOrUpdate
-  override val api: API = new API {}
-  trait API extends super.API {
-    implicit val visibilityTypeMapper: JdbcType[Visibility] =
-      createEnumJdbcType[Visibility]("visibility_type", Visibility.toString, Visibility.fromString, quoteName = false)
-    implicit val visibilityTypeListMapper: JdbcType[List[Visibility]] =
-      createEnumListJdbcType[Visibility](
-        "visibility_type",
-        Visibility.toString,
-        Visibility.fromString,
-        quoteName = false
-      )
-    implicit val visibilityColumnExtensionMethodsBuilder
-      : api.Rep[Visibility] => EnumColumnExtensionMethods[Visibility, Visibility] =
-      createEnumColumnExtensionMethodsBuilder[Visibility]
-    implicit val visibilityOptionColumnExtensionMethodsBuilder
-      : api.Rep[Option[Visibility]] => EnumColumnExtensionMethods[Visibility, Option[Visibility]] =
-      createEnumOptionColumnExtensionMethodsBuilder[Visibility]
-  }
-}
-
-trait ProjectEntry { this: Profile with UserEntry with ProjectProfileWithEnumSupport =>
+trait ProjectEntry { this: Profile with UserEntry with CustomsWithEnumSupport =>
   import Implicits._
   import api._
 
