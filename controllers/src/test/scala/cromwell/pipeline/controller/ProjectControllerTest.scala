@@ -83,7 +83,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
 
       "return InternalServerError status if the update failed" taggedAs Controller in {
         val userId = TestUserUtils.getDummyUserId
-        val accessToken = AccessTokenContent(TestUserUtils.getDummyUserId)
+        val accessToken = AccessTokenContent(userId)
         val dummyProject = TestProjectUtils.getDummyProject()
         val request = ProjectUpdateRequest(dummyProject.projectId, dummyProject.name, dummyProject.repository)
 
