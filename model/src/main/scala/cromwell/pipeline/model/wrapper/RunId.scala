@@ -1,9 +1,9 @@
 package cromwell.pipeline.model.wrapper
 
 import cats.data.{ NonEmptyChain, Validated }
+import cats.implicits.catsStdShowForString
 import cromwell.pipeline.model.validator.Wrapped
 import play.api.libs.json.Format
-import cats.implicits.catsStdShowForString
 
 final class RunId private (override val unwrap: String) extends AnyVal with Wrapped[String]
 

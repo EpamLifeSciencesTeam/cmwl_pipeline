@@ -22,9 +22,9 @@ class RunRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfterA
   import datastorageModule.{ projectRepository, runRepository, userRepository }
   "RunRepository" when {
 
-    "getRunById" should {
+    "getRunByIdAndUser" should {
 
-      "find newly added run by id" taggedAs Dao in {
+      "find newly added run by id and user id" taggedAs Dao in {
         val dummyUser: User = TestUserUtils.getDummyUser()
         val dummyProject: Project = TestProjectUtils.getDummyProject(ownerId = dummyUser.userId)
         val dummyRun: Run = TestRunUtils.getDummyRun(userId = dummyUser.userId, projectId = dummyProject.projectId)
@@ -33,7 +33,7 @@ class RunRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfterA
           _ <- addUserFuture
           _ <- projectRepository.addProject(dummyProject)
           _ <- runRepository.addRun(dummyRun)
-          getById <- runRepository.getRunById(dummyRun.runId)
+          getById <- runRepository.getRunByIdAndUser(dummyRun.runId, dummyUser.userId)
         } yield getById
         result.map(optRun => optRun shouldEqual Some(dummyRun))
       }
@@ -60,7 +60,7 @@ class RunRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfterA
           _ <- projectRepository.addProject(dummyProject)
           _ <- runRepository.addRun(dummyRun)
           _ <- runRepository.updateRun(updatedRun)
-          getById <- runRepository.getRunById(dummyRun.runId)
+          getById <- runRepository.getRunByIdAndUser(dummyRun.runId, dummyUser.userId)
         } yield getById
 
         result.map(optRun => optRun shouldEqual Some(updatedRun))
@@ -79,7 +79,7 @@ class RunRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfterA
           _ <- projectRepository.addProject(dummyProject)
           _ <- runRepository.addRun(dummyRun)
           _ <- runRepository.deleteRunById(dummyRun.runId)
-          getById <- runRepository.getRunById(dummyRun.runId)
+          getById <- runRepository.getRunByIdAndUser(dummyRun.runId, dummyUser.userId)
         } yield getById
 
         result.map(optRun => optRun shouldEqual None)
