@@ -7,7 +7,7 @@ import akka.http.scaladsl.model.StatusCodes
 import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto.File.UpdateFileRequest
 import cromwell.pipeline.datastorage.dto._
-import cromwell.pipeline.utils.tags.ScheduledResource
+import cromwell.pipeline.utils.tags.annotations.ScheduledResource
 import cromwell.pipeline.utils.{AkkaTestSources, ApplicationConfig, GitLabConfig, HttpStatusCodes}
 import org.mockito.Mockito.when
 import org.mockito.{Matchers => MockitoMatchers}
@@ -18,6 +18,7 @@ import play.api.libs.json.Reads
 
 import scala.concurrent.{ExecutionContext, Future}
 
+@ScheduledResource
 class GitLabProjectVersioningTest
     extends AsyncWordSpec
     with ScalaFutures
@@ -54,13 +55,13 @@ class GitLabProjectVersioningTest
           payload = postProject
         )
 
-      "throw new VersioningException for inactive project" taggedAs(Service, ScheduledResource) in {
+      "throw new VersioningException for inactive project" taggedAs Service  in {
         whenReady(gitLabProjectVersioning.createRepository(inactiveProject).failed) {
           _ shouldBe VersioningException.RepositoryException("Could not create a repository for deleted project.")
         }
       }
 
-      "return new active Project with 201 response" taggedAs(Service, ScheduledResource) in {
+      "return new active Project with 201 response" taggedAs Service in {
 
         val project = withGitlabProject
 
@@ -75,7 +76,7 @@ class GitLabProjectVersioningTest
         }
       }
 
-      "throw new VersioningException with 400 response" taggedAs(Service, ScheduledResource) in {
+      "throw new VersioningException with 400 response" taggedAs Service in {
         when(request(postProject)).thenReturn(
           Future.successful(
             Response[RepositoryId](
@@ -101,7 +102,7 @@ class GitLabProjectVersioningTest
           params = MockitoMatchers.any[Map[String, String]]
         )(MockitoMatchers.any[ExecutionContext], MockitoMatchers.any[Reads[Seq[GitLabVersion]]])
 
-      "return list of Project versions with 200 response" taggedAs(Service, ScheduledResource) in {
+      "return list of Project versions with 200 response" taggedAs Service in {
         when(request(withRepoProject)).thenReturn(
           Future.successful(
             Response[Seq[GitLabVersion]](
@@ -116,7 +117,7 @@ class GitLabProjectVersioningTest
         }
       }
 
-      "throw new VersioningException with 400 response" taggedAs(Service, ScheduledResource) in {
+      "throw new VersioningException with 400 response" taggedAs Service in {
         val activeProject: Project = TestProjectUtils.getDummyProject()
         val withRepoProject: Project =
           activeProject.withRepository(Some(s"${gitLabConfig.idPath}${activeProject.projectId.value}"))
@@ -163,7 +164,7 @@ class GitLabProjectVersioningTest
         )
       )
 
-      "return create file response when file is new" taggedAs(Service, ScheduledResource) in {
+      "return create file response when file is new" taggedAs Service in {
         val path = URLEncoder.encode(newFile.path.toString, "UTF-8")
         val url = s"${gitLabConfig.url}projects/${withRepoProject.repository.get.value}/repository/files/$path"
         val payload =
@@ -235,7 +236,7 @@ class GitLabProjectVersioningTest
         }
       }
 
-      "return update file response when file is already exist" taggedAs(Service, ScheduledResource) in {
+      "return update file response when file is already exist" taggedAs Service in {
         val payload =
           File.UpdateFileRequest(existFile.content, dummyPipelineVersionHigher.name, gitLabConfig.defaultBranch)
         val path = URLEncoder.encode(existFile.path.toString, "UTF-8")
@@ -273,7 +274,7 @@ class GitLabProjectVersioningTest
     }
 
     "getFile" should {
-      "return file with 200 response" taggedAs(Service, ScheduledResource) in {
+      "return file with 200 response" taggedAs Service in {
         val path = Paths.get("test.md")
 
         when(
@@ -294,7 +295,7 @@ class GitLabProjectVersioningTest
           .map(_ shouldBe (Right(ProjectFile(path, ProjectFileContent("Test File")))))
       }
 
-      "throw new VersioningException with not 200 response" taggedAs(Service, ScheduledResource) in {
+      "throw new VersioningException with not 200 response" taggedAs Service in {
         val path = Paths.get("test.md")
 
         when(
@@ -327,7 +328,7 @@ class GitLabProjectVersioningTest
           headers = MockitoMatchers.eq(gitLabConfig.token)
         )(ec = MockitoMatchers.any[ExecutionContext], f = MockitoMatchers.any[Reads[List[FileCommit]]])
 
-      "return list of Project versions with 200 response" taggedAs(Service, ScheduledResource) in {
+      "return list of Project versions with 200 response" taggedAs Service in {
         when(request(withRepoProject)).thenReturn(
           Future.successful(Response[List[FileCommit]](HttpStatusCodes.OK, SuccessResponseBody(dummyCommitList), Map()))
         )
@@ -336,7 +337,7 @@ class GitLabProjectVersioningTest
         }
       }
 
-      "throw new VersioningException with 400 response" taggedAs(Service, ScheduledResource) in {
+      "throw new VersioningException with 400 response" taggedAs Service in {
         when(request(withRepoProject)).thenReturn(
           Future.successful(
             Response[List[FileCommit]](HttpStatusCodes.BadRequest, FailureResponseBody("Response status: 400"), Map())
@@ -373,7 +374,7 @@ class GitLabProjectVersioningTest
           headers = MockitoMatchers.eq(gitLabConfig.token)
         )(ec = MockitoMatchers.any[ExecutionContext], f = MockitoMatchers.any[Reads[List[FileCommit]]])
 
-      "return list of Project versions with 200 response" taggedAs(Service, ScheduledResource) in {
+      "return list of Project versions with 200 response" taggedAs Service in {
         when(projectVersionRequest(withRepoProject)).thenReturn(
           Future.successful(
             Response[Seq[GitLabVersion]](HttpStatusCodes.OK, SuccessResponseBody(Seq(dummyVersionsJson)), Map())
@@ -387,7 +388,7 @@ class GitLabProjectVersioningTest
         }
       }
 
-      "throw new VersioningException" taggedAs(Service, ScheduledResource) in {
+      "throw new VersioningException" taggedAs Service in {
         val errorText = ""
         when(projectVersionRequest(withRepoProject)).thenReturn(
           Future.successful(
