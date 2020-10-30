@@ -10,7 +10,7 @@ final case class Run(
   runId: RunId,
   projectId: ProjectId,
   projectVersion: String,
-  status: Status = Submitted,
+  status: Status = Created,
   timeStart: Instant,
   timeEnd: Option[Instant] = None,
   userId: UserId,
@@ -23,6 +23,7 @@ object Run {
 }
 
 sealed trait Status
+case object Created extends Status
 case object Submitted extends Status
 case object Done extends Status
 
@@ -33,12 +34,45 @@ object Status {
   def fromString(s: String): Status = s match {
     case "submitted" => Submitted
     case "done"      => Done
+    case "created"   => Created
   }
 
   def toString(status: Status): String = status match {
     case Submitted => "submitted"
     case Done      => "done"
+    case Created   => "created"
   }
 
-  def values = Seq(Submitted, Done)
+  def values = Seq(Submitted, Done, Created)
+}
+
+final case class RunCreateRequest(
+  projectId: ProjectId,
+  projectVersion: String,
+  results: String,
+  userId: UserId,
+  cmwlWorkflowId: Option[String] = None
+)
+
+object RunCreateRequest {
+  implicit val updateRequestFormat: OFormat[RunCreateRequest] = Json.format[RunCreateRequest]
+}
+
+final case class RunDeleteRequest(runId: RunId)
+
+object RunDeleteRequest {
+  implicit lazy val projectDeleteFormat: OFormat[RunDeleteRequest] = Json.format[RunDeleteRequest]
+}
+
+final case class RunUpdateRequest(
+  runId: RunId,
+  status: Status,
+  timeStart: Instant,
+  timeEnd: Option[Instant],
+  results: String,
+  cmwlWorkflowId: Option[String]
+)
+
+object RunUpdateRequest {
+  implicit val updateRequestFormat: OFormat[RunUpdateRequest] = Json.format[RunUpdateRequest]
 }
