@@ -2,18 +2,28 @@ package cromwell.pipeline.service
 
 import java.time.Instant
 
+import cats.implicits.catsStdShowForString
 import cromwell.pipeline.auth.AuthUtils
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
-import cromwell.pipeline.datastorage.dto.auth.{ AccessTokenContent, AuthContent, AuthResponse, RefreshTokenContent }
-import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
+import cromwell.pipeline.datastorage.dto.auth._
+import cromwell.pipeline.model.validator.Enable
+import cromwell.pipeline.model.wrapper.{ Password, UserEmail, UserId }
+import cromwell.pipeline.service.AuthorizationException.{
+  DuplicateUserException,
+  InactiveUserException,
+  IncorrectPasswordException
+}
 import cromwell.pipeline.utils.{ AuthConfig, ExpirationTimeInSeconds }
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.concurrent.ScalaFutures.whenReady
 import org.scalatest.{ Matchers, WordSpec }
 import pdi.jwt.algorithms.JwtHmacAlgorithm
+import org.mockito.Matchers.any
 import pdi.jwt.{ Jwt, JwtAlgorithm, JwtClaim }
 import play.api.libs.json.Json
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ ExecutionContext, Future }
 
 class AuthServiceTest extends WordSpec with Matchers with MockFactory {
 
@@ -31,6 +41,13 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
   private val authUtils: AuthUtils = stub[AuthUtils]
   private val authService: AuthService = new AuthService(userRepository, authUtils)
   private val userId = UserId.random
+  private val userPassword = "Password213"
+  private val incorrectUserPassword = "Password2134"
+  private val dummyUser = TestUserUtils.getDummyUser(password = userPassword)
+  private val userEmail = dummyUser.email
+  private val inactiveUserPassword = "Password213"
+  private val inactiveUser = TestUserUtils.getDummyUser(active = false, password = inactiveUserPassword)
+  private val inactiveUserEmail = inactiveUser.email
 
   "AuthServiceTest" when {
 
@@ -67,6 +84,104 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
         (authUtils.getOptJwtClaims _ when wrongToken).returns(None)
 
         authService.refreshTokens(wrongToken) shouldBe None
+      }
+    }
+
+    "signUp" should {
+
+      "return Failed future when user already exists" taggedAs Service in {
+        (userRepository.getUserByEmail _ when userEmail).returns(Future.successful(Some(dummyUser)))
+        whenReady(
+          authService
+            .signUp(
+              SignUpRequest(
+                dummyUser.email,
+                Password(userPassword, Enable.Unsafe),
+                dummyUser.firstName,
+                dummyUser.lastName
+              )
+            )
+            .failed
+        ) { _ shouldBe DuplicateUserException(s"${userEmail} already exists") }
+      }
+    }
+
+    "signIn" should {
+
+      "return Failed future when user is inactive" taggedAs Service in {
+        (userRepository.getUserByEmail _ when inactiveUserEmail).returns(Future.successful(Some(inactiveUser)))
+        whenReady(
+          authService
+            .signIn(
+              SignInRequest(
+                UserEmail(inactiveUserEmail.unwrap, Enable.Unsafe),
+                Password(inactiveUserPassword, Enable.Unsafe)
+              )
+            )
+            .failed
+        ) { _ shouldBe InactiveUserException(AuthService.inactiveUserMessage) }
+      }
+
+      "return Failed future when password is incorrect" taggedAs Service in {
+        (userRepository.getUserByEmail _ when userEmail).returns(Future.successful(Some(dummyUser)))
+        whenReady(
+          authService
+            .signIn(
+              SignInRequest(
+                UserEmail(userEmail.unwrap, Enable.Unsafe),
+                Password(incorrectUserPassword, Enable.Unsafe)
+              )
+            )
+            .failed
+        ) { _ shouldBe IncorrectPasswordException(AuthService.authorizationFailure) }
+      }
+    }
+
+    "takeUserFromRequest" should {
+      "return some User" in {
+        val request = SignInRequest(
+          dummyUser.email,
+          Password(userPassword, Enable.Unsafe)
+        )
+        (userRepository.getUserByEmail _ when dummyUser.email).returns(Future.successful(Some(dummyUser)))
+        whenReady(authService.takeUserFromRequest(request).value) { _ shouldBe Some(dummyUser) }
+      }
+    }
+
+    "responseFromUser" should {
+      "return AuthResponse" in {
+        (authUtils.getAuthResponse _ when (*, *, *)).returns(Some(any[AuthResponse]))
+        authService.responseFromUser(dummyUser) shouldBe Some(any[AuthResponse])
+      }
+    }
+
+    "passwordCorrect" should {
+      "return None if a password is correct" in {
+        val request = SignInRequest(
+          dummyUser.email,
+          Password(userPassword, Enable.Unsafe)
+        )
+        authService.passwordCorrect(request, dummyUser) shouldBe None
+      }
+
+      "throw the exception if the password is incorrect" in {
+        val request = SignInRequest(
+          dummyUser.email,
+          Password(incorrectUserPassword, Enable.Unsafe)
+        )
+        authService.passwordCorrect(request, dummyUser) shouldBe
+          Some(IncorrectPasswordException(AuthService.authorizationFailure))
+      }
+    }
+
+    "userIsActive" should {
+      "return None if a user is active" in {
+        authService.userIsActive(dummyUser) shouldBe None
+      }
+
+      "throw the exception if a user isn't active" in {
+        authService.userIsActive(inactiveUser) shouldBe
+          Some(InactiveUserException(AuthService.inactiveUserMessage))
       }
     }
   }

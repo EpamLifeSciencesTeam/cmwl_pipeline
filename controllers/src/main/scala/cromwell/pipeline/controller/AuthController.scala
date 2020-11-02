@@ -1,15 +1,20 @@
 package cromwell.pipeline.controller
 
-import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.{ HttpResponse, StatusCodes }
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, SignInRequest, SignUpRequest }
 import cromwell.pipeline.service.AuthService
+import cromwell.pipeline.service.AuthorizationException.{
+  DuplicateUserException,
+  InactiveUserException,
+  IncorrectPasswordException
+}
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
 import scala.concurrent.ExecutionContext
-import scala.util.Success
+import scala.util.{ Failure, Success }
 
 class AuthController(authService: AuthService)(implicit executionContext: ExecutionContext) {
 
@@ -19,11 +24,16 @@ class AuthController(authService: AuthService)(implicit executionContext: Execut
     concat(
       path("signIn") {
         post {
-          entity(as[SignInRequest]) { request =>
-            onComplete(authService.signIn(request)) {
-              case Success(Some(authResponse)) => setSuccessAuthRoute(authResponse)
-              case _                           => complete(StatusCodes.Unauthorized)
-            }
+          entity(as[SignInRequest]) {
+            request =>
+              onComplete(authService.signIn(request)) {
+                case Success(Some(authResponse)) => setSuccessAuthRoute(authResponse)
+                case Failure(IncorrectPasswordException(message)) =>
+                  complete(HttpResponse(StatusCodes.Unauthorized, entity = message))
+                case Failure(InactiveUserException(message)) =>
+                  complete(HttpResponse(StatusCodes.Forbidden, entity = message))
+                case _ => complete(StatusCodes.Unauthorized)
+              }
           }
         }
       },
@@ -32,7 +42,9 @@ class AuthController(authService: AuthService)(implicit executionContext: Execut
           entity(as[SignUpRequest]) { request =>
             onComplete(authService.signUp(request)) {
               case Success(Some(authResponse)) => setSuccessAuthRoute(authResponse)
-              case _                           => complete(StatusCodes.BadRequest)
+              case Failure(DuplicateUserException(message)) =>
+                complete(HttpResponse(StatusCodes.BadRequest, entity = message))
+              case _ => complete(StatusCodes.BadRequest)
             }
           }
         }
@@ -56,7 +68,6 @@ class AuthController(authService: AuthService)(implicit executionContext: Execut
       RawHeader(RefreshTokenHeader, authResponse.refreshToken),
       RawHeader(AccessTokenExpirationHeader, authResponse.accessTokenExpiration.toString)
     )(complete(StatusCodes.OK))
-
 }
 
 object AuthController {
