@@ -55,7 +55,7 @@ class GitLabProjectVersioningTest
           payload = postProject
         )
 
-      "throw new VersioningException for inactive project" taggedAs Service  in {
+      "throw new VersioningException for inactive project" taggedAs Service in {
         whenReady(gitLabProjectVersioning.createRepository(inactiveProject).failed) {
           _ shouldBe VersioningException.RepositoryException("Could not create a repository for deleted project.")
         }
