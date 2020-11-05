@@ -18,16 +18,16 @@ object TestProjectConfigurationUtils {
   lazy val projectFileConfigurationGen: Gen[ProjectFileConfiguration] =
     for {
       pathField <- fileGen
-      inputsField <- Gen.nonEmptyListOf(fileParameterGen).suchThat(_.length < 4)
+      inputsField <- Gen.nonEmptyListOf(fileParameterGen).retryUntil(_.length < 4)
     } yield ProjectFileConfiguration(pathField, inputsField)
 
   lazy val projectConfigurationGen: Gen[ProjectConfiguration] =
     for {
       projectIdField <- projectIDGen
-      configurationsField <- Gen.nonEmptyListOf(projectFileConfigurationGen).suchThat(_.length < 4)
+      configurationsField <- Gen.nonEmptyListOf(projectFileConfigurationGen).retryUntil(_.length < 4)
     } yield ProjectConfiguration(projectIdField, configurationsField)
 
-  private lazy val stringGen: Gen[String] = Gen.alphaLowerStr.suchThat(str => str.length < 128 && str.nonEmpty)
+  private lazy val stringGen: Gen[String] = Gen.alphaLowerStr.retryUntil(str => str.length < 128 && str.nonEmpty)
   private lazy val fileGen: Gen[Path] = stringGen.map(Paths.get(_))
   private lazy val intGen: Gen[Int] = Gen.choose(-1000, 1000)
   private lazy val floatGen: Gen[Float] = Gen.choose(-10.0f, 10.0f)

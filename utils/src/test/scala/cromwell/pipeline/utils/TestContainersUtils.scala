@@ -22,7 +22,7 @@ object TestContainersUtils {
       password = pgPassword
     )
 
-  def getMongoDBContainer(mongoImageName: String = "mongo:13"): MongoDBContainer =
+  def getMongoDBContainer(mongoImageName: String = "mongo"): MongoDBContainer =
     MongoDBContainer(mongoImageName)
 
   import scala.collection.JavaConverters._

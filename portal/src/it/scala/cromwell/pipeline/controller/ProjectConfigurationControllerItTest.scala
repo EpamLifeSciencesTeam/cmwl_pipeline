@@ -31,7 +31,7 @@ class ProjectConfigurationControllerItTest
   import components.controllerModule.configurationController
   import components.datastorageModule.configurationRepository
 
-  val projectConfiguration = TestProjectConfigurationUtils.projectConfigurationGen
+  val projectConfiguration = TestProjectConfigurationUtils.projectConfigurationGen.sample.get
   val doc = ProjectConfiguration.toDocument(projectConfiguration)
   val id = projectConfiguration.projectId
 
