@@ -2,7 +2,7 @@ language: scala
 scala:
 - 2.12.9
 script:
-- sbt clean compile undeclaredCompileDependenciesTest coverage test coverageAggregate
+- sbt clean compile undeclaredCompileDependenciesTest coverage test coverageAggregate -- -l cromwell.pipeline.utils.tags.annotaions.ScheduledResource
   scalastyle it:test
 after_success:
 - sbt coveralls
