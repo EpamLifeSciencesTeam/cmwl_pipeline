@@ -1,22 +1,22 @@
 package cromwell.pipeline.service
 
 import java.net.URLEncoder
-import java.nio.file.{Path, Paths}
+import java.nio.file.{ Path, Paths }
 
 import akka.http.scaladsl.model.StatusCodes
 import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto.File.UpdateFileRequest
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.utils.tags.annotations.ScheduledResource
-import cromwell.pipeline.utils.{AkkaTestSources, ApplicationConfig, GitLabConfig, HttpStatusCodes}
+import cromwell.pipeline.utils.{ AkkaTestSources, ApplicationConfig, GitLabConfig, HttpStatusCodes }
 import org.mockito.Mockito.when
-import org.mockito.{Matchers => MockitoMatchers}
+import org.mockito.{ Matchers => MockitoMatchers }
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{AsyncWordSpec, Matchers}
+import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Reads
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @ScheduledResource
 class GitLabProjectVersioningTest

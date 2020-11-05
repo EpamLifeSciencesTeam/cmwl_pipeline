@@ -85,3 +85,34 @@ docker-compose -f postgres-mongo.yml up
 
 ## Developer Guide
 https://kb.epam.com/display/EPMLSTR/Cromwell+Developer+Guide
+
+##Testing
+
+ScheduledResource this is tag for tests working with scheduled resources.
+If you want to skip this test you can run this command:
+```
+testOnly -- -l cromwell.pipeline.utils.tags.annotaions.ScheduledResource
+```
+If you need to add tag for all tests in an entire class you can use annotation:
+```
+@ScheduledResource
+class ExampleSpec extends FlatSpec {
+
+  "Integration tests" can "sometimes be slow" in {
+    Thread.sleep(1000)
+  }
+
+  they should "likely sometimes be excluded " in {
+    Thread.sleep(1000)
+  }
+}
+```
+If you need to add tag for particular test case you can use tag:
+```
+class ExampleSpec extends FlatSpec {
+
+  "Integration tests" can "sometimes be slow" taggedAs(ScheduledResource) in {
+    Thread.sleep(1000)
+  }
+}
+```
