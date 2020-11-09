@@ -2,6 +2,7 @@ package cromwell.pipeline.utils
 
 import com.dimafeng.testcontainers.{ MongoDBContainer, PostgreSQLContainer }
 import com.typesafe.config.{ Config, ConfigFactory }
+import org.testcontainers.containers.wait.strategy.Wait
 
 object TestContainersUtils {
 
@@ -22,8 +23,11 @@ object TestContainersUtils {
       password = pgPassword
     )
 
-  def getMongoDBContainer(mongoImageName: String = "mongo"): MongoDBContainer =
-    MongoDBContainer(mongoImageName)
+  def getMongoDBContainer(mongoImageName: String = "mongo"): MongoDBContainer = {
+    val res = MongoDBContainer(mongoImageName)
+    res.container.waitingFor(Wait.forLogMessage(".*Waiting for connections.*", 1))
+    res
+  }
 
   import scala.collection.JavaConverters._
 
@@ -38,7 +42,7 @@ object TestContainersUtils {
   def getConfigForMongoDBContainer(container: MongoDBContainer): Config = ConfigFactory
     .parseMap(
       Map(
-        "database.mongo" -> container.mappedPort(mongoPort)
+        "database.mongo.port" -> container.mappedPort(mongoPort)
       ).asJava
     )
     .withFallback(ConfigFactory.load())
