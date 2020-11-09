@@ -4,7 +4,6 @@ scala:
 script:
 - sbt clean compile
 - sbt undeclaredCompileDependenciesTest
-- sbt coverageAggregate
 - sbt "testOnly -- -l cromwell.pipeline.utils.tags.annotaions.ScheduledResource"
 - sbt scalastyle
 - sbt coverage it:test
