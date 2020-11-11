@@ -80,7 +80,7 @@ final case class AuthConfig(
 
 final case class MongoConfig(
   user: String,
-  password: Array[Char],
+  password: String,
   host: String,
   port: Int,
   authenticationDatabase: String,
@@ -145,7 +145,7 @@ class ApplicationConfig(val config: Config) {
     val _config = config.getConfig("database.mongo")
     MongoConfig(
       user = _config.getString("user"),
-      password = _config.getString("password").toCharArray,
+      password = _config.getString("password"),
       host = _config.getString("host"),
       port = _config.getInt("port"),
       authenticationDatabase = _config.getString("authenticationDatabase"),
