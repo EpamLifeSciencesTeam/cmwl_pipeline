@@ -19,7 +19,6 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures.whenReady
 import org.scalatest.{ Matchers, WordSpec }
 import pdi.jwt.algorithms.JwtHmacAlgorithm
-import org.mockito.Matchers.any
 import pdi.jwt.{ Jwt, JwtAlgorithm, JwtClaim }
 import play.api.libs.json.Json
 
@@ -37,9 +36,6 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
 
   import authConfig._
 
-  private val userRepository: UserRepository = stub[UserRepository]
-  private val authUtils: AuthUtils = stub[AuthUtils]
-  private val authService: AuthService = new AuthService(userRepository, authUtils)
   private val userId = UserId.random
   private val userPassword = "Password213"
   private val incorrectUserPassword = "Password2134"
@@ -63,22 +59,22 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
         authService.refreshTokens(refreshToken) shouldBe None
       }
 
-      "return None for another type of token" taggedAs Service in {
-        val currentTimestamp = Instant.now.getEpochSecond
+      "return None for another type of token" taggedAs Service in new AuthServiceTestContext {
+        val currentTimestamp: Long = Instant.now.getEpochSecond
         val accessTokenContent: AuthContent = AccessTokenContent(userId = userId)
-        val accessTokenClaims = JwtClaim(
+        val accessTokenClaims: JwtClaim = JwtClaim(
           content = Json.stringify(Json.toJson(accessTokenContent)),
           expiration = Some(currentTimestamp + expirationTimeInSeconds.accessToken),
           issuedAt = Some(currentTimestamp)
         )
-        val accessToken = Jwt.encode(accessTokenClaims, secretKey, hmacAlgorithm)
+        val accessToken: String = Jwt.encode(accessTokenClaims, secretKey, hmacAlgorithm)
 
         (authUtils.getOptJwtClaims _ when accessToken).returns(Some(accessTokenClaims))
 
         authService.refreshTokens(accessToken) shouldBe None
       }
 
-      "return None for wrong token" taggedAs Service in {
+      "return None for wrong token" taggedAs Service in new AuthServiceTestContext {
         val wrongToken = "wrongToken"
 
         (authUtils.getOptJwtClaims _ when wrongToken).returns(None)
@@ -89,7 +85,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
 
     "signUp" should {
 
-      "return Failed future when user already exists" taggedAs Service in {
+      "return Failed future when user already exists" taggedAs Service in new AuthServiceTestContext {
         (userRepository.getUserByEmail _ when userEmail).returns(Future.successful(Some(dummyUser)))
         whenReady(
           authService
@@ -102,13 +98,13 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
               )
             )
             .failed
-        ) { _ shouldBe DuplicateUserException(s"${userEmail} already exists") }
+        ) { _ shouldBe DuplicateUserException(s"$userEmail already exists") }
       }
     }
 
     "signIn" should {
 
-      "return Failed future when user is inactive" taggedAs Service in {
+      "return Failed future when user is inactive" taggedAs Service in new AuthServiceTestContext {
         (userRepository.getUserByEmail _ when inactiveUserEmail).returns(Future.successful(Some(inactiveUser)))
         whenReady(
           authService
@@ -122,7 +118,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
         ) { _ shouldBe InactiveUserException(AuthService.inactiveUserMessage) }
       }
 
-      "return Failed future when password is incorrect" taggedAs Service in {
+      "return Failed future when password is incorrect" taggedAs Service in new AuthServiceTestContext {
         (userRepository.getUserByEmail _ when userEmail).returns(Future.successful(Some(dummyUser)))
         whenReady(
           authService
@@ -138,8 +134,8 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
     }
 
     "takeUserFromRequest" should {
-      "return some User" in {
-        val request = SignInRequest(
+      "return some User" taggedAs Service in new AuthServiceTestContext {
+        val request: SignInRequest = SignInRequest(
           dummyUser.email,
           Password(userPassword, Enable.Unsafe)
         )
@@ -149,23 +145,24 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
     }
 
     "responseFromUser" should {
-      "return AuthResponse" in {
-        (authUtils.getAuthResponse _ when (*, *, *)).returns(Some(any[AuthResponse]))
-        authService.responseFromUser(dummyUser) shouldBe Some(any[AuthResponse])
+      "return whatever getAuthResponse returns" taggedAs Service in new AuthServiceTestContext {
+        private val dummyResponse = Some(AuthResponse("", "", 1))
+        (authUtils.getAuthResponse _ when (*, *, *)).returns(dummyResponse)
+        authService.responseFromUser(dummyUser) shouldBe dummyResponse
       }
     }
 
     "passwordCorrect" should {
-      "return None if a password is correct" in {
-        val request = SignInRequest(
+      "return None if a password is correct" taggedAs Service in new AuthServiceTestContext {
+        val request: SignInRequest = SignInRequest(
           dummyUser.email,
           Password(userPassword, Enable.Unsafe)
         )
         authService.passwordCorrect(request, dummyUser) shouldBe None
       }
 
-      "throw the exception if the password is incorrect" in {
-        val request = SignInRequest(
+      "throw the exception if the password is incorrect" taggedAs Service in new AuthServiceTestContext {
+        val request: SignInRequest = SignInRequest(
           dummyUser.email,
           Password(incorrectUserPassword, Enable.Unsafe)
         )
@@ -175,18 +172,24 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
     }
 
     "userIsActive" should {
-      "return None if a user is active" in {
+      "return None if a user is active" taggedAs Service in new AuthServiceTestContext {
         authService.userIsActive(dummyUser) shouldBe None
       }
 
-      "throw the exception if a user isn't active" in {
+      "throw the exception if a user isn't active" taggedAs Service in new AuthServiceTestContext {
         authService.userIsActive(inactiveUser) shouldBe
           Some(InactiveUserException(AuthService.inactiveUserMessage))
       }
     }
   }
 
-  class RefreshTokenContext(lifetime: Long) {
+  class AuthServiceTestContext {
+    protected val userRepository: UserRepository = stub[UserRepository]
+    protected val authUtils: AuthUtils = stub[AuthUtils]
+    protected val authService: AuthService = new AuthService(userRepository, authUtils)
+  }
+
+  class RefreshTokenContext(lifetime: Long) extends AuthServiceTestContext {
     val currentTimestamp: Long = Instant.now.getEpochSecond
     val refreshTokenContent: AuthContent = RefreshTokenContent(
       userId = userId,
