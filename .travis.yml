@@ -5,6 +5,7 @@ script:
 - sbt clean compile
 - sbt undeclaredCompileDependenciesTest
 - sbt "testOnly -- -l cromwell.pipeline.utils.tags.annotaions.ScheduledResource"
+- sbt coverageAggregate
 - sbt scalastyle
 - sbt coverage it:test
 after_success:
