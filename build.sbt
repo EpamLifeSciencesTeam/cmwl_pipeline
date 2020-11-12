@@ -26,7 +26,8 @@ lazy val commonSettings = Seq(
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports"),
   coverageEnabled := true,
   coverageMinimum := 60,
-  coverageFailOnMinimum := true
+  coverageFailOnMinimum := true,
+  coverageExcludedPackages := ".*utils.*"
 )
 
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")

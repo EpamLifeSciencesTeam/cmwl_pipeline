@@ -155,12 +155,13 @@ class ApplicationConfig(val config: Config) {
   }
 
   lazy val postgresConfig: PostgresConfig = {
+    val _config = config.getConfig("database.postgres_dc.db.properties")
     PostgresConfig(
-      user = config.getString("database.postgres_dc.db.properties.user"),
-      password = config.getString("database.postgres_dc.db.properties.password"),
-      host = config.getString("database.postgres_dc.db.properties.serverName"),
-      port = config.getInt("database.postgres_dc.db.properties.portNumber"),
-      database = config.getString("database.postgres_dc.db.properties.databaseName")
+      user = _config.getString("user"),
+      password = _config.getString("password"),
+      host = _config.getString("serverName"),
+      port = _config.getInt("portNumber"),
+      database = _config.getString("databaseName")
     )
   }
 }
