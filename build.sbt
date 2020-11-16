@@ -27,7 +27,7 @@ lazy val commonSettings = Seq(
   coverageEnabled := true,
   coverageMinimum := 60,
   coverageFailOnMinimum := true,
-  coverageExcludedPackages := ".*utils.*;CromwellPipelineApp.scala"
+  coverageExcludedPackages := ".*utils.*;cromwell\\.pipeline.*"
 )
 
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")
