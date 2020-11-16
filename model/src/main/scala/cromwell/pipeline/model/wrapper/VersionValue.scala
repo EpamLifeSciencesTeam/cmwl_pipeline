@@ -32,6 +32,4 @@ object VersionValue extends Wrapped.Companion {
     value,
     NonEmptyChain.one("Value should be not negative")
   )
-
-  def random: VersionValue = new VersionValue(Math.abs(Random.nextInt()))
 }
