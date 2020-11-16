@@ -15,8 +15,6 @@ import scala.util.Random
 object GeneratorUtils {
   private def stringGen(n: Int): Gen[String] = Gen.listOfN(n, Gen.alphaLowerChar).map(_.mkString)
 
-  private lazy val booleanGen: Gen[Boolean] = Gen.oneOf(List(false, true))
-
   private lazy val projectIdGen: Gen[ProjectId] = Gen.uuid.map(id => ProjectId(id.toString))
 
   private lazy val repositoryGen: Gen[Repository] = stringGen(10).map(Repository(_))
@@ -35,8 +33,13 @@ object GeneratorUtils {
     .choose(1, 5)
     .flatMap(length => Gen.listOfN(length, stringGen(5)).map(_.mkString("/")).map(path => Paths.get(path)))
 
-  private lazy val pipelineVersionGen: Gen[PipelineVersion] =
-    new PipelineVersion(VersionValue.random, VersionValue.random, VersionValue.random)
+  private lazy val versionValueGen: Gen[VersionValue] = Gen.posNum[Int].map(VersionValue(_, Enable.Unsafe))
+
+  private lazy val pipelineVersionGen: Gen[PipelineVersion] = for {
+  major <- versionValueGen
+  minor <- versionValueGen
+  revision <- versionValueGen
+  } yield PipelineVersion(major, minor, revision)
 
   private lazy val passwordGen: Gen[Password] = for {
     upperCase <- Gen.alphaUpperStr.suchThat(s => s.nonEmpty)
@@ -53,15 +56,16 @@ object GeneratorUtils {
     content <- projectFileContentGen
   } yield ProjectFile(path, content)
 
+  private lazy val userIdGen: Gen[UserId] = Gen.uuid.map(_.toString).map(UserId(_, Enable.Unsafe))
+
   private lazy val projectGen: Gen[Project] = for {
     projectId <- projectIdGen
+    userId <- userIdGen
     name <- stringGen(10)
-    active <- booleanGen
-    repository <- optionGen(repositoryGen)
+    active <- Gen.oneOf(false, true)
+    repository <- Gen.option(repositoryGen)
     visibility <- Gen.oneOf(Visibility.values)
-  } yield Project(projectId, UserId.random, name, active, repository, visibility)
-
-  private def optionGen[T](gen: Gen[T]): Gen[Option[T]] = gen.flatMap(Gen.option(_))
+  } yield Project(projectId, userId, name, active, repository, visibility)
 
   lazy val userUpdateRequestGen: Gen[UserUpdateRequest] = for {
     email <- emailGen
@@ -93,7 +97,7 @@ object GeneratorUtils {
   lazy val projectUpdateRequestGen: Gen[ProjectUpdateRequest] = for {
     id <- projectIdGen
     name <- stringGen(10)
-    repository <- optionGen(repositoryGen)
+    repository <- Gen.option(repositoryGen)
   } yield ProjectUpdateRequest(id, name, repository)
 
   lazy val projectFileContentGen: Gen[ProjectFileContent] = stringGen(10).map(ProjectFileContent(_))
@@ -101,7 +105,7 @@ object GeneratorUtils {
   lazy val projectUpdateFileRequestGen: Gen[ProjectUpdateFileRequest] = for {
     project <- projectGen
     projectFile <- projectFileGen
-    pipelineVersion <- optionGen(pipelineVersionGen)
+    pipelineVersion <- Gen.option(pipelineVersionGen)
   } yield ProjectUpdateFileRequest(project, projectFile, pipelineVersion)
 
   lazy val projectBuildConfigurationRequestGen: Gen[ProjectBuildConfigurationRequest] = for {

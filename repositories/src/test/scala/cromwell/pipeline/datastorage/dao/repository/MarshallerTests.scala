@@ -16,7 +16,7 @@ class MarshallerTests extends AsyncWordSpec with Matchers with ScalaCheckDrivenP
       forAll { (a: UserUpdateRequest) =>
         val parseResult: UserUpdateRequest = userUpdateRequestFormat.reads(userUpdateRequestFormat.writes(a)) match {
           case JsSuccess(value, _) => value
-          case JsError(_)          => throw new RuntimeException("Could not parse request")
+          case JsError(_)          => fail("Could not parse request")
         }
         parseResult should equal(a)
       }
@@ -26,7 +26,7 @@ class MarshallerTests extends AsyncWordSpec with Matchers with ScalaCheckDrivenP
         val parseResult: PasswordUpdateRequest =
           passwordUpdateRequestFormat.reads(passwordUpdateRequestFormat.writes(a)) match {
             case JsSuccess(value, _) => value
-            case JsError(_)          => throw new RuntimeException("Could not parse request")
+            case JsError(_)          => fail("Could not parse request")
           }
         parseResult should equal(a)
       }
@@ -35,7 +35,7 @@ class MarshallerTests extends AsyncWordSpec with Matchers with ScalaCheckDrivenP
       forAll { (a: SignUpRequest) =>
         val parseResult: SignUpRequest = signUpRequestFormat.reads(signUpRequestFormat.writes(a)) match {
           case JsSuccess(value, _) => value
-          case JsError(_)          => throw new RuntimeException("Could not parse request")
+          case JsError(_)          => fail("Could not parse request")
         }
         parseResult should equal(a)
       }
@@ -44,7 +44,7 @@ class MarshallerTests extends AsyncWordSpec with Matchers with ScalaCheckDrivenP
       forAll { (a: SignInRequest) =>
         val parseResult: SignInRequest = signInRequestFormat.reads(signInRequestFormat.writes(a)) match {
           case JsSuccess(value, _) => value
-          case JsError(_)          => throw new RuntimeException("Could not parse request")
+          case JsError(_)          => fail("Could not parse request")
         }
         parseResult should equal(a)
       }
@@ -54,7 +54,7 @@ class MarshallerTests extends AsyncWordSpec with Matchers with ScalaCheckDrivenP
         val parseResult: ProjectAdditionRequest =
           projectAdditionRequestFormat.reads(projectAdditionRequestFormat.writes(a)) match {
             case JsSuccess(value, _) => value
-            case JsError(_)          => throw new RuntimeException("Could not parse request")
+            case JsError(_)          => fail("Could not parse request")
           }
         parseResult should equal(a)
       }
@@ -64,7 +64,7 @@ class MarshallerTests extends AsyncWordSpec with Matchers with ScalaCheckDrivenP
         val parseResult: ProjectDeleteRequest =
           projectDeleteRequestFormat.reads(projectDeleteRequestFormat.writes(a)) match {
             case JsSuccess(value, _) => value
-            case JsError(_)          => throw new RuntimeException("Could not parse request")
+            case JsError(_)          => fail("Could not parse request")
           }
         parseResult should equal(a)
       }
@@ -74,7 +74,7 @@ class MarshallerTests extends AsyncWordSpec with Matchers with ScalaCheckDrivenP
         val parseResult: ProjectUpdateRequest =
           projectUpdateRequestFormat.reads(projectUpdateRequestFormat.writes(a)) match {
             case JsSuccess(value, _) => value
-            case JsError(_)          => throw new RuntimeException("Could not parse request")
+            case JsError(_)          => fail("Could not parse request")
           }
         parseResult should equal(a)
       }
@@ -83,7 +83,7 @@ class MarshallerTests extends AsyncWordSpec with Matchers with ScalaCheckDrivenP
       forAll { (a: ProjectFileContent) =>
         val parseResult: ProjectFileContent = projectFileContentFormat.reads(projectFileContentFormat.writes(a)) match {
           case JsSuccess(value, _) => value
-          case JsError(_)          => throw new RuntimeException("Could not parse request")
+          case JsError(_)          => fail("Could not parse request")
         }
         parseResult should equal(a)
       }
@@ -93,7 +93,7 @@ class MarshallerTests extends AsyncWordSpec with Matchers with ScalaCheckDrivenP
         val parseResult: ProjectUpdateFileRequest =
           projectUpdateFileRequestFormat.reads(projectUpdateFileRequestFormat.writes(a)) match {
             case JsSuccess(value, _) => value
-            case JsError(_)          => throw new RuntimeException("Could not parse request")
+            case JsError(_)          => fail("Could not parse request")
           }
         parseResult should equal(a)
       }
@@ -103,7 +103,7 @@ class MarshallerTests extends AsyncWordSpec with Matchers with ScalaCheckDrivenP
         val parseResult: ProjectBuildConfigurationRequest =
           projectBuildConfigurationRequestFormat.reads(projectBuildConfigurationRequestFormat.writes(a)) match {
             case JsSuccess(value, _) => value
-            case JsError(_)          => throw new RuntimeException("Could not parse request")
+            case JsError(_)          => fail("Could not parse request")
           }
         parseResult should equal(a)
       }
