@@ -40,5 +40,5 @@ object TestContainersUtils {
   import scala.collection.JavaConverters._
 
   private def config(pairs: (String, Any)*): Config =
-     ConfigFactory.parseMap(pairs.toMap.asJava).withFallback(ConfigFactory.load())
+    ConfigFactory.parseMap(pairs.toMap.asJava).withFallback(ConfigFactory.load())
 }
