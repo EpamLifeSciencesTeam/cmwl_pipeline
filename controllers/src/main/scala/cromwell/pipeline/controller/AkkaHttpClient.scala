@@ -80,6 +80,17 @@ class AkkaHttpClient(implicit actorSystem: ActorSystem, materializer: ActorMater
     responsify(futureResponse)
   }
 
+  override def delete[B](url: String, params: Map[String, String] = Map(), headers: Map[String, String] = Map())(
+    implicit ec: ExecutionContext,
+    f: Reads[B]
+  ): Future[Response[B]] = {
+    val futureResponse: Future[HttpResponse] = Http().singleRequest(
+      HttpRequest(method = HttpMethods.DELETE, uri = Uri(url).withQuery(Query(params)))
+        .withHeaders(parseHeaders(headers))
+    )
+    responsify(futureResponse)
+  }
+
   /**
    * Filters unsuccessful responses
    *

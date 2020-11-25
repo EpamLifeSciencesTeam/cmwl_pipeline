@@ -123,8 +123,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
             Right(project.withRepository(Some(s"${config.idPath}${gitLabProject.id}")))
           case Response(statusCode, FailureResponseBody(_), _) =>
             Left(
-              VersioningException
-                .RepositoryException(s"The repository was not created. Response status: ${statusCode}")
+              VersioningException.RepositoryException(s"The repository was not created. Response status: ${statusCode}")
             )
         }
         .recover { case e: Throwable => Left(VersioningException.HttpException(e.getMessage)) }
@@ -243,6 +242,32 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
           )
         case Response(responseStatus, _, _) =>
           Left(VersioningException.HttpException(s"Exception. Response status: ${responseStatus}"))
+      }
+      .recover { case e: Throwable => Left(VersioningException.HttpException(e.getMessage)) }
+  }
+
+  override def deleteFile(
+    project: Project,
+    path: Path,
+    branchName: String = config.defaultBranch,
+    commitMessage: String
+  )(
+    implicit ec: ExecutionContext
+  ): AsyncResult[String] = {
+
+    val filePath: String = URLEncoder.encode(path.toString, "UTF-8")
+    val deleteMessage: String = s"$filePath file has been deleted from $branchName"
+
+    httpClient
+      .delete[](
+        s"${config.url}/projects/${project.repository}/repository/files/$filePath/raw",
+        config.token
+      )
+      .map { resp =>
+        resp.status match {
+          case HttpStatusCodes.OK => Right(deleteMessage)
+          case _                  => Left(VersioningException.HttpException(s"Exception. Response status: ${resp.status}"))
+        }
       }
       .recover { case e: Throwable => Left(VersioningException.HttpException(e.getMessage)) }
   }

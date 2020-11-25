@@ -36,6 +36,11 @@ trait HttpClient {
     bf: Reads[B],
     pf: Writes[P]
   ): Future[Response[B]]
+
+  def delete[B](url: String, params: Map[String, String] = Map(), headers: Map[String, String] = Map())(
+    implicit ec: ExecutionContext,
+    f: Reads[B]
+  ): Future[Response[B]]
 }
 
 /**
