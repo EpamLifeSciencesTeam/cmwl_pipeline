@@ -13,6 +13,6 @@ class ControllerModule(serviceModule: ServiceModule, authConfig: AuthConfig)(
   lazy val userController: UserController = new UserController(serviceModule.userService)
   lazy val securityDirective: SecurityDirective = new SecurityDirective(authConfig)
   lazy val projectController: ProjectController = new ProjectController(serviceModule.projectService)
-  lazy val projectFileController: ProjectFileController = new ProjectFileController(serviceModule.projectFileService)
+  lazy val projectFileController: ProjectFileController = new ProjectFileController(serviceModule.projectFileService, serviceModule.projectService)
   lazy val configurationController = new ProjectConfigurationController(serviceModule.configurationService)
 }
