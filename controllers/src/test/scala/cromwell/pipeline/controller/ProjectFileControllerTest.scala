@@ -1,23 +1,27 @@
 package cromwell.pipeline.controller
 
+import java.net.URLEncoder
 import java.nio.file.Paths
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import cromwell.pipeline.datastorage.dao.repository.utils.{ TestProjectUtils, TestUserUtils }
+import cromwell.pipeline.datastorage.dao.repository.utils.{TestProjectUtils, TestUserUtils}
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto._
-import cromwell.pipeline.service.{ ProjectFileService, VersioningException }
+import cromwell.pipeline.service.{ProjectFileService, ProjectService, VersioningException}
+import cromwell.pipeline.utils.{ApplicationConfig, GitLabConfig}
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import org.mockito.Mockito.when
-import org.scalatest.{ AsyncWordSpec, Matchers }
+import org.scalatest.{AsyncWordSpec, Matchers}
 import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.Future
 
 class ProjectFileControllerTest extends AsyncWordSpec with Matchers with ScalatestRouteTest with MockitoSugar {
   private val projectFileService: ProjectFileService = mock[ProjectFileService]
-  private val projectFileController = new ProjectFileController(projectFileService)
+  private val projectService: ProjectService = mock[ProjectService]
+  private val projectFileController = new ProjectFileController(projectFileService, projectService)
+  private val gitLabConfig: GitLabConfig = ApplicationConfig.load().gitLabConfig
 
   "ProjectFileController" when {
     val accessToken = AccessTokenContent(TestUserUtils.getDummyUserId)
@@ -71,12 +75,53 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
         }
       }
 
-      "return UnprocessableEntity for bad request" taggedAs Controller in {
+      "return InternalServerError for bad request" taggedAs Controller in {
         when(projectFileService.uploadFile(project, projectFile, Some(version)))
           .thenReturn(Future.successful(Left(VersioningException.HttpException("Bad request"))))
         Post("/files", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.UnprocessableEntity
           entityAs[String] shouldBe "File have not uploaded due to Bad request"
+        }
+      }
+    }
+
+    "delete file" should {
+      val project = TestProjectUtils.getDummyProject()
+      val branchName: String = gitLabConfig.defaultBranch
+      val projectFile = ProjectFile(Paths.get("folder/test.txt"), "file context")
+      val path = URLEncoder.encode(projectFile.path.toString, "UTF-8")
+      val commitMessage = s"$path file has been deleted from $branchName"
+      val commitMessageUrl = URLEncoder.encode(commitMessage, "UTF-8")
+      val accessToken = AccessTokenContent(TestUserUtils.getDummyUserId)
+
+      "return OK response for valid request" taggedAs Controller in {
+        when(projectService.getProjectById(project.projectId)).thenReturn(Future.successful(Some(project)))
+        when(projectFileService.deleteFile(project, projectFile.path, branchName, commitMessage))
+          .thenReturn(Future.successful(Right("Success")))
+        val url =
+          s"/files?projectId=${project.projectId.value}&path=$path&branchName=$branchName&commitMessage=$commitMessageUrl"
+        Delete(url) ~> projectFileController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.OK
+        }
+      }
+    }
+
+    "get file" should {
+      val project = TestProjectUtils.getDummyProject()
+      val projectFile = ProjectFile(Paths.get("folder/test.txt"), "file context")
+      val path = URLEncoder.encode(projectFile.path.toString, "UTF-8")
+      val version = PipelineVersion("v0.0.2")
+      val accessToken = AccessTokenContent(TestUserUtils.getDummyUserId)
+
+      "return OK response for valid request" taggedAs Controller in {
+        when(projectService.getProjectById(project.projectId)).thenReturn(Future.successful(Some(project)))
+        when(projectFileService.getFile(project, projectFile.path, Some(version)))
+          .thenReturn(Future.successful(Right(projectFile)))
+        val url = s"/files?projectId=${project.projectId.value}&path=$path&version=${version.toString}"
+        Get(url) ~> projectFileController.route(
+          accessToken
+        ) ~> check {
+          status shouldBe StatusCodes.OK
         }
       }
     }

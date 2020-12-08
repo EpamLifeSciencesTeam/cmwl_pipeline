@@ -271,6 +271,45 @@ class GitLabProjectVersioningTest
       }
     }
 
+
+    "deleteFile" should {
+      "return file with 200 response" taggedAs Service in {
+        val path: Path = Paths.get("test.md")
+        val branchName: String = gitLabConfig.defaultBranch
+        val commitMessage: String = s"$path file has been deleted from $branchName"
+
+        when(
+          mockHttpClient.delete(
+            s"${gitLabConfig.url}/projects/${activeProject.repository}/repository/files/${URLEncoder
+              .encode(path.toString, "UTF-8")}/raw",
+            gitLabConfig.token
+          )
+        ).thenReturn(Future.successful(Response(200, "test.md file has been deleted from master", EmptyHeaders)))
+
+        gitLabProjectVersioning
+          .deleteFile(activeProject, path, branchName, commitMessage)
+          .map(_ shouldBe (Right("test.md file has been deleted from master")))
+      }
+
+      "throw new VersioningException with not 200 response" taggedAs Service in {
+        val path = Paths.get("test.md")
+        val branchName: String = gitLabConfig.defaultBranch
+        val commitMessage: String = s"$path file has been deleted from $branchName"
+
+        when(
+          mockHttpClient.delete(
+            s"${gitLabConfig.url}/projects/${activeProject.repository}/repository/files/${URLEncoder
+              .encode(path.toString, "UTF-8")}/raw",
+            gitLabConfig.token
+          )
+        ).thenReturn(Future.successful(Response(404, "Not Found", EmptyHeaders)))
+
+        gitLabProjectVersioning
+          .deleteFile(activeProject, path, branchName, commitMessage)
+          .map(_ shouldBe Left(VersioningException.HttpException("Exception. Response status: 404")))
+      }
+    }
+
     "getFile" should {
       "return file with 200 response" taggedAs Service in {
         val path = Paths.get("test.md")

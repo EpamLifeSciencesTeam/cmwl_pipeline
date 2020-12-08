@@ -184,6 +184,17 @@ object Visibility {
   def values = Seq(Private, Internal, Public)
 }
 
+final case class ProjectGetFileRequest(project: Project, projectFile: ProjectFile, version: Option[PipelineVersion])
+
+object ProjectGetFileRequest {
+  implicit lazy val projectGetFileRequestFormat: OFormat[ProjectGetFileRequest] =
+    ((JsPath \ "project").format[Project] ~ (JsPath \ "projectFile").format[ProjectFile] ~ (JsPath \ "version")
+      .formatNullable[PipelineVersion])(
+      ProjectGetFileRequest.apply,
+      unlift(ProjectGetFileRequest.unapply)
+    )
+}
+
 final case class ProjectBuildConfigurationRequest(projectId: ProjectId, projectFile: ProjectFile)
 
 object ProjectBuildConfigurationRequest {
