@@ -83,5 +83,43 @@ docker-compose -f postgres-mongo.yml up
 * [ScalaTest](http://www.scalatest.org/) Unit-testing framework
 * [ScalaMock](https://scalamock.org/) Unit-testing framework
 
+## Run cromwell on aws instance
+In order to run the cromwell project on aws instance. It is necessary to be connected to the EPAM vpn and select the Russia gateway (vpn-ru.epam.com).
+
+### Run the workflows through swagger
+
+Once that you're connected, follow this [link](http://ec2-54-218-82-67.us-west-2.compute.amazonaws.com/swagger/index.html?url=/swagger/cromwell.yaml) to try/execute the services through the swagger interface.
+
+Run the next workflows:
+- _POST /api/workflows/{version}_ and fill the next two options 
+    - For the `workflowSource file` option select the `cromwell-saample/hello.wdl` file that was created before.
+    - For the `workflowInouts file` option select the `cromwell-saample/input.json` file.
+Submit the request, and a response like the below will be returned.
+```
+{
+  "id": "56e252bc-c83a-46e0-b311-9bc26f0038f8", 
+  "status": "Submitted" 
+}
+```
+
+- _GET /api/workflows/{version}/{id}/status_ copy the id returned by the previous response
+    - For the id paste the id that was copied.
+Submit the request, and a response like the below will be returned.
+```
+{
+  "status": "Succeeded", 
+  "id": "56e252bc-c83a-46e0-b311-9bc26f0038f8" 
+} 
+```  
+
+### Run the workflows through curl, postman or another client
+
+Run the next commands
+- `curl -X POST "http://ec2-54-218-82-67.us-west-2.compute.amazonaws.com/api/workflows/v1" -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "workflowSource=@hello.wdl" -F workflowInputs=@inputs.json;type=application/json `
+    - A response with the workflow id will be returned.
+- `curl -X GET "http://ec2-54-218-82-67.us-west-2.compute.amazonaws.com/api/workflows/v1/{workflow_id}}/status" -H "accept: application/json"`
+    - Replace the `workflow_id` with the id returned by the previous response.
+    - A response with the workflow status will be returned.
+ 
 ## Developer Guide
 https://kb.epam.com/display/EPMLSTR/Cromwell+Developer+Guide
