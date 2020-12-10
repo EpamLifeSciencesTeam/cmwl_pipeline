@@ -5,16 +5,31 @@ import java.nio.file.Paths
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import cromwell.pipeline.datastorage.dto.{PipelineVersion, ProjectBuildConfigurationRequest, ProjectFileContent, ProjectId, ProjectUpdateFileRequest, SuccessResponseMessage}
+import cromwell.pipeline.datastorage.dto.{
+  PipelineVersion,
+  ProjectBuildConfigurationRequest,
+  ProjectFileContent,
+  ProjectId,
+  ProjectUpdateFileRequest,
+  SuccessResponseMessage
+}
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
-import cromwell.pipeline.service.VersioningException.{FileException, GitException, HttpException, ProjectException, RepositoryException}
-import cromwell.pipeline.service.{ProjectFileService, ProjectService, VersioningException}
+import cromwell.pipeline.service.VersioningException.{
+  FileException,
+  GitException,
+  HttpException,
+  ProjectException,
+  RepositoryException
+}
+import cromwell.pipeline.service.{ ProjectFileService, ProjectService, VersioningException }
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Failure, Success }
 
-class ProjectFileController(wdlService: ProjectFileService, projectService: ProjectService)(implicit val executionContext: ExecutionContext) {
+class ProjectFileController(wdlService: ProjectFileService, projectService: ProjectService)(
+  implicit val executionContext: ExecutionContext
+) {
 
   val route: AccessTokenContent => Route = _ =>
     concat(
@@ -64,32 +79,37 @@ class ProjectFileController(wdlService: ProjectFileService, projectService: Proj
                 onComplete(projectService.getProjectById(ProjectId(projectId)).flatMap {
                   case Some(project) => wdlService.getFile(project, Paths.get(path), Some(PipelineVersion(version)))
                   case None =>
-                    Future.successful(Left(VersioningException(s"Project with ID $projectId does not exist")))
+                    Future
+                      .successful(Left(VersioningException.HttpException(s"Project with ID $projectId does not exist")))
                 }) {
                   case Success(Left(e)) => complete(StatusCodes.NotFound, e.getMessage)
                   case Success(_)       => complete(StatusCodes.OK)
                   case Failure(e)       => complete(StatusCodes.InternalServerError, e.getMessage)
-            },
-              delete {
-                parameter('projectId.as[String], 'path.as[String], 'branchName.as[String], 'commitMessage.as[String]) {
-                  (projectId, path, branchName, commitMessage) =>
-                    onComplete(projectService.getProjectById(ProjectId(projectId)).flatMap {
-                      case Some(project) =>
-                        val future: Future[Either[VersioningException, String]] =
-                          wdlService.deleteFile(project, Paths.get(path), branchName, commitMessage)
-                        future
-                      case None =>
-                        val future: Future[Either[VersioningException, String]] =
-                          Future.successful(Left(VersioningException(s"Project with ID $projectId does not exist")))
-                        future
-                    }) {
-                      case Success(Left(e)) => complete(StatusCodes.NotFound, e.getMessage)
-                      case Success(_)       => complete(StatusCodes.OK)
-                      case Failure(e)       => complete(StatusCodes.InternalServerError, e.getMessage)
-                    }
                 }
+            }
+          },
+          delete {
+            parameter('projectId.as[String], 'path.as[String], 'branchName.as[String], 'commitMessage.as[String]) {
+              (projectId, path, branchName, commitMessage) =>
+                onComplete(projectService.getProjectById(ProjectId(projectId)).flatMap {
+                  case Some(project) =>
+                    val future: Future[Either[VersioningException, String]] =
+                      wdlService.deleteFile(project, Paths.get(path), branchName, commitMessage)
+                    future
+                  case None =>
+                    val future: Future[Either[VersioningException, String]] =
+                      Future.successful(
+                        Left(VersioningException.HttpException(s"Project with ID $projectId does not exist"))
+                      )
+                    future
+                }) {
+                  case Success(Left(e)) => complete(StatusCodes.NotFound, e.getMessage)
+                  case Success(_)       => complete(StatusCodes.OK)
+                  case Failure(e)       => complete(StatusCodes.InternalServerError, e.getMessage)
+                }
+            }
+          }
         )
-
       },
       path("files" / "configurations") {
         post {
