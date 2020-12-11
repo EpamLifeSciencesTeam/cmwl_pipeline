@@ -259,7 +259,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
     val deleteMessage: String = s"$filePath file has been deleted from $branchName"
 
     httpClient
-      .delete[](
+      .delete[String](
         s"${config.url}/projects/${project.repository}/repository/files/$filePath/raw",
         config.token
       )
