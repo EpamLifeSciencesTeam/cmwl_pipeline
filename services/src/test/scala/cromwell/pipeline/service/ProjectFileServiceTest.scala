@@ -1,14 +1,20 @@
 package cromwell.pipeline.service
 
-import java.nio.file.{Path, Paths}
+import java.nio.file.{ Path, Paths }
 
 import cats.data.NonEmptyList
 import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
-import cromwell.pipeline.datastorage.dto.{PipelineVersion, ProjectFile, ProjectFileContent, SuccessResponseMessage, ValidationError}
-import cromwell.pipeline.utils.{ApplicationConfig, GitLabConfig}
+import cromwell.pipeline.datastorage.dto.{
+  PipelineVersion,
+  ProjectFile,
+  ProjectFileContent,
+  SuccessResponseMessage,
+  ValidationError
+}
+import cromwell.pipeline.utils.{ ApplicationConfig, GitLabConfig }
 import cromwell.pipeline.womtool.WomTool
 import org.mockito.Mockito.when
-import org.scalatest.{AsyncWordSpec, Matchers}
+import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
 import wom.executable.WomBundle
 
@@ -92,14 +98,18 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
 
       "return success message for request" taggedAs Service in {
         when(projectVersioning.getFile(project, file, version))
-          .thenReturn(Future.successful(Right(ProjectFile(file, "Success"))))
-        projectFileService.getFile(project, file, version).map(_ shouldBe Right(ProjectFile(file, "Success")))
+          .thenReturn(Future.successful(Right(ProjectFile(file, ProjectFileContent("Success")))))
+        projectFileService
+          .getFile(project, file, version)
+          .map(_ shouldBe Right(ProjectFile(file, ProjectFileContent("Success"))))
       }
 
       "return error message for error request" taggedAs Service in {
         when(projectVersioning.getFile(project, file, version))
           .thenReturn(Future.successful(Left(VersioningException.HttpException("Something wrong"))))
-        projectFileService.getFile(project, file, version).map(_ shouldBe Left(VersioningException.HttpException("Something wrong")))
+        projectFileService
+          .getFile(project, file, version)
+          .map(_ shouldBe Left(VersioningException.HttpException("Something wrong")))
       }
     }
   }
