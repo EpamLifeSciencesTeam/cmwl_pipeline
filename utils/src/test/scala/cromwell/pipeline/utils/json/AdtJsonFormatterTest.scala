@@ -13,11 +13,11 @@ class AdtJsonFormatterTest extends WordSpec with ScalaCheckDrivenPropertyChecks 
 
     "write instance" when {
       "this is an instance of a class" in {
-        val dummyImplA = DummyImplA("StringField", Some(1))
+        val dummyImplA: DummyTrait = DummyImplA("StringField", Some(1))
         noException should be thrownBy Json.toJson(dummyImplA)
       }
       "this is a singleton object" in {
-        noException should be thrownBy Json.toJson(DummyImplObj)
+        noException should be thrownBy Json.toJson(DummyImplObj: DummyTrait)
       }
     }
 
