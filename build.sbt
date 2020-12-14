@@ -8,6 +8,7 @@ ThisBuild / scalacOptions := Seq(
   "-deprecation",
   "-Xfatal-warnings"
 )
+ThisBuild / useCoursier := false
 
 lazy val formatAll = taskKey[Unit]("Format all the source code which includes src, test, and build files")
 lazy val checkFormat = taskKey[Unit]("Check all the source code which includes src, test, and build files")
@@ -89,7 +90,7 @@ lazy val utils =
   (project in file("utils"))
     .configs(IntegrationTest)
     .settings(
-      libraryDependencies ++= (jsonDependencies ++ testContainers ++ coreTestDependencies ++ dbDependencies) :+ configHokon :+ cats :+ playFunctional :+ pegdown,
+      libraryDependencies ++= (jsonDependencies ++ testContainers ++ coreTestDependencies ++ dbDependencies ++ akkaDependencies) :+ configHokon :+ cats :+ playFunctional :+ pegdown,
       commonSettings
     )
     .dependsOn(model)
@@ -126,7 +127,7 @@ lazy val womtool = (project in file("womtool"))
     resolvers += Resolver.bintrayRepo("scalalab", "pipeline"),
     name := "WomTool",
     commonSettings,
-    libraryDependencies ++= allTestDependencies ++ cromwellDependencies :+ pegdown,
+    libraryDependencies ++= allTestDependencies ++ cromwellDependencies :+ pegdown :+ configHokon :+ cats,
     addCommandAlias("testAll", "; test ; it:test")
   )
   .dependsOn(repositories)

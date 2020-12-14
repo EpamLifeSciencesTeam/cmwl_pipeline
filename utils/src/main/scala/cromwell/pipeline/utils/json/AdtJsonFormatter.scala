@@ -80,7 +80,7 @@ trait AdtJsonFormatter {
   def adtCase[T: OFormat: ClassTag](typeFieldValue: String): AdtCaseFormat[T] = AdtCaseFormat(typeFieldValue)
 
   def objectFormat[T <: Singleton](obj: T): OFormat[T] =
-    OFormat(objectReads(obj), objectWrites)
+    OFormat(objectReads(obj), objectWrites[T])
 
   private def objectReads[T](obj: T): Reads[T] = Reads {
     case _: JsObject => JsSuccess(obj)
