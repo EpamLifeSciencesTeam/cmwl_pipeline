@@ -22,10 +22,9 @@ package cromwell.pipeline.controller
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.Uri.Query
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.model.{ ContentTypes, HttpEntity, HttpMethods, HttpRequest, HttpResponse, Uri }
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.ActorMaterializer
 import cromwell.pipeline.service.{ FailureResponseBody, HttpClient, Response, SuccessResponseBody }
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import play.api.libs.json.{ Json, Reads, Writes }
@@ -37,9 +36,8 @@ import scala.util.{ Failure, Success, Try }
 /**
  * @constructor Create a new client with a `actorSystem` and `materializer`.
  * @param actorSystem
- * @param materializer
  */
-class AkkaHttpClient(implicit actorSystem: ActorSystem, materializer: ActorMaterializer) extends HttpClient {
+class AkkaHttpClient(implicit actorSystem: ActorSystem) extends HttpClient {
   private val expirationTime: FiniteDuration = 300.millis
 
   override def get[B](url: String, params: Map[String, String] = Map(), headers: Map[String, String] = Map())(

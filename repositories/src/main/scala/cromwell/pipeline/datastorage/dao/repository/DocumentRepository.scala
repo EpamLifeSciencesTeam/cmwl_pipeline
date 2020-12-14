@@ -2,14 +2,14 @@ package cromwell.pipeline.datastorage.dao.repository
 
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.ReplaceOptions
-import org.mongodb.scala.result.UpdateResult
-import org.mongodb.scala.{ Completed, Document, MongoCollection }
+import org.mongodb.scala.result.{ InsertOneResult, UpdateResult }
+import org.mongodb.scala.{ Document, MongoCollection }
 
 import scala.concurrent.Future
 
 class DocumentRepository(collection: MongoCollection[Document]) {
 
-  def addOne(document: Document): Future[Completed] =
+  def addOne(document: Document): Future[InsertOneResult] =
     collection.insertOne(document).toFuture()
 
   def updateOne(document: Document, fieldName: String, name: String): Future[UpdateResult] =

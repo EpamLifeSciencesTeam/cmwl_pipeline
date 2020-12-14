@@ -1,7 +1,7 @@
 package cromwell.pipeline
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import com.typesafe.config.{ Config, ConfigFactory }
 import cromwell.pipeline.auth.AuthModule
 import cromwell.pipeline.controller.{ AkkaHttpClient, ControllerModule }
@@ -14,8 +14,7 @@ import scala.concurrent.ExecutionContext
 final class ApplicationComponents(
   implicit val config: Config = ConfigFactory.load(),
   val executionContext: ExecutionContext,
-  val actorSystem: ActorSystem,
-  val materializer: ActorMaterializer
+  val actorSystem: ActorSystem
 ) {
   lazy val applicationConfig: ApplicationConfig = ApplicationConfig.load(config)
   lazy val authModule: AuthModule = new AuthModule(applicationConfig.authConfig)
