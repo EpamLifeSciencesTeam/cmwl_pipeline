@@ -4,6 +4,7 @@ import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto.{ Project, ProjectAdditionRequest, ProjectId }
 import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.service.Exceptions.ProjectNotFoundException
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
@@ -43,19 +44,19 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar w
         when(projectRepository.deactivateProjectById(projectId)).thenReturn(Future(0))
         when(projectRepository.getProjectById(projectId)).thenReturn(Future(Some(project)))
 
-        projectService.deactivateProjectById(projectId, userId).map { _ shouldBe Some(project) }
+        projectService.deactivateProjectById(projectId, userId).map { _ shouldBe project }
       }
     }
 
-    "getProjectById" should {
+    "getUserProjectById" should {
+      val userId = UserId.random
       "return project with corresponding id" taggedAs Service in {
         val projectId = ProjectId("projectId")
-        val userId = UserId.random
         val project = TestProjectUtils.getDummyProject(projectId, userId)
 
         when(projectRepository.getProjectById(projectId)).thenReturn(Future(Some(project)))
 
-        projectService.getProjectById(projectId).map { _ shouldBe Some(project) }
+        projectService.getUserProjectById(projectId, userId).map { _ shouldBe project }
       }
 
       "return none if project not found" taggedAs Service in {
@@ -63,7 +64,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar w
 
         when(projectRepository.getProjectById(projectId)).thenReturn(Future(None))
 
-        projectService.getProjectById(projectId).map { _ shouldBe None }
+        projectService.getUserProjectById(projectId, userId).failed.map { _ shouldBe ProjectNotFoundException() }
       }
     }
   }

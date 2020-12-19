@@ -23,15 +23,15 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
       "return a object of project type" taggedAs Controller in {
         val projectByName: String = "dummyProject"
         val dummyProject: Project = TestProjectUtils.getDummyProject()
-        val getProjectByNameResponse: Option[Project] = Option(dummyProject)
+        val getProjectByNameResponse: Project = dummyProject
 
         val accessToken = AccessTokenContent(dummyProject.ownerId)
-        when(projectService.getProjectByName(projectByName, accessToken.userId))
+        when(projectService.getUserProjectByName(projectByName, accessToken.userId))
           .thenReturn(Future.successful(getProjectByNameResponse))
 
         Get("/projects?name=" + projectByName) ~> projectController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
-          responseAs[Option[Project]] shouldEqual (getProjectByNameResponse)
+          responseAs[Project] shouldEqual getProjectByNameResponse
         }
       }
     }
@@ -45,7 +45,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
 
         when(
           projectService.deactivateProjectById(dummyProject.projectId, accessToken.userId)
-        ).thenReturn(Future.successful(Some(deactivatedProject)))
+        ).thenReturn(Future.successful(deactivatedProject))
 
         Delete("/projects", request) ~> projectController.route(accessToken) ~> check {
           responseAs[Project] shouldBe deactivatedProject

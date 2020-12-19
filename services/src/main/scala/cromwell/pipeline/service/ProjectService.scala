@@ -4,8 +4,8 @@ import java.util.UUID
 
 import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dto._
-import cromwell.pipeline.service.Exceptions.{ ProjectAccessDeniedException, ProjectNotFoundException }
 import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.service.Exceptions.{ ProjectAccessDeniedException, ProjectNotFoundException }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -13,17 +13,18 @@ class ProjectService(projectRepository: ProjectRepository, projectVersioning: Pr
   implicit executionContext: ExecutionContext
 ) {
 
-  def getProjectById(projectId: ProjectId): Future[Option[Project]] =
-    projectRepository.getProjectById(projectId)
+  private[service] def getUserProjectById(projectId: ProjectId, userId: UserId): Future[Project] =
+    projectRepository.getProjectById(projectId).flatMap(getForUserOrFail(_, userId))
 
-  def getProjectByName(namePattern: String, userId: UserId): Future[Option[Project]] = {
-    val result = projectRepository.getProjectByName(namePattern)
-    result.flatMap {
-      case Some(project) if project.ownerId == userId => result
+  def getUserProjectByName(namePattern: String, userId: UserId): Future[Project] =
+    projectRepository.getProjectByName(namePattern).flatMap(getForUserOrFail(_, userId))
+
+  private def getForUserOrFail(project: Option[Project], userId: UserId): Future[Project] =
+    project match {
+      case Some(project) if project.ownerId == userId => Future.successful(project)
       case Some(_)                                    => Future.failed(new ProjectAccessDeniedException)
       case None                                       => Future.failed(new ProjectNotFoundException)
     }
-  }
 
   def addProject(request: ProjectAdditionRequest, userId: UserId): Future[Either[VersioningException, ProjectId]] = {
     val project =
@@ -39,32 +40,24 @@ class ProjectService(projectRepository: ProjectRepository, projectVersioning: Pr
     }
   }
 
-  def deactivateProjectById(projectId: ProjectId, userId: UserId): Future[Option[Project]] = {
-    val result = getProjectById(projectId)
-    result.flatMap {
-      case Some(project) if project.ownerId != userId => Future.failed(new ProjectAccessDeniedException)
-      case Some(_) =>
-        for {
-          _ <- projectRepository.deactivateProjectById(projectId)
-          getProject <- getProjectById(projectId)
-        } yield getProject
-      case None => Future.failed(new ProjectNotFoundException)
+  def deactivateProjectById(projectId: ProjectId, userId: UserId): Future[Project] =
+    getUserProjectById(projectId, userId).flatMap { project =>
+      if (!project.active) {
+        Future.successful(project)
+      } else {
+        projectRepository.deactivateProjectById(projectId).flatMap(_ => getUserProjectById(projectId, userId))
+      }
     }
-  }
 
   def updateProject(request: ProjectUpdateRequest, userId: UserId): Future[Int] =
-    projectRepository.getProjectById(request.projectId).flatMap {
-      case Some(project) =>
-        if (project.ownerId == userId)
-          projectRepository.updateProject(project.copy(name = request.name, repository = request.repository))
-        else Future.failed(new ProjectAccessDeniedException)
-      case None => Future.failed(new ProjectNotFoundException)
+    getUserProjectById(request.projectId, userId).flatMap { project =>
+      projectRepository.updateProject(project.copy(name = request.name, repository = request.repository))
     }
 
 }
 
 object Exceptions {
-  case class ProjectNotFoundException(message: String = "Project not found") extends RuntimeException(message)
-  case class ProjectAccessDeniedException(message: String = "Access denied. You  not owner of the project")
+  final case class ProjectNotFoundException(message: String = "Project not found") extends RuntimeException(message)
+  final case class ProjectAccessDeniedException(message: String = "Access denied. You  not owner of the project")
       extends RuntimeException(message)
 }
