@@ -3,7 +3,6 @@ package cromwell.pipeline.service
 import java.net.URLEncoder
 import java.nio.file.Path
 
-import cromwell.pipeline.datastorage.dto.Project._
 import cromwell.pipeline.datastorage.dto.File.UpdateFileRequest
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.utils.{ GitLabConfig, HttpStatusCodes }
@@ -121,11 +120,12 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
         .map {
           case Response(_, SuccessResponseBody(gitLabProject), _) =>
             Right(project.withRepository(Some(s"${config.idPath}${gitLabProject.id}")))
-          case Response(statusCode, FailureResponseBody(_), _) =>
-            Left(
-              VersioningException
-                .RepositoryException(s"The repository was not created. Response status: ${statusCode}")
-            )
+          case Response(statusCode, FailureResponseBody(error), _) =>
+            Left {
+              VersioningException.RepositoryException {
+                s"The repository was not created. Response status: $statusCode; Response body [$error]"
+              }
+            }
         }
         .recover { case e: Throwable => Left(VersioningException.HttpException(e.getMessage)) }
     }
