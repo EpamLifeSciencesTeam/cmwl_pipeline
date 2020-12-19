@@ -20,7 +20,7 @@ class ProjectController(projectService: ProjectService)(
       concat(
         get {
           parameter('name.as[String]) { name =>
-            onComplete(projectService.getProjectByName(name, accessToken.userId)) {
+            onComplete(projectService.getUserProjectByName(name, accessToken.userId)) {
               case Success(project)                         => complete(project)
               case Failure(e: ProjectNotFoundException)     => complete(StatusCodes.NotFound, e.getMessage)
               case Failure(e: ProjectAccessDeniedException) => complete(StatusCodes.Forbidden, e.getMessage)

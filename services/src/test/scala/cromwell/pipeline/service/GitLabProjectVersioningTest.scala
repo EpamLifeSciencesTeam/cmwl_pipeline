@@ -65,7 +65,11 @@ class GitLabProjectVersioningTest
 
         when(request(postProject)).thenReturn(
           Future.successful(
-            Response[RepositoryId](HttpStatusCodes.Created, SuccessResponseBody[RepositoryId](repositoryId), EmptyHeaders)
+            Response[RepositoryId](
+              HttpStatusCodes.Created,
+              SuccessResponseBody[RepositoryId](repositoryId),
+              EmptyHeaders
+            )
           )
         )
 
@@ -75,19 +79,22 @@ class GitLabProjectVersioningTest
       }
 
       "throw new VersioningException with 400 response" taggedAs Service in {
+        val errorMsg = "The repository was not created. Response status: 400"
         when(request(postProject)).thenReturn(
           Future.successful(
             Response[RepositoryId](
               HttpStatusCodes.BadRequest,
-              FailureResponseBody("The repository was not created. Response status: 400"),
+              FailureResponseBody(errorMsg),
               EmptyHeaders
             )
           )
         )
         gitLabProjectVersioning.createRepository(activeProject).map {
-          _ shouldBe Left(
-            VersioningException.RepositoryException("The repository was not created. Response status: 400")
-          )
+          _ shouldBe Left {
+            VersioningException.RepositoryException {
+              s"The repository was not created. Response status: 400; Response body [$errorMsg]"
+            }
+          }
         }
       }
     }
