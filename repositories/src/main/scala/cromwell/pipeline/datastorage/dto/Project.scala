@@ -70,7 +70,7 @@ object ProjectUpdateRequest {
   implicit val updateRequestFormat: OFormat[ProjectUpdateRequest] = Json.format[ProjectUpdateRequest]
 }
 
-final case class RepositoryId(id: String)
+final case class RepositoryId(id: Int)
 
 object RepositoryId {
   implicit val gitlabProjectFormat: OFormat[RepositoryId] = Json.format[RepositoryId]
@@ -207,12 +207,12 @@ object ProjectUpdateFileRequest {
  */
 final case class DummyResponseBody()
 object DummyResponseBody {
-  implicit val dummyResponseBodyNonStrictReads = Reads.pure(DummyResponseBody())
-  implicit val dummyResponseBodyWrites = OWrites[DummyResponseBody](_ => Json.obj())
+  implicit val dummyResponseBodyNonStrictReads: Reads[DummyResponseBody] = Reads.pure(DummyResponseBody())
+  implicit val dummyResponseBodyWrites: OWrites[DummyResponseBody] = OWrites[DummyResponseBody](_ => Json.obj())
 }
 
 /**
- * Wrapper type contains success response message from [[cromwell.pipeline.service.SuccessResponseBody]]
+ * Wrapper type contains success response message
  *
  * @param message any response info which signals successful request
  */
@@ -220,11 +220,12 @@ final case class SuccessResponseMessage(message: String) extends AnyVal
 
 object SuccessResponseMessage {
   implicit lazy val successResponseMessageFormat: OFormat[SuccessResponseMessage] =
-    Json.format[SuccessResponseMessage]
+    Json.format[SuccessResponseMessage] // todo Json.valueFormat ?
 }
 
 /**
- * Wrapper type contains empty response message to use in [[cromwell.pipeline.service.HttpClient]]
+ * Wrapper type contains empty payload
+ * Useful if you want to post something and payload doesn't matter
  *
  * @param message empty payload message
  */
