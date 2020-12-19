@@ -9,7 +9,8 @@ import scala.util.Random
 
 object TestProjectUtils {
 
-  private def randomInt(range: Int): Int = Random.nextInt(range)
+  private val defaultRange: Int = 12
+  private def randomInt(range: Int = defaultRange): Int = Random.nextInt(range)
   private def randomUuidStr: String = UUID.randomUUID().toString
   def getDummyProjectId: ProjectId = ProjectId(randomUuidStr)
   def getDummyRepository: Repository = Repository(s"repo-$randomUuidStr")
@@ -23,13 +24,13 @@ object TestProjectUtils {
   ): Project = Project(projectId, ownerId, name, active, repository, visibility)
   def getDummyCommit(id: String = randomUuidStr): Commit = Commit(id)
   def getDummyPipeLineVersion(
-    v1: Int = 1 + randomInt(12),
-    v2: Int = 1 + randomInt(12),
-    v3: Int = 1 + randomInt(12)
+    v1: Int = 1 + randomInt(),
+    v2: Int = 1 + randomInt(),
+    v3: Int = 1 + randomInt()
   ): PipelineVersion =
     PipelineVersion(s"v$v1.$v2.$v3")
   def getDummyRepositoryId(
-    id: String = randomUuidStr
+    id: Int = randomInt()
   ): RepositoryId = RepositoryId(id)
   def getDummyGitLabVersion(
     version: PipelineVersion = getDummyPipeLineVersion(),
