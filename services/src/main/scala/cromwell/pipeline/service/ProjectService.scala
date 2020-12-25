@@ -27,16 +27,16 @@ class ProjectService(projectRepository: ProjectRepository, projectVersioning: Pr
     }
 
   def addProject(request: ProjectAdditionRequest, userId: UserId): Future[Either[VersioningException, ProjectId]] = {
-    val project =
-      Project(
+    val localProject =
+      LocalProject(
         projectId = ProjectId(UUID.randomUUID().toString),
         ownerId = userId,
         name = request.name,
         active = true
       )
-    projectVersioning.createRepository(project).flatMap {
-      case Left(exception)       => Future.successful(Left(exception))
-      case Right(value: Project) => projectRepository.addProject(value).map(Right(_))
+    projectVersioning.createRepository(localProject).flatMap {
+      case Left(exception) => Future.successful(Left(exception))
+      case Right(project)  => projectRepository.addProject(project).map(Right(_))
     }
   }
 
@@ -49,9 +49,9 @@ class ProjectService(projectRepository: ProjectRepository, projectVersioning: Pr
       }
     }
 
-  def updateProject(request: ProjectUpdateRequest, userId: UserId): Future[Int] =
+  def updateProjectName(request: ProjectUpdateNameRequest, userId: UserId): Future[Int] =
     getUserProjectById(request.projectId, userId).flatMap { project =>
-      projectRepository.updateProject(project.copy(name = request.name, repository = request.repository))
+      projectRepository.updateProjectName(project.copy(name = request.name))
     }
 
 }

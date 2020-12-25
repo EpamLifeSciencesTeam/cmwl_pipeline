@@ -44,6 +44,7 @@ object CromwellPipelineApp extends App {
       userController.route,
       projectController.route,
       projectFileController.route,
+      runController.route,
       configurationController.route
     )
   }

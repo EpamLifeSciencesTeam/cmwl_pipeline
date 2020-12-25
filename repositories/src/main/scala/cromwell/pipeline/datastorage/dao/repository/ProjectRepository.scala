@@ -1,7 +1,7 @@
 package cromwell.pipeline.datastorage.dao.repository
 
 import cromwell.pipeline.database.PipelineDatabaseEngine
-import cromwell.pipeline.datastorage.dao.ProjectEntry
+import cromwell.pipeline.datastorage.dao.entry.ProjectEntry
 import cromwell.pipeline.datastorage.dto.{ Project, ProjectId }
 
 import scala.concurrent.Future
@@ -22,7 +22,7 @@ class ProjectRepository(pipelineDatabaseEngine: PipelineDatabaseEngine, projectE
   def deactivateProjectById(projectId: ProjectId): Future[Int] =
     database.run(projectEntry.deactivateProjectByIdAction(projectId))
 
-  def updateProject(updatedProject: Project): Future[Int] =
-    database.run(projectEntry.updateProjectAction(updatedProject))
+  def updateProjectName(updatedProject: Project): Future[Int] =
+    database.run(projectEntry.updateProjectNameAction(updatedProject))
 
 }

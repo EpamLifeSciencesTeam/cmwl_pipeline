@@ -86,4 +86,15 @@
         <addNotNullConstraint constraintName="results_nn" tableName="run" columnName="results"/>
     </changeSet>
 
+    <changeSet id="change_repository_id_type" author="nikita_miazin">
+        <delete tableName="run"/>
+        <delete tableName="project"/>
+        <dropColumn tableName="project" columnName="repository"/>
+        <addColumn tableName="project">
+            <column name="repository_id" type="${integer.type}">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

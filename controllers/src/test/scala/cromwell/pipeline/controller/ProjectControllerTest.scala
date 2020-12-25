@@ -4,7 +4,7 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.datastorage.dao.repository.utils.{ TestProjectUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectDeleteRequest, ProjectUpdateRequest }
+import cromwell.pipeline.datastorage.dto.{ Project, ProjectDeleteRequest, ProjectUpdateNameRequest }
 import cromwell.pipeline.service.ProjectService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import org.mockito.Mockito.when
@@ -72,9 +72,9 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
         val userId = TestUserUtils.getDummyUserId
         val accessToken = AccessTokenContent(userId)
         val dummyProject = TestProjectUtils.getDummyProject()
-        val request = ProjectUpdateRequest(dummyProject.projectId, dummyProject.name, dummyProject.repository)
+        val request = ProjectUpdateNameRequest(dummyProject.projectId, dummyProject.name)
 
-        when(projectService.updateProject(request, userId)).thenReturn(Future.successful(1))
+        when(projectService.updateProjectName(request, userId)).thenReturn(Future.successful(1))
 
         Put("/projects", request) ~> projectController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NoContent
@@ -85,9 +85,9 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
         val userId = TestUserUtils.getDummyUserId
         val accessToken = AccessTokenContent(userId)
         val dummyProject = TestProjectUtils.getDummyProject()
-        val request = ProjectUpdateRequest(dummyProject.projectId, dummyProject.name, dummyProject.repository)
+        val request = ProjectUpdateNameRequest(dummyProject.projectId, dummyProject.name)
 
-        when(projectService.updateProject(request, userId))
+        when(projectService.updateProjectName(request, userId))
           .thenReturn(Future.failed(new RuntimeException("Something wrong")))
 
         Put("/projects", request) ~> projectController.route(accessToken) ~> check {

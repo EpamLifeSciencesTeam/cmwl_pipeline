@@ -4,7 +4,7 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
-import cromwell.pipeline.datastorage.dto.{ ProjectAdditionRequest, ProjectDeleteRequest, ProjectUpdateRequest }
+import cromwell.pipeline.datastorage.dto.{ ProjectAdditionRequest, ProjectDeleteRequest, ProjectUpdateNameRequest }
 import cromwell.pipeline.service.Exceptions.{ ProjectAccessDeniedException, ProjectNotFoundException }
 import cromwell.pipeline.service.{ ProjectService, VersioningException }
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
@@ -52,8 +52,8 @@ class ProjectController(projectService: ProjectService)(
           }
         },
         put {
-          entity(as[ProjectUpdateRequest]) { request =>
-            onComplete(projectService.updateProject(request, accessToken.userId)) {
+          entity(as[ProjectUpdateNameRequest]) { request =>
+            onComplete(projectService.updateProjectName(request, accessToken.userId)) {
               case Success(_) => complete(StatusCodes.NoContent)
               case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
             }
