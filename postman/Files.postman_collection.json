@@ -51,7 +51,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"project\": {\r\n        \"projectId\": \"\",\r\n        \"ownerId\": \"\",\r\n        \"name\": \"\",\r\n        \"active\": true\r\n    },\r\n    \"projectFile\": {\r\n        \"path\": \"\",\r\n        \"context\": \"{{valid_wdl_file}}\"\r\n    }\r\n}",
+					"raw": "{\r\n    \"project\": {\r\n        \"projectId\": \"\",\r\n        \"ownerId\": \"\",\r\n        \"name\": \"\",\r\n        \"active\": true\r\n    },\r\n    \"projectFile\": {\r\n        \"path\": \"\",\r\n        \"content\": \"{{valid_wdl_file}}\"\r\n    }\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"

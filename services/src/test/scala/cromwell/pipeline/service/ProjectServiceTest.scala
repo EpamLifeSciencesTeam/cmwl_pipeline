@@ -2,7 +2,7 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectAdditionRequest, ProjectId }
+import cromwell.pipeline.datastorage.dto.{ LocalProject, Project, ProjectAdditionRequest, ProjectId }
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.service.Exceptions.ProjectNotFoundException
 import org.mockito.Matchers.any
@@ -27,7 +27,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar w
         val projectId = dummyProject.projectId
         val ownerId = dummyProject.ownerId
 
-        when(projectVersioning.createRepository(any[Project])(any[ExecutionContext]))
+        when(projectVersioning.createRepository(any[LocalProject])(any[ExecutionContext]))
           .thenReturn(Future.successful(Right(dummyProject)))
         when(projectRepository.addProject(any[Project])).thenReturn(Future.successful(projectId))
 

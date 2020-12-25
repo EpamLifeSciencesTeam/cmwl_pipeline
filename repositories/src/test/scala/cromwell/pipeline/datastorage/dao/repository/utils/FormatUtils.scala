@@ -12,7 +12,7 @@ object FormatUtils {
   implicit val signInRequestFormat: Format[SignInRequest] = SignInRequest.signInRequestFormat
   implicit val projectAdditionRequestFormat: Format[ProjectAdditionRequest] = ProjectAdditionRequest.projectAdditionFormat
   implicit val projectDeleteRequestFormat: Format[ProjectDeleteRequest] = ProjectDeleteRequest.projectDeleteFormat
-  implicit val projectUpdateRequestFormat: Format[ProjectUpdateRequest] = ProjectUpdateRequest.updateRequestFormat
+  implicit val projectUpdateNameRequestFormat: Format[ProjectUpdateNameRequest] = ProjectUpdateNameRequest.updateRequestFormat
   implicit val projectFileContentFormat: Format[ProjectFileContent] = ProjectFileContent.projectFileContentFormat
   implicit val projectUpdateFileRequestFormat: Format[ProjectUpdateFileRequest] = ProjectUpdateFileRequest.projectUpdateFileRequestFormat
   implicit val projectBuildConfigurationRequestFormat: Format[ProjectBuildConfigurationRequest] =

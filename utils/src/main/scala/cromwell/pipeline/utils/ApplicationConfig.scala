@@ -10,7 +10,6 @@ final case class WebServiceConfig(interface: String, port: Int) extends ConfigCo
 
 final case class GitLabConfig(
   url: String,
-  idPath: String,
   token: Map[String, String],
   defaultFileVersion: String,
   defaultBranch: String
@@ -70,7 +69,6 @@ class ApplicationConfig(val config: Config) {
     val _config = config.getConfig("database.gitlab")
     GitLabConfig(
       url = _config.getString("url"),
-      idPath = _config.getString("path") + "%2F",
       token = Map("PRIVATE-TOKEN" -> _config.getString("token")),
       defaultFileVersion = _config.getString("defaultFileVersion"),
       defaultBranch = _config.getString("defaultBranch")

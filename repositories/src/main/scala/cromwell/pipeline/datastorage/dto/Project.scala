@@ -14,23 +14,28 @@ final case class Project(
   ownerId: UserId,
   name: String,
   active: Boolean,
-  repository: Option[Repository] = None,
+  repositoryId: RepositoryId,
   visibility: Visibility = Private
-) {
-  def withRepository(repositoryPath: Option[String]): Project =
-    this.copy(repository = repositoryPath.map(Repository(_)))
-}
+)
 object Project {
   implicit lazy val projectFormat: OFormat[Project] = Json.format[Project]
-  implicit lazy val projectWrites: Writes[Project] = (project: Project) =>
-    Json.obj(
-      "projectId" -> project.projectId.value,
-      "ownerId" -> project.ownerId,
-      "name" -> project.name,
-      "active" -> project.active,
-      "repository" -> project.repository,
-      "visibility" -> Visibility.toString(project.visibility),
-      "path" -> project.projectId.value
+}
+
+final case class LocalProject(
+  projectId: ProjectId,
+  ownerId: UserId,
+  name: String,
+  active: Boolean,
+  visibility: Visibility = Private
+) {
+  def toProject(repositoryId: RepositoryId): Project =
+    Project(
+      projectId = projectId,
+      ownerId = ownerId,
+      name = name,
+      active = active,
+      repositoryId = repositoryId,
+      visibility = visibility
     )
 }
 
@@ -46,10 +51,11 @@ object ProjectId {
   implicit lazy val projectIdFormat: Format[ProjectId] = implicitly[Format[String]].inmap(ProjectId.apply, _.value)
 }
 
-final case class Repository(value: String) extends MappedTo[String]
+final case class RepositoryId(value: Int) extends MappedTo[Int]
 
-object Repository {
-  implicit lazy val repositoryFormat: Format[Repository] = implicitly[Format[String]].inmap(Repository.apply, _.value)
+object RepositoryId {
+  implicit lazy val repositoryIdFormat: Format[RepositoryId] =
+    implicitly[Format[Int]].inmap(RepositoryId.apply, _.value)
 }
 
 final case class ProjectAdditionRequest(name: String)
@@ -64,16 +70,16 @@ object ProjectDeleteRequest {
   implicit lazy val projectDeleteFormat: OFormat[ProjectDeleteRequest] = Json.format[ProjectDeleteRequest]
 }
 
-final case class ProjectUpdateRequest(projectId: ProjectId, name: String, repository: Option[Repository])
+final case class ProjectUpdateNameRequest(projectId: ProjectId, name: String)
 
-object ProjectUpdateRequest {
-  implicit val updateRequestFormat: OFormat[ProjectUpdateRequest] = Json.format[ProjectUpdateRequest]
+object ProjectUpdateNameRequest {
+  implicit val updateRequestFormat: OFormat[ProjectUpdateNameRequest] = Json.format[ProjectUpdateNameRequest]
 }
 
-final case class RepositoryId(id: Int)
+final case class GitLabRepositoryResponse(id: RepositoryId)
 
-object RepositoryId {
-  implicit val gitlabProjectFormat: OFormat[RepositoryId] = Json.format[RepositoryId]
+object GitLabRepositoryResponse {
+  implicit val gitLabRepositoryResponseFormat: OFormat[GitLabRepositoryResponse] = Json.format[GitLabRepositoryResponse]
 }
 
 final case class GitLabVersion(name: PipelineVersion, message: String, target: String, commit: Commit)
@@ -154,10 +160,10 @@ object ProjectFile {
   }
 }
 
-final case class ProjectFileContent(content: String)
+final case class ProjectFileContent(content: String) extends AnyVal
 
 object ProjectFileContent {
-  implicit val projectFileContentFormat: OFormat[ProjectFileContent] = Json.format[ProjectFileContent]
+  implicit val projectFileContentFormat: Format[ProjectFileContent] = Json.valueFormat[ProjectFileContent]
 }
 
 sealed trait Visibility
@@ -191,12 +197,19 @@ object ProjectBuildConfigurationRequest {
     Json.format[ProjectBuildConfigurationRequest]
 }
 
+final case class ValidateFileContentRequest(content: ProjectFileContent)
+
+object ValidateFileContentRequest {
+  implicit lazy val validateFileContentRequestFormat: OFormat[ValidateFileContentRequest] = Json.format
+}
+
 final case class ProjectUpdateFileRequest(project: Project, projectFile: ProjectFile, version: Option[PipelineVersion])
 
 object ProjectUpdateFileRequest {
   implicit lazy val projectUpdateFileRequestFormat: OFormat[ProjectUpdateFileRequest] =
-    ((JsPath \ "project").format[Project] ~ (JsPath \ "projectFile").format[ProjectFile] ~ (JsPath \ "version")
-      .formatNullable[PipelineVersion])(
+    ((JsPath \ "project").format[Project] ~
+      (JsPath \ "projectFile").format[ProjectFile] ~
+      (JsPath \ "version").formatNullable[PipelineVersion])(
       ProjectUpdateFileRequest.apply,
       unlift(ProjectUpdateFileRequest.unapply)
     )

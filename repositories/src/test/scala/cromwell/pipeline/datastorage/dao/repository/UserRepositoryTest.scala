@@ -23,7 +23,6 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
   }
 
   private val newPasswordHash: String = StringUtils.calculatePasswordHash("newPassword1", "salt")
-  private val newInvalidPasswordHash: String = StringUtils.calculatePasswordHash("newPassword", "salt")
 
   "UserRepository" when {
 

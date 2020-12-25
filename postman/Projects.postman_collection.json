@@ -99,7 +99,7 @@
 			"response": []
 		},
 		{
-			"name": "Change project name and repository (optional)",
+			"name": "Change project name",
 			"request": {
 				"method": "PUT",
 				"header": [
@@ -111,7 +111,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"projectId\": \"\",\r\n    \"name\": \"\",\r\n    \"repository\": \"\"\r\n}",
+					"raw": "{\r\n    \"projectId\": \"\",\r\n    \"name\": \"\",\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
