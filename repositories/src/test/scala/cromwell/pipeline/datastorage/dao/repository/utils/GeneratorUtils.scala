@@ -13,14 +13,16 @@ import org.scalacheck.Gen
 import scala.util.Random
 
 object GeneratorUtils {
-  private def stringGen(n: Int): Gen[String] = Gen.listOfN(n, Gen.alphaLowerChar).map(_.mkString)
+  private val defaultStrLength = 10
+
+  private def stringGen(n: Int = defaultStrLength): Gen[String] = Gen.listOfN(n, Gen.alphaLowerChar).map(_.mkString)
 
   private lazy val projectIdGen: Gen[ProjectId] = Gen.uuid.map(id => ProjectId(id.toString))
 
-  private lazy val repositoryGen: Gen[Repository] = stringGen(10).map(Repository(_))
+  private lazy val repositoryIdGen: Gen[RepositoryId] = Gen.chooseNum(0, 10).map(RepositoryId(_))
 
   private lazy val emailGen: Gen[UserEmail] = for {
-    name <- stringGen(10)
+    name <- stringGen()
     mail <- Gen.oneOf(Mail.values.toSeq)
     domain <- Gen.oneOf(Domain.values.toSeq)
   } yield UserEmail(s"$name@$mail.$domain", Enable.Unsafe)
@@ -36,14 +38,14 @@ object GeneratorUtils {
   private lazy val versionValueGen: Gen[VersionValue] = Gen.posNum[Int].map(VersionValue(_, Enable.Unsafe))
 
   private lazy val pipelineVersionGen: Gen[PipelineVersion] = for {
-  major <- versionValueGen
-  minor <- versionValueGen
-  revision <- versionValueGen
+    major <- versionValueGen
+    minor <- versionValueGen
+    revision <- versionValueGen
   } yield PipelineVersion(major, minor, revision)
 
   private lazy val passwordGen: Gen[Password] = for {
     upperCase <- Gen.alphaUpperStr.suchThat(s => s.nonEmpty)
-    lowerLetters <- stringGen(10)
+    lowerLetters <- stringGen()
     digits <- Gen.posNum[Int]
     symbol <- Gen.oneOf(Symbol.values.toSeq)
   } yield {
@@ -61,9 +63,9 @@ object GeneratorUtils {
   private lazy val projectGen: Gen[Project] = for {
     projectId <- projectIdGen
     userId <- userIdGen
-    name <- stringGen(10)
+    name <- stringGen()
     active <- Gen.oneOf(false, true)
-    repository <- Gen.option(repositoryGen)
+    repository <- repositoryIdGen
     visibility <- Gen.oneOf(Visibility.values)
   } yield Project(projectId, userId, name, active, repository, visibility)
 
@@ -90,17 +92,16 @@ object GeneratorUtils {
     password <- passwordGen
   } yield SignInRequest(email, password)
 
-  lazy val projectAdditionRequestGen: Gen[ProjectAdditionRequest] = stringGen(10).map(ProjectAdditionRequest(_))
+  lazy val projectAdditionRequestGen: Gen[ProjectAdditionRequest] = stringGen().map(ProjectAdditionRequest(_))
 
   lazy val projectDeleteRequestGen: Gen[ProjectDeleteRequest] = projectIdGen.map(ProjectDeleteRequest(_))
 
-  lazy val projectUpdateRequestGen: Gen[ProjectUpdateRequest] = for {
+  lazy val projectUpdateNameRequestGen: Gen[ProjectUpdateNameRequest] = for {
     id <- projectIdGen
-    name <- stringGen(10)
-    repository <- Gen.option(repositoryGen)
-  } yield ProjectUpdateRequest(id, name, repository)
+    name <- stringGen()
+  } yield ProjectUpdateNameRequest(id, name)
 
-  lazy val projectFileContentGen: Gen[ProjectFileContent] = stringGen(10).map(ProjectFileContent(_))
+  lazy val projectFileContentGen: Gen[ProjectFileContent] = stringGen().map(ProjectFileContent(_))
 
   lazy val projectUpdateFileRequestGen: Gen[ProjectUpdateFileRequest] = for {
     project <- projectGen

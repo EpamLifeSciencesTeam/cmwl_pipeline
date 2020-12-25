@@ -14,7 +14,8 @@ object ArbitraryUtils {
   implicit def arbitrarySignInRequest: Arbitrary[SignInRequest] = Arbitrary(signInRequestGen)
   implicit def arbitraryProjectAdditionRequest: Arbitrary[ProjectAdditionRequest] = Arbitrary(projectAdditionRequestGen)
   implicit def arbitraryProjectDeleteRequest: Arbitrary[ProjectDeleteRequest] = Arbitrary(projectDeleteRequestGen)
-  implicit def arbitraryProjectUpdateRequest: Arbitrary[ProjectUpdateRequest] = Arbitrary(projectUpdateRequestGen)
+  implicit def arbitraryProjectUpdateNameRequest: Arbitrary[ProjectUpdateNameRequest] =
+    Arbitrary(projectUpdateNameRequestGen)
   implicit def arbitraryProjectFileContent: Arbitrary[ProjectFileContent] = Arbitrary(projectFileContentGen)
   implicit def arbitraryProjectUpdateFileRequest: Arbitrary[ProjectUpdateFileRequest] = Arbitrary(
     projectUpdateFileRequestGen

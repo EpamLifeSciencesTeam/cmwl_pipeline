@@ -24,10 +24,11 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
 
     "validate file" should {
       val content = ProjectFileContent("task hello {}")
+      val request = ValidateFileContentRequest(content)
 
       "return OK response to valid file" taggedAs Controller in {
         when(projectFileService.validateFile(content)).thenReturn(Future.successful(Right(())))
-        Post("/files/validation", content) ~> projectFileController.route(accessToken) ~> check {
+        Post("/files/validation", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
         }
       }
@@ -35,7 +36,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       "return error response to invalid file" taggedAs Controller in {
         when(projectFileService.validateFile(content))
           .thenReturn(Future.successful(Left(ValidationError(List("Miss close bracket")))))
-        Post("/files/validation", content) ~> projectFileController.route(accessToken) ~> check {
+        Post("/files/validation", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.Conflict
           entityAs[List[String]] shouldBe List("Miss close bracket")
         }

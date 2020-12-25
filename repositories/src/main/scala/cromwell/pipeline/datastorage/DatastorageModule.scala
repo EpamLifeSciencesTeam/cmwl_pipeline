@@ -1,8 +1,7 @@
 package cromwell.pipeline.datastorage
 
 import cromwell.pipeline.database.{ MongoEngine, PipelineDatabaseEngine }
-import cromwell.pipeline.datastorage.dao.ProjectEntry
-import cromwell.pipeline.datastorage.dao.entry.{ RunEntry, UserEntry }
+import cromwell.pipeline.datastorage.dao.entry.{ AliasesSupport, ProjectEntry, RunEntry, UserEntry }
 import cromwell.pipeline.datastorage.dao.repository.{
   DocumentRepository,
   ProjectRepository,
@@ -22,8 +21,8 @@ class DatastorageModule(applicationConfig: ApplicationConfig) {
   lazy val pipelineDatabaseEngine: PipelineDatabaseEngine = new PipelineDatabaseEngine(applicationConfig.config)
   lazy val profile: JdbcProfile = pipelineDatabaseEngine.profile
   lazy val databaseLayer: DatabaseLayer = new DatabaseLayer(profile)
-  lazy val configurationCollection
-    : MongoCollection[Document] = new MongoEngine(applicationConfig.mongoConfig).mongoCollection
+  lazy val configurationCollection: MongoCollection[Document] =
+    new MongoEngine(applicationConfig.mongoConfig).mongoCollection
 
   lazy val userRepository: UserRepository =
     new UserRepository(pipelineDatabaseEngine, databaseLayer)
@@ -58,6 +57,7 @@ trait Profile {
 
 class DatabaseLayer(override val profile: JdbcProfile)
     extends Profile
+    with AliasesSupport
     with UserEntry
     with ProjectEntry
     with CustomsWithEnumSupport

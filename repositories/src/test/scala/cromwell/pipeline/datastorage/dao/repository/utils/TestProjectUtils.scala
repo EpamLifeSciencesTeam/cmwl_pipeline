@@ -9,19 +9,27 @@ import scala.util.Random
 
 object TestProjectUtils {
 
-  private val defaultRange: Int = 12
+  private val defaultRange: Int = 100
   private def randomInt(range: Int = defaultRange): Int = Random.nextInt(range)
   private def randomUuidStr: String = UUID.randomUUID().toString
   def getDummyProjectId: ProjectId = ProjectId(randomUuidStr)
-  def getDummyRepository: Repository = Repository(s"repo-$randomUuidStr")
+  def getDummyRepositoryId: RepositoryId = RepositoryId(randomInt())
   def getDummyProject(
     projectId: ProjectId = getDummyProjectId,
     ownerId: UserId = TestUserUtils.getDummyUserId,
     name: String = s"project-$randomUuidStr",
-    repository: Option[Repository] = Some(getDummyRepository),
+    repository: RepositoryId = getDummyRepositoryId,
     active: Boolean = true,
     visibility: Visibility = Private
   ): Project = Project(projectId, ownerId, name, active, repository, visibility)
+  def getDummyLocalProject(
+    projectId: ProjectId = getDummyProjectId,
+    ownerId: UserId = TestUserUtils.getDummyUserId,
+    name: String = s"project-$randomUuidStr",
+    active: Boolean = true,
+    visibility: Visibility = Private
+  ): LocalProject =
+    LocalProject(projectId, ownerId, name, active, visibility)
   def getDummyCommit(id: String = randomUuidStr): Commit = Commit(id)
   def getDummyPipeLineVersion(
     v1: Int = 1 + randomInt(),
@@ -29,9 +37,9 @@ object TestProjectUtils {
     v3: Int = 1 + randomInt()
   ): PipelineVersion =
     PipelineVersion(s"v$v1.$v2.$v3")
-  def getDummyRepositoryId(
-    id: Int = randomInt()
-  ): RepositoryId = RepositoryId(id)
+  def getDummyGitLabRepositoryResponse(
+    repositoryId: RepositoryId = getDummyRepositoryId
+  ): GitLabRepositoryResponse = GitLabRepositoryResponse(repositoryId)
   def getDummyGitLabVersion(
     version: PipelineVersion = getDummyPipeLineVersion(),
     message: String = s"message-$randomUuidStr",

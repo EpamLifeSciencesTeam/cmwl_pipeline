@@ -1,11 +1,10 @@
 package cromwell.pipeline.service
 
-import java.net.URLEncoder
 import java.nio.file.Path
 
 import cromwell.pipeline.datastorage.dto.File.UpdateFileRequest
 import cromwell.pipeline.datastorage.dto._
-import cromwell.pipeline.utils.{ GitLabConfig, HttpStatusCodes }
+import cromwell.pipeline.utils.{ GitLabConfig, HttpStatusCodes, URLEncoderUtils }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -26,13 +25,15 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
   ): Either[VersioningException, PipelineVersion] =
     (optionProjectVersion, optionUserVersion) match {
       case (Some(projectVersion), Some(userVersion)) =>
-        if (projectVersion >= userVersion)
-          Left(
-            VersioningException.ProjectException(
+        if (projectVersion >= userVersion) {
+          Left {
+            VersioningException.ProjectException {
               s"Your version $userVersion is out of date. Current version of project: $projectVersion"
-            )
-          )
-        else Right(userVersion)
+            }
+          }
+        } else {
+          Right(userVersion)
+        }
       case (Some(projectVersion), None) => Right(projectVersion.increaseRevision)
       case (None, Some(userVersion))    => Right(userVersion)
       case (None, None) =>
@@ -44,7 +45,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
     }
 
   private def handleCreateTag(
-    repositoryId: Repository,
+    repositoryId: RepositoryId,
     version: PipelineVersion,
     responseBody: SuccessResponseMessage
   )(
@@ -58,11 +59,8 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
   override def updateFile(project: Project, projectFile: ProjectFile, userVersion: Option[PipelineVersion])(
     implicit ec: ExecutionContext
   ): AsyncResult[SuccessResponseMessage] = {
-    val path = URLEncoder.encode(projectFile.path.toString, "UTF-8")
-    val repositoryId: Repository =
-      project.repository.getOrElse(
-        throw VersioningException.RepositoryException(s"No repository for project: $project")
-      )
+    val path = URLEncoderUtils.encode(projectFile.path.toString)
+    val repositoryId: RepositoryId = project.repositoryId
     val fileUrl = s"${config.url}projects/${repositoryId.value}/repository/files/$path"
 
     getLastProjectVersion(project).map(projectVersion => getNewProjectVersion(projectVersion, userVersion)).flatMap {
@@ -88,10 +86,10 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
     }
   }
 
-  private def createTag(projectId: Repository, version: PipelineVersion)(
+  private def createTag(repositoryId: RepositoryId, version: PipelineVersion)(
     implicit ec: ExecutionContext
   ): AsyncResult[SuccessResponseMessage] = {
-    val tagUrl = s"${config.url}projects/${projectId.value}/repository/tags"
+    val tagUrl = s"${config.url}projects/${repositoryId.value}/repository/tags"
     httpClient
       .post[SuccessResponseMessage, EmptyPayload](
         tagUrl,
@@ -109,17 +107,17 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
     implicit ec: ExecutionContext
   ): AsyncResult[List[SuccessResponseMessage]] = ???
 
-  override def createRepository(project: Project)(implicit ec: ExecutionContext): AsyncResult[Project] =
-    if (!project.active)
+  override def createRepository(localProject: LocalProject)(implicit ec: ExecutionContext): AsyncResult[Project] =
+    if (!localProject.active) {
       Future.failed(VersioningException.RepositoryException("Could not create a repository for deleted project."))
-    else {
+    } else {
       val createRepoUrl: String = s"${config.url}projects"
-      val postProject = PostProject(name = project.name)
+      val postProject = PostProject(name = localProject.name)
       httpClient
-        .post[RepositoryId, PostProject](url = createRepoUrl, headers = config.token, payload = postProject)
+        .post[GitLabRepositoryResponse, PostProject](url = createRepoUrl, headers = config.token, payload = postProject)
         .map {
-          case Response(_, SuccessResponseBody(gitLabProject), _) =>
-            Right(project.withRepository(Some(s"${config.idPath}${gitLabProject.id}")))
+          case Response(_, SuccessResponseBody(gitLabResponse), _) =>
+            Right(localProject.toProject(gitLabResponse.id))
           case Response(statusCode, FailureResponseBody(error), _) =>
             Left {
               VersioningException.RepositoryException {
@@ -133,7 +131,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
   override def getFiles(project: Project, path: Path)(implicit ec: ExecutionContext): AsyncResult[List[String]] = ???
 
   override def getProjectVersions(project: Project)(implicit ec: ExecutionContext): AsyncResult[Seq[GitLabVersion]] = {
-    val versionsListUrl: String = s"${config.url}projects/${project.repository.get.value}/repository/tags"
+    val versionsListUrl: String = s"${config.url}projects/${project.repositoryId.value}/repository/tags"
     httpClient
       .get[Seq[GitLabVersion]](url = versionsListUrl, headers = config.token)
       .map {
@@ -142,7 +140,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
         case Response(_, FailureResponseBody(error), _) =>
           Left(
             VersioningException.ProjectException(
-              s"Could not take versions. ResponseBody: ${error}"
+              s"Could not take versions. ResponseBody: $error"
             )
           )
       }
@@ -152,15 +150,15 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
   override def getFileCommits(project: Project, path: Path)(
     implicit ec: ExecutionContext
   ): AsyncResult[Seq[FileCommit]] = {
-    val urlEncoder = URLEncoder.encode(path.toString, "UTF-8")
+    val urlEncoder = URLEncoderUtils.encode(path.toString)
     val commitsUrl: String =
-      s"${config.url}projects/${project.repository.get.value}/repository/files/${urlEncoder}"
+      s"${config.url}projects/${project.repositoryId.value}/repository/files/$urlEncoder"
     httpClient.get[List[FileCommit]](url = commitsUrl, headers = config.token).map {
       case Response(_, SuccessResponseBody(commitsSeq), _) => Right(commitsSeq)
       case Response(_, FailureResponseBody(error), _) =>
         Left(
           VersioningException.FileException(
-            s"Could not take the file commits. ResponseBody: ${error}"
+            s"Could not take the file commits. ResponseBody: $error"
           )
         )
     }
@@ -200,7 +198,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
       case None          => Map()
     }
     val filesTreeUrl: String =
-      s"${config.url}projects/${project.repository.get.value}/repository/tree"
+      s"${config.url}projects/${project.repositoryId.value}/repository/tree"
 
     httpClient
       .get[List[FileTree]](url = filesTreeUrl, params = versionId, headers = config.token)
@@ -209,7 +207,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
         case Response(statusCode, FailureResponseBody(error), _) =>
           Left(
             VersioningException.FileException(
-              s"Could not take the files tree or parse json. Response status: ${statusCode}. ResponseBody: ${error}"
+              s"Could not take the files tree or parse json. Response status: $statusCode. ResponseBody: $error"
             )
           )
       }
@@ -220,7 +218,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
   override def getFile(project: Project, path: Path, version: Option[PipelineVersion])(
     implicit ec: ExecutionContext
   ): AsyncResult[ProjectFile] = {
-    val filePath: String = URLEncoder.encode(path.toString, "UTF-8")
+    val filePath: String = URLEncoderUtils.encode(path.toString)
     val fileVersion: String = version match {
       case Some(version) => version.name
       case None          => config.defaultFileVersion
@@ -228,7 +226,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
 
     httpClient
       .get[ProjectFileContent](
-        s"${config.url}/projects/${project.repository}/repository/files/$filePath/raw",
+        s"${config.url}/projects/${project.repositoryId.value}/repository/files/$filePath/raw",
         Map("ref" -> fileVersion),
         config.token
       )
@@ -238,11 +236,11 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
         case Response(HttpStatusCodes.OK, FailureResponseBody(error), _) =>
           Left(
             VersioningException.HttpException(
-              s"Could not take Project File. Response status: ${HttpStatusCodes.OK}. ResponseBody: ${error}"
+              s"Could not take Project File. Response status: ${HttpStatusCodes.OK}. ResponseBody: $error"
             )
           )
         case Response(responseStatus, _, _) =>
-          Left(VersioningException.HttpException(s"Exception. Response status: ${responseStatus}"))
+          Left(VersioningException.HttpException(s"Exception. Response status: $responseStatus"))
       }
       .recover { case e: Throwable => Left(VersioningException.HttpException(e.getMessage)) }
   }

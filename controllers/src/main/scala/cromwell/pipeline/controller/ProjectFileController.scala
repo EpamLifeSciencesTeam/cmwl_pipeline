@@ -3,25 +3,18 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import cromwell.pipeline.datastorage.dto.SuccessResponseMessage
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
-import cromwell.pipeline.service.VersioningException.{
-  FileException,
-  GitException,
-  HttpException,
-  ProjectException,
-  RepositoryException
-}
 import cromwell.pipeline.datastorage.dto.{
   ProjectBuildConfigurationRequest,
-  ProjectFileContent,
-  ProjectUpdateFileRequest
+  ProjectUpdateFileRequest,
+  ValidateFileContentRequest,
+  SuccessResponseMessage
 }
-
-import cromwell.pipeline.service.{ ProjectFileService }
+import cromwell.pipeline.service.ProjectFileService
+import cromwell.pipeline.service.VersioningException._
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
-import scala.concurrent.{ ExecutionContext }
+import scala.concurrent.ExecutionContext
 import scala.util.{ Failure, Success }
 
 class ProjectFileController(wdlService: ProjectFileService)(implicit val executionContext: ExecutionContext) {
@@ -30,8 +23,8 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
     concat(
       path("files" / "validation") {
         post {
-          entity(as[ProjectFileContent]) { request =>
-            onComplete(wdlService.validateFile(request)) {
+          entity(as[ValidateFileContentRequest]) { request =>
+            onComplete(wdlService.validateFile(request.content)) {
               case Success(Left(e)) => complete(StatusCodes.Conflict, e.errors)
               case Success(_)       => complete(StatusCodes.OK)
               case Failure(e)       => complete(StatusCodes.InternalServerError, e.getMessage)
