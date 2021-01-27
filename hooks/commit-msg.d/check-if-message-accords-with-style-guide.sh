@@ -4,11 +4,11 @@
 # the type should be followed by a colon and whitespace, then goes a subject that is allowed to be 50
 # chars long at most, then after an empty line goes optional body each line of which may not exceed 72
 # characters length. The body is considered everything until the end of the message.
-pattern="^(feat|fix|docs|style|refactor|test|chore):[ ](.{1,50})("$'\n'"("$'\n'"[^"$'\n'"]{0,72})+)?$"
+pattern="^(feat|fix|docs|style|refactor|test|chore):[ ]([A-Z].{0,48}?[^.])(\n(\n[^\n]{0,72})+)?$"
 
-message=$(grep --invert-match "^#" < "${1}")
+match=$(grep --invert-match "^#" < "${1}" | grep -oPz "${pattern}")
 
-if [[ "${message}" =~ ${pattern} ]]; then
+if [[ ! -z "${match}" ]]; then
   exit 0
 else
   echo "The commit message does not accord with the style guide that is used on the project."

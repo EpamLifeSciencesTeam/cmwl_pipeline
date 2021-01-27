@@ -9,4 +9,5 @@ for hook_dir in "${script_dir}"/*.d; do
   cp "${script_dir}/template" "${git_dir}/hooks/${hook_name}"
   chmod -R a+x "${git_dir}/hooks/${hook_name}.d"
   chmod a+x "${git_dir}/hooks/${hook_name}"
+  echo "Installed ${hook_name} hook"
 done
