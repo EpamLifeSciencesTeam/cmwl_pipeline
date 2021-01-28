@@ -1,11 +1,11 @@
 package cromwell.pipeline.datastorage.dto
 
 import java.nio.file.{ Path, Paths }
-
 import cats.data.Validated
 import cats.implicits._
 import cromwell.pipeline.model.wrapper.{ UserId, VersionValue }
 import play.api.libs.functional.syntax._
+import play.api.libs.json.JsonNaming.SnakeCase
 import play.api.libs.json._
 import slick.lifted.MappedTo
 
@@ -234,6 +234,20 @@ final case class SuccessResponseMessage(message: String) extends AnyVal
 object SuccessResponseMessage {
   implicit lazy val successResponseMessageFormat: OFormat[SuccessResponseMessage] =
     Json.format[SuccessResponseMessage] // todo Json.valueFormat ?
+}
+
+/**
+ * Wrapper type contains success response message
+ *
+ * @param filePath where the file was stored
+ * @param branch where the file was stored
+ */
+final case class UpdateFiledResponse(filePath: String, branch: String)
+
+object UpdateFiledResponse {
+  implicit val config = JsonConfiguration(SnakeCase)
+  implicit lazy val updateFiledResponseFormat: OFormat[UpdateFiledResponse] =
+    Json.format[UpdateFiledResponse]
 }
 
 /**

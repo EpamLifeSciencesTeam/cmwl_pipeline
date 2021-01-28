@@ -181,14 +181,14 @@ class GitLabProjectVersioningTest
           }
         }
         when {
-          mockHttpClient.put[SuccessResponseMessage, UpdateFileRequest](
+          mockHttpClient.put[UpdateFiledResponse, UpdateFileRequest](
             url = url,
             headers = gitLabConfig.token,
             payload = payload
           )
         }.thenReturn {
           Future.successful {
-            Response[SuccessResponseMessage](
+            Response[UpdateFiledResponse](
               StatusCodes.BadRequest.intValue,
               FailureResponseBody("File does not exist"),
               EmptyHeaders
@@ -196,16 +196,16 @@ class GitLabProjectVersioningTest
           }
         }
         when {
-          mockHttpClient.post[SuccessResponseMessage, UpdateFileRequest](
+          mockHttpClient.post[UpdateFiledResponse, UpdateFileRequest](
             url = url,
             headers = gitLabConfig.token,
             payload = payload
           )
         }.thenReturn {
           Future.successful(
-            Response[SuccessResponseMessage](
+            Response[UpdateFiledResponse](
               StatusCodes.OK.intValue,
-              SuccessResponseBody(SuccessResponseMessage(successCreateMessage)),
+              SuccessResponseBody(UpdateFiledResponse(newFile.path.toString, "master")),
               EmptyHeaders
             )
           )
@@ -228,7 +228,7 @@ class GitLabProjectVersioningTest
         }
 
         gitLabProjectVersioning.updateFile(projectWithRepo, newFile, Some(dummyPipelineVersionHigher)).map {
-          _ shouldBe Right(SuccessResponseMessage(successCreateMessage))
+          _ shouldBe Right(UpdateFiledResponse(newFile.path.toString, "master"))
         }
       }
 
@@ -248,22 +248,22 @@ class GitLabProjectVersioningTest
           }
         }
         when {
-          mockHttpClient.put[SuccessResponseMessage, UpdateFileRequest](
+          mockHttpClient.put[UpdateFiledResponse, UpdateFileRequest](
             url = url,
             headers = gitLabConfig.token,
             payload = payload
           )
         }.thenReturn {
           Future.successful {
-            Response[SuccessResponseMessage](
+            Response[UpdateFiledResponse](
               StatusCodes.OK.intValue,
-              SuccessResponseBody(SuccessResponseMessage(successUpdateMessage)),
+              SuccessResponseBody(UpdateFiledResponse(newFile.path.toString, "master")),
               EmptyHeaders
             )
           }
         }
         gitLabProjectVersioning.updateFile(projectWithRepo, existFile, Some(dummyPipelineVersionHigher)).map {
-          _ shouldBe Right(SuccessResponseMessage(successUpdateMessage))
+          _ shouldBe Right(UpdateFiledResponse(newFile.path.toString, "master"))
         }
       }
     }
