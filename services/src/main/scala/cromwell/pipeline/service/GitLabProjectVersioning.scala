@@ -47,10 +47,10 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
   private def handleCreateTag(
     repositoryId: RepositoryId,
     version: PipelineVersion,
-    responseBody: SuccessResponseMessage
+    responseBody: UpdateFiledResponse
   )(
     implicit ec: ExecutionContext
-  ): AsyncResult[SuccessResponseMessage] =
+  ): AsyncResult[UpdateFiledResponse] =
     createTag(repositoryId, version).map {
       case Right(_)        => Right(responseBody)
       case Left(exception) => Left(exception)
@@ -58,7 +58,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
 
   override def updateFile(project: Project, projectFile: ProjectFile, userVersion: Option[PipelineVersion])(
     implicit ec: ExecutionContext
-  ): AsyncResult[SuccessResponseMessage] = {
+  ): AsyncResult[UpdateFiledResponse] = {
     val path = URLEncoderUtils.encode(projectFile.path.toString)
     val repositoryId: RepositoryId = project.repositoryId
     val fileUrl = s"${config.url}projects/${repositoryId.value}/repository/files/$path"
@@ -69,13 +69,13 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
       case Right(newVersion) =>
         val payload = UpdateFileRequest(projectFile.content, newVersion.toString, config.defaultBranch)
         httpClient
-          .put[SuccessResponseMessage, UpdateFileRequest](fileUrl, payload = payload, headers = config.token)
+          .put[UpdateFiledResponse, UpdateFileRequest](fileUrl, payload = payload, headers = config.token)
           .flatMap {
             case Response(_, SuccessResponseBody(body), _) =>
               handleCreateTag(repositoryId, newVersion, body)
             case _ =>
               httpClient
-                .post[SuccessResponseMessage, UpdateFileRequest](fileUrl, payload = payload, headers = config.token)
+                .post[UpdateFiledResponse, UpdateFileRequest](fileUrl, payload = payload, headers = config.token)
                 .flatMap {
                   case Response(_, SuccessResponseBody(body), _) =>
                     handleCreateTag(repositoryId, newVersion, body)
