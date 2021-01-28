@@ -7,8 +7,9 @@ import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.{
   ProjectBuildConfigurationRequest,
   ProjectUpdateFileRequest,
-  ValidateFileContentRequest,
-  SuccessResponseMessage
+  SuccessResponseMessage,
+  UpdateFiledResponse,
+  ValidateFileContentRequest
 }
 import cromwell.pipeline.service.ProjectFileService
 import cromwell.pipeline.service.VersioningException._
@@ -53,7 +54,7 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
                     }
                 }
               }) {
-                case Success((status, p @ SuccessResponseMessage(_))) =>
+                case Success((status, p @ UpdateFiledResponse(_, _))) =>
                   complete((status, p))
                 case Success((status, message)) => complete((status, s"File have not uploaded due to $message"))
                 case Failure(e)                 => complete(StatusCodes.InternalServerError, e.getMessage)

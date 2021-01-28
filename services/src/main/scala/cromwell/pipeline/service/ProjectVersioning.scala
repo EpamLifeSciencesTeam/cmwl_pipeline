@@ -12,7 +12,7 @@ trait ProjectVersioning[E >: VersioningException] {
 
   def updateFile(project: Project, projectFile: ProjectFile, version: Option[PipelineVersion] = None)(
     implicit ec: ExecutionContext
-  ): AsyncResult[SuccessResponseMessage]
+  ): AsyncResult[UpdateFiledResponse]
 
   def updateFiles(project: Project, projectFiles: ProjectFiles)(
     implicit ec: ExecutionContext

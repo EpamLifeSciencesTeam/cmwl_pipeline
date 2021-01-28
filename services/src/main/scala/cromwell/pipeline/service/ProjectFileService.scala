@@ -19,7 +19,7 @@ class ProjectFileService(womTool: WomToolAPI, projectVersioning: ProjectVersioni
     project: Project,
     projectFile: ProjectFile,
     version: Option[PipelineVersion]
-  ): Future[Either[VersioningException, SuccessResponseMessage]] =
+  ): Future[Either[VersioningException, UpdateFiledResponse]] =
     projectVersioning.updateFile(project, projectFile, version)
 
   def buildConfiguration(
