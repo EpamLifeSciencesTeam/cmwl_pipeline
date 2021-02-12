@@ -87,6 +87,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       val projectFile = ProjectFile(Paths.get("/home/test/file"), ProjectFileContent("{some context}"))
       val configuration = ProjectConfiguration(
         projectId,
+        active = true,
         List(
           ProjectFileConfiguration(
             Paths.get("/home/test/file"),

@@ -19,17 +19,19 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
   "ConfigurationServiceTest" when {
     val configuration = ProjectConfiguration(
       TestProjectUtils.getDummyProjectId,
+      active = true,
       List(
         ProjectFileConfiguration(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello")))))
       )
     )
-    val document = ProjectConfiguration.toDocument(configuration)
+    val activeDocument = ProjectConfiguration.toDocument(configuration)
+    val inactiveDocument = ProjectConfiguration.toDocument(configuration.copy(active = false))
     val updateResult = mock[UpdateResult]
 
     "add configuration" should {
       "return complete status for creating configuration" in {
         when(updateResult.toString).thenReturn("Success update")
-        when(configurationRepository.updateOne(document, "projectId", configuration.projectId.value))
+        when(configurationRepository.updateOne(activeDocument, "projectId", configuration.projectId.value))
           .thenReturn(Future.successful(updateResult))
         configurationService.addConfiguration(configuration).map(_ shouldBe "Success update")
       }
@@ -38,15 +40,44 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
     "get configuration by project id" should {
       val projectId = configuration.projectId
 
-      "return nodes by project id" in {
+      "return active nodes by project id" in {
         when(configurationRepository.getByParam("projectId", projectId.value))
-          .thenReturn(Future.successful(List(document)))
+          .thenReturn(Future.successful(List(activeDocument)))
         configurationService.getById(projectId).map(_ shouldBe Some(configuration))
       }
 
-      "return None if no configuration was matched" in {
-        when(configurationRepository.getByParam("projectId", projectId.value)).thenReturn(Future.successful(List()))
+      "not return inactive nodes by project id" in {
+        when(configurationRepository.getByParam("projectId", projectId.value))
+          .thenReturn(Future.successful(List(inactiveDocument)))
         configurationService.getById(projectId).map(_ shouldBe None)
+      }
+
+      "return None if no configuration was matched" in {
+        when(configurationRepository.getByParam("projectId", projectId.value))
+          .thenReturn(Future.successful(List()))
+        configurationService.getById(projectId).map(_ shouldBe None)
+      }
+    }
+
+    "deactivate configuration" should {
+      val projectId = configuration.projectId
+
+      "return complete status for deactivating configuration" in {
+        when(configurationRepository.getByParam("projectId", projectId.value))
+          .thenReturn(Future.successful(List(activeDocument)))
+
+        when(updateResult.toString).thenReturn("Success update")
+        when(configurationRepository.updateOne(inactiveDocument, "projectId", projectId.value))
+          .thenReturn(Future.successful(updateResult))
+        configurationService.deactivateConfiguration(projectId).map(_ shouldBe "Success update")
+      }
+
+      "return exception if no configuration was matched" in {
+        when(configurationRepository.getByParam("projectId", projectId.value))
+          .thenReturn(Future.successful(List()))
+
+        configurationService.deactivateConfiguration(projectId).failed
+          .map(_ should have message "There is no project to deactivate")
       }
     }
   }
