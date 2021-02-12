@@ -14,5 +14,16 @@ class ProjectConfigurationService(repository: DocumentRepository)(implicit ec: E
       .map(_.toString)
 
   def getById(projectId: ProjectId): Future[Option[ProjectConfiguration]] =
-    repository.getByParam("projectId", projectId.value).map(_.headOption.map(fromDocument))
+    repository.getByParam("projectId", projectId.value)
+      .map(_.headOption.map(fromDocument).filter(_.active))
+
+  def deactivateConfiguration(projectId: ProjectId): Future[String] = {
+    getById(projectId).flatMap {
+      case Some(config) => repository.updateOne(
+        toDocument(config.copy(active = false)),
+        "projectId",
+        projectId.value).map(_.toString)
+      case _ => Future.failed(new RuntimeException("There is no project to deactivate"))
+    }
+  }
 }

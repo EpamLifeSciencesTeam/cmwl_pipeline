@@ -26,16 +26,22 @@ class ProjectConfigurationController(projectConfigurationService: ProjectConfigu
           }
         },
         get {
-          concat(
-            parameter('project_id.as[String]) { projectId =>
-              onComplete(projectConfigurationService.getById(ProjectId(projectId))) {
-                case Failure(e)                   => complete(StatusCodes.InternalServerError, e.getMessage)
-                case Success(Some(configuration)) => complete(configuration)
-                case Success(None) =>
-                  complete(StatusCodes.NotFound, s"There is no configuration with project_id: $projectId")
-              }
+          parameter('project_id.as[String]) { projectId =>
+            onComplete(projectConfigurationService.getById(ProjectId(projectId))) {
+              case Failure(e)                   => complete(StatusCodes.InternalServerError, e.getMessage)
+              case Success(Some(configuration)) => complete(configuration)
+              case Success(None) =>
+                complete(StatusCodes.NotFound, s"There is no configuration with project_id: $projectId")
             }
-          )
+          }
+        },
+        delete {
+          parameter('project_id.as[String]) { projectId =>
+            onComplete(projectConfigurationService.deactivateConfiguration(ProjectId(projectId))) {
+              case Failure(e)            => complete(StatusCodes.InternalServerError, e.getMessage)
+              case Success(updateResult) => complete(updateResult)
+            }
+          }
         }
       )
     }

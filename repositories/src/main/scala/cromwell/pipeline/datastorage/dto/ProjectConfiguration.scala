@@ -12,7 +12,7 @@ object ProjectFileConfiguration {
   implicit val projectFileConfigurationFormat: OFormat[ProjectFileConfiguration] = Json.format
 }
 
-case class ProjectConfiguration(projectId: ProjectId, projectFileConfigurations: List[ProjectFileConfiguration])
+case class ProjectConfiguration(projectId: ProjectId, active: Boolean, projectFileConfigurations: List[ProjectFileConfiguration])
 
 object ProjectConfiguration {
   implicit val projectConfigurationFormat: OFormat[ProjectConfiguration] = Json.format
