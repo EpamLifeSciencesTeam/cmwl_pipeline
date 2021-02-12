@@ -23,6 +23,7 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
     val accessToken = AccessTokenContent(TestUserUtils.getDummyUserId)
     val configuration = ProjectConfiguration(
       TestProjectUtils.getDummyProjectId,
+      active = true,
       List(
         ProjectFileConfiguration(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello")))))
       )
@@ -64,6 +65,27 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
         Get("/configurations?project_id=" + projectId.value) ~> configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NotFound
           entityAs[String] shouldBe s"There is no configuration with project_id: ${projectId.value}"
+        }
+      }
+    }
+
+    "deactivate configuration" should {
+      val error = new RuntimeException("Something went wrong")
+      val projectId = TestProjectUtils.getDummyProjectId
+
+      "return success for deactivate configuration" in {
+        when(configurationService.deactivateConfiguration(projectId)).thenReturn(Future.successful("Success"))
+        Delete("/configurations?project_id=" + projectId.value) ~> configurationController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.OK
+          entityAs[String] shouldBe "Success"
+        }
+      }
+
+      "return InternalServerError when failure deactivate configuration" in {
+        when(configurationService.deactivateConfiguration(projectId)).thenReturn(Future.failed(error))
+        Delete("/configurations?project_id=" + projectId.value) ~> configurationController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.InternalServerError
+          entityAs[String] shouldBe "Something went wrong"
         }
       }
     }
