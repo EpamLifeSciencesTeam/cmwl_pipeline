@@ -27,8 +27,8 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
   private val refreshToken = "refresh-token"
   private val accessTokenExpiration = 300
   private val email = "JohnDoe@cromwell.com"
-  private val password = "Password213"
-  private val incorrectPassword = "Password2134"
+  private val password = "Password_213"
+  private val incorrectPassword = "Password_2134"
   private val firstName = "FirstName"
   private val lastName = "LastName"
 

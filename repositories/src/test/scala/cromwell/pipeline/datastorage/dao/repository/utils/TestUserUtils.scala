@@ -7,7 +7,7 @@ import cromwell.pipeline.model.validator.Enable
 import cromwell.pipeline.model.wrapper.{ Name, Password, UserEmail, UserId }
 
 object TestUserUtils {
-  val userPassword: Password = Password("-Pa$$w0rd-", Enable.Unsafe)
+  val userPassword: Password = Password("-Pa$$w0rd1-", Enable.Unsafe)
   def getDummyUserId = UserId.random
   def getDummyUser(
     uuid: UserId = UserId.random,

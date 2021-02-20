@@ -27,7 +27,7 @@ class UserControllerTest
 
   private val userService = mock[UserService]
   private val userController = new UserController(userService)
-  private val password: String = "-Pa$$w0rd-"
+  private val password: String = "-Pa$$w0rd1-"
 
   "UserController" when {
 
@@ -123,7 +123,7 @@ class UserControllerTest
 
         when(userService.updateUser(userId, request)).thenReturn(Future.successful(1))
 
-        Put("/users", request) ~> userController.route(accessToken) ~> check {
+        Put("/users/info", request) ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NoContent
         }
       }
@@ -140,7 +140,7 @@ class UserControllerTest
 
         when(userService.updatePassword(userId, request)).thenReturn(Future.successful(1))
 
-        Put("/users", request) ~> userController.route(accessToken) ~> check {
+        Put("/users/password", request) ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NoContent
         }
       }
@@ -154,7 +154,7 @@ class UserControllerTest
         when(userService.updateUser(userId, request))
           .thenReturn(Future.failed(new RuntimeException("Something wrong.")))
 
-        Put("/users", request) ~> userController.route(accessToken) ~> check {
+        Put("/users/info", request) ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
         }
       }
@@ -173,7 +173,7 @@ class UserControllerTest
         when(userService.updatePassword(userId, request))
           .thenReturn(Future.failed(new RuntimeException("Something wrong.")))
 
-        Put("/users", request) ~> userController.route(accessToken) ~> check {
+        Put("/users/password", request) ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.BadRequest
         }
       }

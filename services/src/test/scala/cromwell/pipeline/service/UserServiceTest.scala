@@ -17,7 +17,7 @@ import scala.concurrent.Future
 class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
   private val userRepository: UserRepository = mock[UserRepository]
   private val userService: UserService = new UserService(userRepository)
-  private val validPassword: String = "newPassword1"
+  private val validPassword: String = "newPassword_1"
 
   "UserService" when {
     "deactivateUserById" should {

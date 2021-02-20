@@ -35,7 +35,7 @@ class UserControllerItTest
     components.datastorageModule.pipelineDatabaseEngine.updateSchema()
   }
 
-  private val password: String = "-Pa$$w0rd-"
+  private val password: String = "-Pa$$w0rd1-"
 
   "UserController" when {
 
@@ -78,7 +78,7 @@ class UserControllerItTest
         userRepository.addUser(dummyUser).flatMap { _ =>
           userRepository.updateUser(dummyUser).map { _ =>
             val accessToken = AccessTokenContent(dummyUser.userId)
-            Put("/users", request) ~> userController.route(accessToken) ~> check {
+            Put("/users/info", request) ~> userController.route(accessToken) ~> check {
               status shouldBe StatusCodes.NoContent
             }
           }
@@ -99,7 +99,7 @@ class UserControllerItTest
         userRepository.addUser(dummyUser).flatMap { _ =>
           userRepository.updatePassword(dummyUser).map { _ =>
             val accessToken = AccessTokenContent(dummyUser.userId)
-            Put("/users", request) ~> userController.route(accessToken) ~> check {
+            Put("/users/password", request) ~> userController.route(accessToken) ~> check {
               status shouldBe StatusCodes.NoContent
             }
           }

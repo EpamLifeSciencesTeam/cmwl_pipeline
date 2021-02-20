@@ -17,7 +17,7 @@ object Password extends Wrapped.Companion {
   implicit lazy val passwordFormat: Format[Password] = wrapperFormat
   override protected def create(value: String): Password = new Password(value)
   override protected def validate(value: String): ValidationResult[String] = Validated.cond(
-    value.matches("(?=^.{10,}$)((?=.*\\d)|(?=.*\\W+))(?![.\\n])(?=.*[A-Z])(?=.*[a-z]).*$"),
+    value.matches("(?=^.{10,}$)(?=.*\\d)((?=.*\\W+)|(?=.*[_]))(?![.\\n])(?=.*[A-Z])(?=.*[a-z]).*$"),
     value,
     NonEmptyChain.one(
       "Password must be at least 10 characters long, " +
