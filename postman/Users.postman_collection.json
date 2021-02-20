@@ -142,12 +142,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{base_url}}/users",
+					"raw": "{{base_url}}/users/info",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"users"
+						"users",
+						"info"
 					]
 				}
 			},
@@ -207,12 +208,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{base_url}}/users",
+					"raw": "{{base_url}}/users/password",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"users"
+						"users",
+						"password"
 					]
 				}
 			},
