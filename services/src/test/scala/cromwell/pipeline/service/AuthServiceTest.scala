@@ -37,11 +37,11 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
   import authConfig._
 
   private val userId = UserId.random
-  private val userPassword = "Password213"
-  private val incorrectUserPassword = "Password2134"
+  private val userPassword = "Password_213"
+  private val incorrectUserPassword = "Password_2134"
   private val dummyUser = TestUserUtils.getDummyUser(password = userPassword)
   private val userEmail = dummyUser.email
-  private val inactiveUserPassword = "Password213"
+  private val inactiveUserPassword = "Password_213"
   private val inactiveUser = TestUserUtils.getDummyUser(active = false, password = inactiveUserPassword)
   private val inactiveUserEmail = inactiveUser.email
 
