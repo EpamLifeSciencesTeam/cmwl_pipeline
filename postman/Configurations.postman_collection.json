@@ -18,7 +18,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"projectId\": \"\",\r\n    \"projectConfigurations\": [\r\n        {\"path\": \"\", \"inputs\": [\r\n            {\"name\": \"\", \"typedValue\": {\"_type\": \"\", \"value\": \"\"}},\r\n            {\"name\": \"\", \"typedValue\": {\"_type\": \"\", \"value\": \"\"}}\r\n            ]}\r\n    ]\r\n}",
+					"raw": "{\r\n    \"projectId\": \"\",\r\n    \"projectFileConfigurations\": [\r\n        {\"path\": \"\", \"inputs\": [\r\n            {\"name\": \"\", \"typedValue\": {\"_type\": \"\", \"value\": \"\"}},\r\n            {\"name\": \"\", \"typedValue\": {\"_type\": \"\", \"value\": \"\"}}\r\n            ]}\r\n    ]\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
