@@ -33,10 +33,9 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
       val error = new RuntimeException("Something went wrong")
 
       "return success for update configuration" in {
-        when(configurationService.addConfiguration(configuration)).thenReturn(Future.successful("Success"))
+        when(configurationService.addConfiguration(configuration)).thenReturn(Future.unit)
         Put("/configurations", configuration) ~> configurationController.route(accessToken) ~> check {
-          status shouldBe StatusCodes.OK
-          entityAs[String] shouldBe "Success"
+          status shouldBe StatusCodes.NoContent
         }
       }
 
@@ -74,10 +73,9 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
       val projectId = TestProjectUtils.getDummyProjectId
 
       "return success for deactivate configuration" in {
-        when(configurationService.deactivateConfiguration(projectId)).thenReturn(Future.successful("Success"))
+        when(configurationService.deactivateConfiguration(projectId)).thenReturn(Future.unit)
         Delete("/configurations?project_id=" + projectId.value) ~> configurationController.route(accessToken) ~> check {
-          status shouldBe StatusCodes.OK
-          entityAs[String] shouldBe "Success"
+          status shouldBe StatusCodes.NoContent
         }
       }
 

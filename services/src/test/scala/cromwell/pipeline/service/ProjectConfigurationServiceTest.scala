@@ -2,10 +2,9 @@ package cromwell.pipeline.service
 
 import java.nio.file.Paths
 
-import com.mongodb.client.result.UpdateResult
-import cromwell.pipeline.datastorage.dao.repository.DocumentRepository
+import cromwell.pipeline.datastorage.dao.repository.ProjectConfigurationRepository
 import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
-import cromwell.pipeline.datastorage.dto.{ FileParameter, ProjectConfiguration, ProjectFileConfiguration, StringTyped }
+import cromwell.pipeline.datastorage.dto._
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
@@ -13,89 +12,104 @@ import org.scalatestplus.mockito.MockitoSugar
 import scala.concurrent.Future
 
 class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
-  private val configurationRepository = mock[DocumentRepository]
+  private val configurationRepository = mock[ProjectConfigurationRepository]
   private val configurationService = new ProjectConfigurationService(configurationRepository)
 
-  "ConfigurationServiceTest" when {
-    val projectFileConfiguration =
-      ProjectFileConfiguration(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello")))))
-    val configuration = ProjectConfiguration(
-      TestProjectUtils.getDummyProjectId,
+  private val projectFileConfiguration: ProjectFileConfiguration =
+    ProjectFileConfiguration(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello")))))
+  private val projectId: ProjectId = TestProjectUtils.getDummyProjectId
+
+  private val activeConfiguration: ProjectConfiguration =
+    ProjectConfiguration(
+      projectId = projectId,
       active = true,
-      List(
-        ProjectFileConfiguration(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello")))))
-      )
+      projectFileConfigurations = List(projectFileConfiguration)
     )
-    val activeDocument = ProjectConfiguration.toDocument(configuration)
-    val inactiveDocument = ProjectConfiguration.toDocument(configuration.copy(active = false))
-    val updateResult = mock[UpdateResult]
 
-    "add configuration" should {
+  private val inactiveConfiguration: ProjectConfiguration =
+    activeConfiguration.copy(active = false)
 
-      val projectId = configuration.projectId.value
+  private val updatedConfiguration: ProjectConfiguration = {
+    val updatedProjectFileConfiguration =
+      projectFileConfiguration.copy(inputs = List(FileParameter("nodeName", StringTyped(Some("hi")))))
+    activeConfiguration.copy(projectFileConfigurations = List(updatedProjectFileConfiguration))
+  }
 
-      "return complete status for creating configuration" in {
-        when(configurationRepository.getByParam("projectId", projectId))
-          .thenReturn(Future.successful(List(activeDocument)))
-        when(updateResult.toString).thenReturn("Success update")
-        when(configurationRepository.updateOne(activeDocument, "projectId", configuration.projectId.value))
-          .thenReturn(Future.successful(updateResult))
-        configurationService.addConfiguration(configuration).map(_ shouldBe "Success update")
+  "ProjectConfigurationService" when {
+    "add new configuration for project" should {
+      "return success if creation was successful" in {
+        val result: Unit = ()
+        when(configurationRepository.getById(projectId)).thenReturn(Future.successful(None))
+        when(configurationRepository.addConfiguration(activeConfiguration)).thenReturn(Future.successful(result))
+        configurationService.addConfiguration(activeConfiguration).map(_ shouldBe result)
       }
 
-      "return complete status for updating exist configuration" in {
-        val newProjectFileConfiguration =
-          projectFileConfiguration.copy(inputs = List(FileParameter("nodeName", StringTyped(Some("hi")))))
-        val newConfiguration = configuration.copy(projectFileConfigurations = List(newProjectFileConfiguration))
-        val newActiveDocument = ProjectConfiguration.toDocument(newConfiguration)
+      "return success if update was successful" in {
+        val result: Unit = ()
+        when(configurationRepository.getById(projectId)).thenReturn(Future.successful(Some(activeConfiguration)))
+        when(configurationRepository.updateConfiguration(updatedConfiguration)).thenReturn(Future.successful(result))
+        configurationService.addConfiguration(updatedConfiguration).map(_ shouldBe result)
+      }
 
-        when(configurationRepository.getByParam("projectId", projectId))
-          .thenReturn(Future.successful(List(activeDocument)))
-        when(updateResult.toString).thenReturn("Success update")
-        when(configurationRepository.updateOne(newActiveDocument, "projectId", projectId))
-          .thenReturn(Future.successful(updateResult))
+      "return failure if it couldn't fetch existing configuration" in {
+        val error = new Exception("Oh no")
+        when(configurationRepository.getById(projectId)).thenReturn(Future.failed(error))
+        configurationService.addConfiguration(activeConfiguration).failed.map(_ shouldBe error)
+      }
 
-        configurationService.addConfiguration(newConfiguration).map(_ shouldBe "Success update")
+      "return failure if creation wasn't successful" in {
+        val error = new Exception("Oh no")
+        when(configurationRepository.getById(projectId)).thenReturn(Future.successful(None))
+        when(configurationRepository.addConfiguration(activeConfiguration)).thenReturn(Future.failed(error))
+        configurationService.addConfiguration(activeConfiguration).failed.map(_ shouldBe error)
+      }
+
+      "return failure if update wasn't successful" in {
+        val error = new Exception("Oh no")
+        when(configurationRepository.getById(projectId)).thenReturn(Future.successful(Some(activeConfiguration)))
+        when(configurationRepository.updateConfiguration(activeConfiguration)).thenReturn(Future.failed(error))
+        configurationService.addConfiguration(activeConfiguration).failed.map(_ shouldBe error)
       }
     }
-
     "get configuration by project id" should {
-      val projectId = configuration.projectId
-
-      "return active nodes by project id" in {
-        when(configurationRepository.getByParam("projectId", projectId.value))
-          .thenReturn(Future.successful(List(activeDocument)))
-        configurationService.getById(projectId).map(_ shouldBe Some(configuration))
+      "return project if it was found" in {
+        val result: Option[ProjectConfiguration] = Some(activeConfiguration)
+        when(configurationRepository.getById(projectId)).thenReturn(Future.successful(result))
+        configurationService.getById(projectId).map(_ shouldBe result)
       }
 
-      "not return inactive nodes by project id" in {
-        when(configurationRepository.getByParam("projectId", projectId.value))
-          .thenReturn(Future.successful(List(inactiveDocument)))
+      "not return inactive project" in {
+        val result: Option[ProjectConfiguration] = Some(inactiveConfiguration)
+        when(configurationRepository.getById(projectId)).thenReturn(Future.successful(result))
         configurationService.getById(projectId).map(_ shouldBe None)
       }
 
-      "return None if no configuration was matched" in {
-        when(configurationRepository.getByParam("projectId", projectId.value)).thenReturn(Future.successful(List()))
-        configurationService.getById(projectId).map(_ shouldBe None)
+      "not fail if project wasn't found" in {
+        val result: Option[ProjectConfiguration] = None
+        when(configurationRepository.getById(projectId)).thenReturn(Future.successful(result))
+        configurationService.getById(projectId).map(_ shouldBe result)
+      }
+
+      "return failure if repository returned error" in {
+        val error = new Exception("Oh no")
+        when(configurationRepository.getById(projectId)).thenReturn(Future.failed(error))
+        configurationService.getById(projectId).failed.map(_ shouldBe error)
       }
     }
 
     "deactivate configuration" should {
-      val projectId = configuration.projectId
+      val projectId = activeConfiguration.projectId
+      val updateResult: Unit = ()
 
       "return complete status for deactivating configuration" in {
-        when(configurationRepository.getByParam("projectId", projectId.value))
-          .thenReturn(Future.successful(List(activeDocument)))
-
-        when(updateResult.toString).thenReturn("Success update")
-        when(configurationRepository.updateOne(inactiveDocument, "projectId", projectId.value))
+        when(configurationRepository.getById(projectId)).thenReturn(Future.successful(Some(activeConfiguration)))
+        when(configurationRepository.updateConfiguration(inactiveConfiguration))
           .thenReturn(Future.successful(updateResult))
-        configurationService.deactivateConfiguration(projectId).map(_ shouldBe "Success update")
+        configurationService.deactivateConfiguration(projectId).map(_ shouldBe updateResult)
       }
 
       "return exception if no configuration was matched" in {
-        when(configurationRepository.getByParam("projectId", projectId.value)).thenReturn(Future.successful(List()))
-
+        when(configurationRepository.getById(projectId)).thenReturn(Future.successful(None))
         configurationService
           .deactivateConfiguration(projectId)
           .failed

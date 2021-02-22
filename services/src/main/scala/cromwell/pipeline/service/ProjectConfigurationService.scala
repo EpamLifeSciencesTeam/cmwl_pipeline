@@ -1,6 +1,6 @@
 package cromwell.pipeline.service
 
-import cromwell.pipeline.datastorage.dao.repository.DocumentRepository
+import cromwell.pipeline.datastorage.dao.repository.ProjectConfigurationRepository
 import cromwell.pipeline.datastorage.dto.{
   FileParameter,
   ProjectConfiguration,
@@ -12,13 +12,9 @@ import cromwell.pipeline.datastorage.dto.{
 import java.nio.file.Path
 import scala.concurrent.{ ExecutionContext, Future }
 
-class ProjectConfigurationService(repository: DocumentRepository)(implicit ec: ExecutionContext) {
-  import ProjectConfiguration._
+class ProjectConfigurationService(repository: ProjectConfigurationRepository)(implicit ec: ExecutionContext) {
 
-  def addConfiguration(projectConfiguration: ProjectConfiguration): Future[String] = {
-    def updateConfiguration(configuration: ProjectConfiguration) =
-      repository.updateOne(toDocument(configuration), "projectId", projectConfiguration.projectId.value).map(_.toString)
-
+  def addConfiguration(projectConfiguration: ProjectConfiguration): Future[Unit] = {
     def toTuple(config: ProjectFileConfiguration): (Path, Map[String, TypedValue]) =
       config.path -> config.inputs.map(fileParameter => fileParameter.name -> fileParameter.typedValue).toMap
 
@@ -36,17 +32,19 @@ class ProjectConfigurationService(repository: DocumentRepository)(implicit ec: E
         val newConfig = projectConfiguration.copy(projectFileConfigurations = updatedFileConfigs)
         updateConfiguration(newConfig)
       case None =>
-        updateConfiguration(projectConfiguration)
+        repository.addConfiguration(projectConfiguration)
     }
   }
 
   def getById(projectId: ProjectId): Future[Option[ProjectConfiguration]] =
-    repository.getByParam("projectId", projectId.value).map(_.headOption.map(fromDocument).filter(_.active))
+    repository.getById(projectId).map(_.filter(_.active))
 
-  def deactivateConfiguration(projectId: ProjectId): Future[String] =
+  def deactivateConfiguration(projectId: ProjectId): Future[Unit] =
     getById(projectId).flatMap {
-      case Some(config) =>
-        repository.updateOne(toDocument(config.copy(active = false)), "projectId", projectId.value).map(_.toString)
-      case _ => Future.failed(new RuntimeException("There is no project to deactivate"))
+      case Some(config) => updateConfiguration(config.copy(active = false))
+      case _            => Future.failed(new RuntimeException("There is no project to deactivate"))
     }
+
+  private def updateConfiguration(projectConfiguration: ProjectConfiguration): Future[Unit] =
+    repository.updateConfiguration(projectConfiguration)
 }

@@ -18,8 +18,8 @@ class ProjectConfigurationController(projectConfigurationService: ProjectConfigu
   private val addConfiguration: Route = put {
     entity(as[ProjectConfiguration]) { request =>
       onComplete(projectConfigurationService.addConfiguration(request)) {
-        case Failure(e)            => complete(StatusCodes.InternalServerError, e.getMessage)
-        case Success(updateResult) => complete(updateResult)
+        case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
+        case Success(_) => complete(StatusCodes.NoContent)
       }
     }
   }
@@ -38,8 +38,8 @@ class ProjectConfigurationController(projectConfigurationService: ProjectConfigu
   private val deactivateConfiguration: Route = delete {
     parameter('project_id.as[String]) { projectId =>
       onComplete(projectConfigurationService.deactivateConfiguration(ProjectId(projectId))) {
-        case Failure(e)            => complete(StatusCodes.InternalServerError, e.getMessage)
-        case Success(updateResult) => complete(updateResult)
+        case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
+        case Success(_) => complete(StatusCodes.NoContent)
       }
     }
   }

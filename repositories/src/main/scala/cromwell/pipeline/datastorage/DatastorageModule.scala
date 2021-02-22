@@ -2,8 +2,9 @@ package cromwell.pipeline.datastorage
 
 import cromwell.pipeline.database.{ MongoEngine, PipelineDatabaseEngine }
 import cromwell.pipeline.datastorage.dao.entry.{ AliasesSupport, ProjectEntry, RunEntry, UserEntry }
+import cromwell.pipeline.datastorage.dao.mongo.DocumentRepository
 import cromwell.pipeline.datastorage.dao.repository.{
-  DocumentRepository,
+  ProjectConfigurationRepository,
   ProjectRepository,
   RunRepository,
   UserRepository
@@ -16,13 +17,16 @@ import org.mongodb.scala.{ Document, MongoCollection }
 import slick.jdbc.JdbcProfile
 import slick.lifted.StringColumnExtensionMethods
 
-class DatastorageModule(applicationConfig: ApplicationConfig) {
+import scala.concurrent.ExecutionContext
+
+class DatastorageModule(applicationConfig: ApplicationConfig)(implicit executionContext: ExecutionContext) {
 
   lazy val pipelineDatabaseEngine: PipelineDatabaseEngine = new PipelineDatabaseEngine(applicationConfig.config)
   lazy val profile: JdbcProfile = pipelineDatabaseEngine.profile
   lazy val databaseLayer: DatabaseLayer = new DatabaseLayer(profile)
-  lazy val configurationCollection: MongoCollection[Document] =
+  lazy val mongoCollection: MongoCollection[Document] =
     new MongoEngine(applicationConfig.mongoConfig).mongoCollection
+  lazy val documentRepository: DocumentRepository = new DocumentRepository(mongoCollection)
 
   lazy val userRepository: UserRepository =
     new UserRepository(pipelineDatabaseEngine, databaseLayer)
@@ -30,7 +34,8 @@ class DatastorageModule(applicationConfig: ApplicationConfig) {
     new ProjectRepository(pipelineDatabaseEngine, databaseLayer)
   lazy val runRepository: RunRepository =
     new RunRepository(pipelineDatabaseEngine, databaseLayer)
-  lazy val configurationRepository: DocumentRepository = new DocumentRepository(configurationCollection)
+  lazy val configurationRepository: ProjectConfigurationRepository =
+    new ProjectConfigurationRepository(documentRepository)
 }
 
 trait Profile {
