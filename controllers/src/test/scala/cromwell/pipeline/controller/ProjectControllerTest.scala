@@ -2,7 +2,7 @@ package cromwell.pipeline.controller
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import cromwell.pipeline.datastorage.dao.repository.utils.{ TestProjectUtils, TestUserUtils }
+import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.{ Project, ProjectDeleteRequest, ProjectUpdateNameRequest }
 import cromwell.pipeline.service.ProjectService

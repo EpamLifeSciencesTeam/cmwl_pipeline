@@ -1,6 +1,6 @@
 package cromwell.pipeline.service
 
-import cromwell.pipeline.datastorage.dao.repository.utils.{ TestProjectUtils, TestRunUtils, TestUserUtils }
+import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestRunUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto.{
   CromwellInput,
   FileParameter,

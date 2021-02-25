@@ -2,7 +2,7 @@ package cromwell.pipeline.service
 
 import java.nio.file.{ Path, Paths }
 import akka.http.scaladsl.model.StatusCodes
-import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
+import cromwell.pipeline.datastorage.dao.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto.File.UpdateFileRequest
 import cromwell.pipeline.datastorage.dto.PipelineVersion.PipelineVersionException
 import cromwell.pipeline.datastorage.dto._

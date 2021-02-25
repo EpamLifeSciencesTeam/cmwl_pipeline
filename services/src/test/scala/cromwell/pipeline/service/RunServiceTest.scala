@@ -1,7 +1,7 @@
 package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.RunRepository
-import cromwell.pipeline.datastorage.dao.repository.utils.{ TestRunUtils, TestUserUtils }
+import cromwell.pipeline.datastorage.dao.utils.{ TestRunUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto.{ Done, Run, RunCreateRequest, RunUpdateRequest }
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when

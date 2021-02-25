@@ -7,8 +7,8 @@ import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
 import cromwell.pipeline.ApplicationComponents
 import cromwell.pipeline.controller.AuthController._
-import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
-import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils._
+import cromwell.pipeline.datastorage.dao.utils.TestUserUtils
+import cromwell.pipeline.datastorage.dao.utils.TestUserUtils._
 import cromwell.pipeline.datastorage.dto.User
 import cromwell.pipeline.service.AuthService
 import cromwell.pipeline.utils.TestContainersUtils

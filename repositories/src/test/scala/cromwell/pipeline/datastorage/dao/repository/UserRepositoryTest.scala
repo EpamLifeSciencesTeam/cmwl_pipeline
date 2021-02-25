@@ -4,7 +4,7 @@ import cats.implicits._
 import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
 import cromwell.pipeline.datastorage.DatastorageModule
-import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
+import cromwell.pipeline.datastorage.dao.utils.TestUserUtils
 import cromwell.pipeline.model.validator.Enable
 import cromwell.pipeline.model.wrapper.{ Name, UserEmail }
 import cromwell.pipeline.utils.{ ApplicationConfig, StringUtils, TestContainersUtils }

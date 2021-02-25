@@ -5,7 +5,7 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
 import cromwell.pipeline.ApplicationComponents
-import cromwell.pipeline.datastorage.dao.repository.utils.{ TestProjectUtils, TestUserUtils }
+import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.{ Project, ProjectDeleteRequest, ProjectUpdateNameRequest }
 import cromwell.pipeline.utils.TestContainersUtils
