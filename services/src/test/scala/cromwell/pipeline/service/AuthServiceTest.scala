@@ -5,7 +5,7 @@ import java.time.Instant
 import cats.implicits.catsStdShowForString
 import cromwell.pipeline.auth.AuthUtils
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
-import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
+import cromwell.pipeline.datastorage.dao.utils.TestUserUtils
 import cromwell.pipeline.datastorage.dto.auth._
 import cromwell.pipeline.model.validator.Enable
 import cromwell.pipeline.model.wrapper.{ Password, UserEmail, UserId }

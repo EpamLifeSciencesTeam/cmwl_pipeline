@@ -1,6 +1,4 @@
-package cromwell.pipeline.datastorage.dao.repository.utils
-
-import java.nio.file.{ Path, Paths }
+package cromwell.pipeline.datastorage.dao.utils
 
 import cats.implicits._
 import cromwell.pipeline.datastorage.dto._
@@ -10,12 +8,18 @@ import cromwell.pipeline.model.validator.Enable
 import cromwell.pipeline.model.wrapper._
 import org.scalacheck.Gen
 
+import java.nio.file.{ Path, Paths }
 import scala.util.Random
 
 object GeneratorUtils {
   private val defaultStrLength = 10
+  private val defaultListMaxLength = 10
 
   private def stringGen(n: Int = defaultStrLength): Gen[String] = Gen.listOfN(n, Gen.alphaLowerChar).map(_.mkString)
+  private val booleanGen: Gen[Boolean] = Gen.oneOf(false, true)
+
+  private def listOfN[T](gen: Gen[T], maxLength: Int = defaultListMaxLength): Gen[List[T]] =
+    Gen.chooseNum(0, maxLength).flatMap(length => Gen.listOfN(length, gen))
 
   private lazy val projectIdGen: Gen[ProjectId] = Gen.uuid.map(id => ProjectId(id.toString))
 
@@ -64,7 +68,7 @@ object GeneratorUtils {
     projectId <- projectIdGen
     userId <- userIdGen
     name <- stringGen()
-    active <- Gen.oneOf(false, true)
+    active <- booleanGen
     repository <- repositoryIdGen
     visibility <- Gen.oneOf(Visibility.values)
   } yield Project(projectId, userId, name, active, repository, visibility)
@@ -115,6 +119,37 @@ object GeneratorUtils {
     projectId <- projectIdGen
     projectFile <- projectFileGen
   } yield ProjectBuildConfigurationRequest(projectId, projectFile)
+
+  lazy val typedValueGen: Gen[TypedValue] = {
+    val range = 1024
+
+    val intGen: Gen[Int] = Gen.chooseNum[Int](-range, range)
+    val floatGen: Gen[Float] = Gen.chooseNum[Float](-range, range)
+
+    val stringTypedGen: Gen[StringTyped] = Gen.option(stringGen()).map(StringTyped)
+    val fileTypedGen: Gen[FileTyped] = Gen.option(pathGen).map(FileTyped)
+    val intTypedGen: Gen[IntTyped] = Gen.option(intGen).map(IntTyped)
+    val floatTypedGen: Gen[FloatTyped] = Gen.option(floatGen).map(FloatTyped)
+    val booleanTypedGen: Gen[BooleanTyped] = Gen.option(booleanGen).map(BooleanTyped)
+
+    Gen.oneOf(stringTypedGen, fileTypedGen, intTypedGen, floatTypedGen, booleanTypedGen)
+  }
+
+  lazy val fileParameterGen: Gen[FileParameter] = for {
+    name <- stringGen()
+    typedValue <- typedValueGen
+  } yield FileParameter(name, typedValue)
+
+  lazy val projectFileConfigurationGen: Gen[ProjectFileConfiguration] = for {
+    path <- pathGen
+    fileParameters <- listOfN(fileParameterGen)
+  } yield ProjectFileConfiguration(path, fileParameters)
+
+  lazy val projectConfigurationGen: Gen[ProjectConfiguration] = for {
+    projectId <- projectIdGen
+    active <- booleanGen
+    projectFileConfigurations <- listOfN(projectFileConfigurationGen)
+  } yield ProjectConfiguration(projectId, active, projectFileConfigurations)
 
   object Mail extends Enumeration {
     val Mail, Gmail, Epam, Yandex = Value

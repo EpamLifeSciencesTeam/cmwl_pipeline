@@ -1,7 +1,7 @@
 package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
-import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
+import cromwell.pipeline.datastorage.dao.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto.{ LocalProject, Project, ProjectAdditionRequest, ProjectId }
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.service.Exceptions.ProjectNotFoundException

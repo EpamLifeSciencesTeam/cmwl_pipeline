@@ -1,5 +1,7 @@
 package cromwell.pipeline.datastorage.dao.repository
 
+import cromwell.pipeline.datastorage.dao.utils.ArbitraryUtils._
+import cromwell.pipeline.datastorage.dao.utils.FormatUtils._
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.datastorage.dto.auth.{ SignInRequest, SignUpRequest }
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
@@ -8,8 +10,6 @@ import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import play.api.libs.json.{ JsError, JsSuccess }
 
 class MarshallerTests extends AsyncWordSpec with Matchers with ScalaCheckDrivenPropertyChecks {
-  import utils.ArbitraryUtils._
-  import utils.FormatUtils._
 
   "MarshallerFormat" when {
     "format UserUpdateRequest" in {

@@ -1,4 +1,4 @@
-package cromwell.pipeline.datastorage.dao.repository.utils
+package cromwell.pipeline.datastorage.dao.utils
 
 import cromwell.pipeline.datastorage.dto.User
 import cromwell.pipeline.utils.StringUtils

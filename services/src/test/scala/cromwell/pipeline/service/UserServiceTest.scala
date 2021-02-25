@@ -2,7 +2,7 @@ package cromwell.pipeline.service
 
 import cats.implicits._
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
-import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
+import cromwell.pipeline.datastorage.dao.utils.TestUserUtils
 import cromwell.pipeline.datastorage.dto.UserNoCredentials
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
 import cromwell.pipeline.model.validator.Enable

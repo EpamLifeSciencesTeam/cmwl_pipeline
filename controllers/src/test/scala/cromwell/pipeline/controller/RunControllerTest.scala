@@ -3,7 +3,7 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.MalformedQueryParamRejection
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import cromwell.pipeline.datastorage.dao.repository.utils.{ TestRunUtils, TestUserUtils }
+import cromwell.pipeline.datastorage.dao.utils.{ TestRunUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.{ Run, RunCreateRequest, RunDeleteRequest, RunUpdateRequest }
 import cromwell.pipeline.model.wrapper.RunId

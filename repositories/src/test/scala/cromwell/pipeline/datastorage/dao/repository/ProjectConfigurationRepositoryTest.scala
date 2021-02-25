@@ -4,7 +4,7 @@ import java.nio.file.Paths
 
 import cromwell.pipeline.datastorage.dao.mongo.DocumentCodecInstances.projectConfigurationDocumentCodec
 import cromwell.pipeline.datastorage.dao.mongo.DocumentRepository
-import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
+import cromwell.pipeline.datastorage.dao.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto._
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }

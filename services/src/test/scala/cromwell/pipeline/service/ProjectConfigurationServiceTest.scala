@@ -3,7 +3,7 @@ package cromwell.pipeline.service
 import java.nio.file.Paths
 
 import cromwell.pipeline.datastorage.dao.repository.ProjectConfigurationRepository
-import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
+import cromwell.pipeline.datastorage.dao.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto._
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }

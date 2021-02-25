@@ -2,7 +2,7 @@ package cromwell.pipeline.service
 
 import java.nio.file.Paths
 import cats.data.NonEmptyList
-import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
+import cromwell.pipeline.datastorage.dao.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto.{
   ProjectConfiguration,
   ProjectFile,
