@@ -7,14 +7,11 @@ import play.api.libs.json.Format
 
 final class VersionValue private (override val unwrap: Int) extends AnyVal with Wrapped[Int]
 
-object VersionValue extends Wrapped.Companion {
-  type Type = Int
-  type Wrapper = VersionValue
-  type Error = String
+object VersionValue extends Wrapped.Companion[Int, String, VersionValue] {
   val pattern = "^[0-9]+$"
   implicit val versionNumberFormat: Format[VersionValue] = wrapperFormat
   def increment(value: VersionValue): VersionValue = create(value.unwrap + 1)
-  def fromString(value: String): ValidationResult[Wrapper] =
+  def fromString(value: String): ValidationResult[VersionValue] =
     validateString(value) match {
       case Validated.Valid(content)  => Validated.Valid(create(content.toInt))
       case Validated.Invalid(errors) => Validated.Invalid(errors)

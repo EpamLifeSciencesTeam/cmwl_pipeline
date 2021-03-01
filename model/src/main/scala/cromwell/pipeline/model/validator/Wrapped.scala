@@ -17,10 +17,7 @@ trait Wrapped[T] extends Any {
   override def toString: String = unwrap.toString
 }
 object Wrapped {
-  trait Companion {
-    type Type
-    type Error
-    type Wrapper <: Wrapped[Type]
+  trait Companion[Type, Error, Wrapper <: Wrapped[Type]] {
     type ValidationResult[A] = Validated[NonEmptyChain[Error], A]
     implicit def wrappedOrdering(implicit ord: Ordering[Type]): Ordering[Wrapper] = Ordering.by(_.unwrap)
     implicit def wrapperFormat(implicit show: Show[Error], format: Format[Type]): Format[Wrapper] =

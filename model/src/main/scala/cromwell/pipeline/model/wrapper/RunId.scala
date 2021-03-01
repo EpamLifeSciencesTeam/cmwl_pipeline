@@ -7,10 +7,7 @@ import play.api.libs.json.Format
 
 final class RunId private (override val unwrap: String) extends AnyVal with Wrapped[String]
 
-object RunId extends Wrapped.Companion {
-  type Type = String
-  type Wrapper = RunId
-  type Error = String
+object RunId extends Wrapped.Companion[String, String, RunId] {
   val pattern: String = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
   implicit lazy val runIdFormat: Format[RunId] = wrapperFormat
   override protected def create(value: String): RunId = new RunId(value)

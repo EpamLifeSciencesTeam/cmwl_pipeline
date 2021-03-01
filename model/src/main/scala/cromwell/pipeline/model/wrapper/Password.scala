@@ -10,10 +10,7 @@ final class Password private (override val unwrap: String) extends AnyVal with W
   override def value: String = unwrap
 }
 
-object Password extends Wrapped.Companion {
-  type Type = String
-  type Wrapper = Password
-  type Error = String
+object Password extends Wrapped.Companion[String, String, Password] {
   implicit lazy val passwordFormat: Format[Password] = wrapperFormat
   override protected def create(value: String): Password = new Password(value)
   override protected def validate(value: String): ValidationResult[String] = Validated.cond(

@@ -7,10 +7,7 @@ import cats.implicits.catsStdShowForString
 
 final class UserId private (override val unwrap: String) extends AnyVal with Wrapped[String]
 
-object UserId extends Wrapped.Companion {
-  type Type = String
-  type Wrapper = UserId
-  type Error = String
+object UserId extends Wrapped.Companion[String, String, UserId] {
   val pattern: String = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
   implicit lazy val userIdFormat: Format[UserId] = wrapperFormat
   override protected def create(value: String): UserId = new UserId(value)
