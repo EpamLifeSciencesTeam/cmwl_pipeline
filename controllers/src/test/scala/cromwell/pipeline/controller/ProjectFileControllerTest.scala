@@ -44,18 +44,16 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
     }
 
     "upload file" should {
-      import cromwell.pipeline.datastorage.dto.SuccessResponseMessage
-
       val version = PipelineVersion("v0.0.2")
       val accessToken = AccessTokenContent(TestUserUtils.getDummyUserId)
-      val project = TestProjectUtils.getDummyProject()
+      val projectId = TestProjectUtils.getDummyProjectId
       val projectFileContent = ProjectFileContent("file context")
       val projectFile = ProjectFile(Paths.get("folder/test.txt"), projectFileContent)
-      val request = ProjectUpdateFileRequest(project, projectFile, Some(version))
+      val request = ProjectUpdateFileRequest(projectId, projectFile, Some(version))
 
       "return OK response for valid request with a valid file" taggedAs Controller in {
         when(projectFileService.validateFile(projectFileContent)).thenReturn(Future.successful(Right(())))
-        when(projectFileService.uploadFile(project, projectFile, Some(version)))
+        when(projectFileService.uploadFile(projectId, projectFile, Some(version), accessToken.userId))
           .thenReturn(Future.successful(Right(UpdateFiledResponse("test.wdl", "master"))))
         Post("/files", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
@@ -65,7 +63,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       "return Precondition File response for valid request with an invalid file" taggedAs Controller in {
         when(projectFileService.validateFile(projectFileContent))
           .thenReturn(Future.successful(Left(ValidationError(List("Miss close bracket")))))
-        when(projectFileService.uploadFile(project, projectFile, Some(version)))
+        when(projectFileService.uploadFile(projectId, projectFile, Some(version), accessToken.userId))
           .thenReturn(Future.successful(Right(UpdateFiledResponse("test.wdl", "master"))))
         Post("/files", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.Created
@@ -73,7 +71,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       }
 
       "return UnprocessableEntity for bad request" taggedAs Controller in {
-        when(projectFileService.uploadFile(project, projectFile, Some(version)))
+        when(projectFileService.uploadFile(projectId, projectFile, Some(version), accessToken.userId))
           .thenReturn(Future.successful(Left(VersioningException.HttpException("Bad request"))))
         Post("/files", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.UnprocessableEntity

@@ -7,7 +7,6 @@ import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.{
   ProjectBuildConfigurationRequest,
   ProjectUpdateFileRequest,
-  SuccessResponseMessage,
   UpdateFiledResponse,
   ValidateFileContentRequest
 }
@@ -20,7 +19,7 @@ import scala.util.{ Failure, Success }
 
 class ProjectFileController(wdlService: ProjectFileService)(implicit val executionContext: ExecutionContext) {
 
-  val route: AccessTokenContent => Route = _ =>
+  val route: AccessTokenContent => Route = accessToken =>
     concat(
       path("files" / "validation") {
         post {
@@ -39,7 +38,8 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
             request =>
               onComplete(for {
                 validateResponse <- wdlService.validateFile(request.projectFile.content)
-                uploadResponse <- wdlService.uploadFile(request.project, request.projectFile, request.version)
+                uploadResponse <- wdlService
+                  .uploadFile(request.projectId, request.projectFile, request.version, accessToken.userId)
               } yield {
                 (validateResponse, uploadResponse) match {
                   case (Right(_), Right(responseMessage)) => StatusCodes.OK.intValue -> responseMessage
