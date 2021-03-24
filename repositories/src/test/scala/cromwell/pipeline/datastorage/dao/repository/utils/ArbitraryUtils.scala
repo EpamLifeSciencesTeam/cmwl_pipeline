@@ -17,6 +17,7 @@ object ArbitraryUtils {
   implicit def arbitraryProjectUpdateNameRequest: Arbitrary[ProjectUpdateNameRequest] =
     Arbitrary(projectUpdateNameRequestGen)
   implicit def arbitraryProjectFileContent: Arbitrary[ProjectFileContent] = Arbitrary(projectFileContentGen)
+  implicit def arbitraryGitLabFileContent: Arbitrary[GitLabFileContent] = Arbitrary(gitLabFileContentGen)
   implicit def arbitraryProjectUpdateFileRequest: Arbitrary[ProjectUpdateFileRequest] = Arbitrary(
     projectUpdateFileRequestGen
   )

@@ -103,6 +103,8 @@ object GeneratorUtils {
 
   lazy val projectFileContentGen: Gen[ProjectFileContent] = stringGen().map(ProjectFileContent(_))
 
+  lazy val gitLabFileContentGen: Gen[GitLabFileContent] = stringGen().map(GitLabFileContent(_))
+
   lazy val projectUpdateFileRequestGen: Gen[ProjectUpdateFileRequest] = for {
     projectId <- projectIdGen
     projectFile <- projectFileGen

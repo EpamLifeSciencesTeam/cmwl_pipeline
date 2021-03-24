@@ -88,6 +88,15 @@ class MarshallerTests extends AsyncWordSpec with Matchers with ScalaCheckDrivenP
         parseResult should equal(a)
       }
     }
+    "format GitLabFileContent" in {
+      forAll { (a: GitLabFileContent) =>
+        val parseResult: GitLabFileContent = gitLabFileContentFormat.reads(gitLabFileContentFormat.writes(a)) match {
+          case JsSuccess(value, _) => value
+          case JsError(_)          => fail("Could not parse request")
+        }
+        parseResult should equal(a)
+      }
+    }
     "format ProjectUpdateFileRequest" in {
       forAll { (a: ProjectUpdateFileRequest) =>
         val parseResult: ProjectUpdateFileRequest =
