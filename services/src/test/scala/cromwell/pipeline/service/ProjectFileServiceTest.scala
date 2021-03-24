@@ -1,12 +1,16 @@
 package cromwell.pipeline.service
 
 import java.nio.file.Paths
-
 import cats.data.NonEmptyList
 import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
-import cromwell.pipeline.datastorage.dto.{ ProjectFile, ProjectFileContent, SuccessResponseMessage, ValidationError }
+import cromwell.pipeline.datastorage.dto.{
+  ProjectFile,
+  ProjectFileContent,
+  SuccessResponseMessage,
+  UpdateFiledResponse,
+  ValidationError
+}
 import cromwell.pipeline.womtool.WomTool
-import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
@@ -28,7 +32,8 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
     "validateFile" should {
       "return valid message to valid file" taggedAs Service in {
         val request = ProjectFileContent(correctWdl)
-        when(womTool.validate(correctWdl)).thenReturn(Right(any[WomBundle]))
+        val dummyBundle = WomBundle(None, Map.empty, Map.empty, Set.empty)
+        when(womTool.validate(correctWdl)).thenReturn(Right(dummyBundle))
         projectFileService.validateFile(request).map(_ shouldBe Right(()))
       }
 
@@ -47,10 +52,10 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
 
       "return success message for request" taggedAs Service in {
         when(projectVersioning.updateFile(project, projectFile, Some(version)))
-          .thenReturn(Future.successful(Right(SuccessResponseMessage("Success"))))
+          .thenReturn(Future.successful(Right(UpdateFiledResponse(projectFile.path.toString, "master"))))
         projectFileService
           .uploadFile(project, projectFile, Some(version))
-          .map(_ shouldBe Right(SuccessResponseMessage("Success")))
+          .map(_ shouldBe Right(UpdateFiledResponse(projectFile.path.toString, "master")))
       }
 
       "return error message for error request" taggedAs Service in {

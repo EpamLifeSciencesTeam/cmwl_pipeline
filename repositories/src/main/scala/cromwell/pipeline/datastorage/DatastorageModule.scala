@@ -1,11 +1,16 @@
 package cromwell.pipeline.datastorage
 
 import cromwell.pipeline.database.{ MongoEngine, PipelineDatabaseEngine }
-import cromwell.pipeline.datastorage.dao.entry.UserEntry
-import cromwell.pipeline.datastorage.dao.repository.{ DocumentRepository, ProjectRepository, UserRepository }
-import cromwell.pipeline.datastorage.dao.{ ProjectEntry, ProjectProfileWithEnumSupport }
+import cromwell.pipeline.datastorage.dao.entry.{ AliasesSupport, ProjectEntry, RunEntry, UserEntry }
+import cromwell.pipeline.datastorage.dao.repository.{
+  DocumentRepository,
+  ProjectRepository,
+  RunRepository,
+  UserRepository
+}
+import cromwell.pipeline.datastorage.dto.CustomsWithEnumSupport
 import cromwell.pipeline.model.validator.{ Enable, Wrapped }
-import cromwell.pipeline.model.wrapper.{ Name, UserEmail, UserId }
+import cromwell.pipeline.model.wrapper.{ Name, RunId, UserEmail, UserId }
 import cromwell.pipeline.utils.ApplicationConfig
 import org.mongodb.scala.{ Document, MongoCollection }
 import slick.jdbc.JdbcProfile
@@ -16,13 +21,15 @@ class DatastorageModule(applicationConfig: ApplicationConfig) {
   lazy val pipelineDatabaseEngine: PipelineDatabaseEngine = new PipelineDatabaseEngine(applicationConfig.config)
   lazy val profile: JdbcProfile = pipelineDatabaseEngine.profile
   lazy val databaseLayer: DatabaseLayer = new DatabaseLayer(profile)
-  lazy val configurationCollection
-    : MongoCollection[Document] = new MongoEngine(applicationConfig.mongoConfig).mongoCollection
+  lazy val configurationCollection: MongoCollection[Document] =
+    new MongoEngine(applicationConfig.mongoConfig).mongoCollection
 
   lazy val userRepository: UserRepository =
     new UserRepository(pipelineDatabaseEngine, databaseLayer)
   lazy val projectRepository: ProjectRepository =
     new ProjectRepository(pipelineDatabaseEngine, databaseLayer)
+  lazy val runRepository: RunRepository =
+    new RunRepository(pipelineDatabaseEngine, databaseLayer)
   lazy val configurationRepository: DocumentRepository = new DocumentRepository(configurationCollection)
 }
 
@@ -36,6 +43,7 @@ trait Profile {
     import scala.language.implicitConversions
 
     implicit def uuidIso: Isomorphism[UserId, String] = iso[UserId, String](_.unwrap, UserId(_, Enable.Unsafe))
+    implicit def runidIso: Isomorphism[RunId, String] = iso[RunId, String](_.unwrap, RunId(_, Enable.Unsafe))
     implicit def emailIso: Isomorphism[UserEmail, String] =
       iso[UserEmail, String](_.unwrap, UserEmail(_, Enable.Unsafe))
     implicit def nameIso: Isomorphism[Name, String] = iso[Name, String](_.unwrap, Name(_, Enable.Unsafe))
@@ -49,6 +57,8 @@ trait Profile {
 
 class DatabaseLayer(override val profile: JdbcProfile)
     extends Profile
+    with AliasesSupport
     with UserEntry
     with ProjectEntry
-    with ProjectProfileWithEnumSupport
+    with CustomsWithEnumSupport
+    with RunEntry

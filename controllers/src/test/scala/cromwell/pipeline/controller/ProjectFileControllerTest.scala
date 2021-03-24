@@ -5,8 +5,8 @@ import java.nio.file.Paths
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.datastorage.dao.repository.utils.{ TestProjectUtils, TestUserUtils }
-import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto._
+import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.service.{ ProjectFileService, VersioningException }
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import org.mockito.Mockito.when
@@ -24,10 +24,11 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
 
     "validate file" should {
       val content = ProjectFileContent("task hello {}")
+      val request = ValidateFileContentRequest(content)
 
       "return OK response to valid file" taggedAs Controller in {
         when(projectFileService.validateFile(content)).thenReturn(Future.successful(Right(())))
-        Post("/files/validation", content) ~> projectFileController.route(accessToken) ~> check {
+        Post("/files/validation", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
         }
       }
@@ -35,7 +36,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       "return error response to invalid file" taggedAs Controller in {
         when(projectFileService.validateFile(content))
           .thenReturn(Future.successful(Left(ValidationError(List("Miss close bracket")))))
-        Post("/files/validation", content) ~> projectFileController.route(accessToken) ~> check {
+        Post("/files/validation", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.Conflict
           entityAs[List[String]] shouldBe List("Miss close bracket")
         }
@@ -55,7 +56,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       "return OK response for valid request with a valid file" taggedAs Controller in {
         when(projectFileService.validateFile(projectFileContent)).thenReturn(Future.successful(Right(())))
         when(projectFileService.uploadFile(project, projectFile, Some(version)))
-          .thenReturn(Future.successful(Right(SuccessResponseMessage("Success"))))
+          .thenReturn(Future.successful(Right(UpdateFiledResponse("test.wdl", "master"))))
         Post("/files", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
         }
@@ -65,7 +66,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
         when(projectFileService.validateFile(projectFileContent))
           .thenReturn(Future.successful(Left(ValidationError(List("Miss close bracket")))))
         when(projectFileService.uploadFile(project, projectFile, Some(version)))
-          .thenReturn(Future.successful(Right(SuccessResponseMessage("Success"))))
+          .thenReturn(Future.successful(Right(UpdateFiledResponse("test.wdl", "master"))))
         Post("/files", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.Created
         }
@@ -86,6 +87,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       val projectFile = ProjectFile(Paths.get("/home/test/file"), ProjectFileContent("{some context}"))
       val configuration = ProjectConfiguration(
         projectId,
+        active = true,
         List(
           ProjectFileConfiguration(
             Paths.get("/home/test/file"),

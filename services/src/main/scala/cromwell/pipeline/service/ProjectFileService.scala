@@ -19,7 +19,7 @@ class ProjectFileService(womTool: WomToolAPI, projectVersioning: ProjectVersioni
     project: Project,
     projectFile: ProjectFile,
     version: Option[PipelineVersion]
-  ): Future[Either[VersioningException, SuccessResponseMessage]] =
+  ): Future[Either[VersioningException, UpdateFiledResponse]] =
     projectVersioning.updateFile(project, projectFile, version)
 
   def buildConfiguration(
@@ -29,6 +29,6 @@ class ProjectFileService(womTool: WomToolAPI, projectVersioning: ProjectVersioni
     Future(womTool.inputsToList(projectFile.content.content)).map {
       case Left(value) => Left(ValidationError(value.toList))
       case Right(nodes) =>
-        Right(ProjectConfiguration(projectId, List(ProjectFileConfiguration(projectFile.path, nodes))))
+        Right(ProjectConfiguration(projectId, active = true, List(ProjectFileConfiguration(projectFile.path, nodes))))
     }
 }

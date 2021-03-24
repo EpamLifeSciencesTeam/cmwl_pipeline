@@ -10,7 +10,6 @@ final case class WebServiceConfig(interface: String, port: Int) extends ConfigCo
 
 final case class GitLabConfig(
   url: String,
-  idPath: String,
   token: Map[String, String],
   defaultFileVersion: String,
   defaultBranch: String
@@ -36,20 +35,25 @@ final case class ExpirationTimeInSeconds(accessToken: Long, refreshToken: Long, 
 
 class ApplicationConfig(val config: Config) {
 
-  lazy val webServiceConfig: WebServiceConfig =
-    WebServiceConfig(interface = config.getString("webservice.interface"), port = config.getInt("webservice.port"))
+  lazy val webServiceConfig: WebServiceConfig = {
+    val _config = config.getConfig("webservice")
+    WebServiceConfig(interface = _config.getString("interface"), port = _config.getInt("port"))
+  }
 
   lazy val authConfig: AuthConfig = {
+    val _config = config.getConfig("auth")
+    val expirationTime = _config.getConfig("expirationTimeInSeconds")
+
     val result = AuthConfig(
-      secretKey = config.getString("auth.secretKey"),
+      secretKey = _config.getString("secretKey"),
       hmacAlgorithm = {
-        val hmacAlgorithm = config.getString("auth.hmacAlgorithm")
+        val hmacAlgorithm = _config.getString("hmacAlgorithm")
         JwtAlgorithm.fromString(hmacAlgorithm).asInstanceOf[JwtHmacAlgorithm]
       },
       expirationTimeInSeconds = ExpirationTimeInSeconds(
-        accessToken = config.getLong("auth.expirationTimeInSeconds.accessToken"),
-        refreshToken = config.getLong("auth.expirationTimeInSeconds.refreshToken"),
-        userSession = config.getLong("auth.expirationTimeInSeconds.userSession")
+        accessToken = expirationTime.getLong("accessToken"),
+        refreshToken = expirationTime.getLong("refreshToken"),
+        userSession = expirationTime.getLong("userSession")
       )
     )
 
@@ -62,24 +66,25 @@ class ApplicationConfig(val config: Config) {
   }
 
   lazy val gitLabConfig: GitLabConfig = {
+    val _config = config.getConfig("database.gitlab")
     GitLabConfig(
-      url = config.getString("database.gitlab.url"),
-      idPath = config.getString("database.gitlab.path") + "%2F",
-      token = Map("PRIVATE-TOKEN" -> config.getString("database.gitlab.token")),
-      defaultFileVersion = config.getString("database.gitlab.defaultFileVersion"),
-      defaultBranch = config.getString("database.gitlab.defaultBranch")
+      url = _config.getString("url"),
+      token = Map("PRIVATE-TOKEN" -> _config.getString("token")),
+      defaultFileVersion = _config.getString("defaultFileVersion"),
+      defaultBranch = _config.getString("defaultBranch")
     )
   }
 
   lazy val mongoConfig: MongoConfig = {
+    val _config = config.getConfig("database.mongo")
     MongoConfig(
-      user = config.getString("database.mongo.user"),
-      password = config.getString("database.mongo.password").toCharArray,
-      host = config.getString("database.mongo.host"),
-      port = config.getInt("database.mongo.port"),
-      authenticationDatabase = config.getString("database.mongo.authenticationDatabase"),
-      database = config.getString("database.mongo.database"),
-      collection = config.getString("database.mongo.collection")
+      user = _config.getString("user"),
+      password = _config.getString("password").toCharArray,
+      host = _config.getString("host"),
+      port = _config.getInt("port"),
+      authenticationDatabase = _config.getString("authenticationDatabase"),
+      database = _config.getString("database"),
+      collection = _config.getString("collection")
     )
   }
 

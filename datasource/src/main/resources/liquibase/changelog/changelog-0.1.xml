@@ -65,4 +65,36 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="create_run_table" author="manuel_vigueras">
+        <createTable tableName="run">
+            <column name="run_id" type="${uuid.type}"/>
+            <column name="project_id" type="${uuid.type}"/>
+            <column name="project_version" type="${text.type}"/>
+            <column name="status" type="${text.type}"/>
+            <column name="time_start" type="${timestamp.type}"/>
+            <column name="time_end" type="${timestamp.type}"/>
+            <column name="user_id" type="${uuid.type}"/>
+            <column name="results" type="${text.type}"/>
+            <column name="cmwl_workflow_id" type="${text.type}"/>
+        </createTable>
+        <addPrimaryKey constraintName="run_pk" tableName="run" columnNames="run_id"/>
+        <addForeignKeyConstraint constraintName="fk_run_user" baseTableName="run" baseColumnNames="user_id" referencedTableName="user" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="fk_run_project" baseTableName="run" baseColumnNames="project_id" referencedTableName="project" referencedColumnNames="project_id"/>
+        <addNotNullConstraint constraintName="project_version_nn" tableName="run" columnName="project_version"/>
+        <addNotNullConstraint constraintName="status_nn" tableName="run" columnName="status"/>
+        <addNotNullConstraint constraintName="time_start_nn" tableName="run" columnName="time_start"/>
+        <addNotNullConstraint constraintName="results_nn" tableName="run" columnName="results"/>
+    </changeSet>
+
+    <changeSet id="change_repository_id_type" author="nikita_miazin">
+        <delete tableName="run"/>
+        <delete tableName="project"/>
+        <dropColumn tableName="project" columnName="repository"/>
+        <addColumn tableName="project">
+            <column name="repository_id" type="${integer.type}">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

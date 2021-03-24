@@ -1,14 +1,14 @@
 package cromwell.pipeline.datastorage.dao.repository
 
+import cats.implicits._
 import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
 import cromwell.pipeline.datastorage.DatastorageModule
 import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
-import cromwell.pipeline.utils.{ ApplicationConfig, StringUtils, TestContainersUtils }
-import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
-import cats.implicits._
 import cromwell.pipeline.model.validator.Enable
 import cromwell.pipeline.model.wrapper.{ Name, UserEmail }
+import cromwell.pipeline.utils.{ ApplicationConfig, StringUtils, TestContainersUtils }
+import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 
 class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfterAll with ForAllTestContainer {
 
@@ -22,8 +22,7 @@ class UserRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfter
     datastorageModule.pipelineDatabaseEngine.updateSchema()
   }
 
-  private val newPasswordHash: String = StringUtils.calculatePasswordHash("newPassword1", "salt")
-  private val newInvalidPasswordHash: String = StringUtils.calculatePasswordHash("newPassword", "salt")
+  private val newPasswordHash: String = StringUtils.calculatePasswordHash("newPassword_1", "salt")
 
   "UserRepository" when {
 

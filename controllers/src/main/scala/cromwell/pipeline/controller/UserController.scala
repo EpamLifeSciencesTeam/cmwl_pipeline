@@ -14,7 +14,7 @@ import scala.util.{ Failure, Success }
 class UserController(userService: UserService)(implicit executionContext: ExecutionContext) {
 
   val route: AccessTokenContent => Route = accessToken =>
-    path("users") {
+    pathPrefix("users") {
       concat(
         get {
           parameter('email.as[String]) { email =>
@@ -33,20 +33,24 @@ class UserController(userService: UserService)(implicit executionContext: Execut
           }
         },
         put {
-          entity(as[UserUpdateRequest]) { userUpdateRequest =>
-            onComplete(userService.updateUser(accessToken.userId, userUpdateRequest)) {
-              case Success(_)   => complete(StatusCodes.NoContent)
-              case Failure(exc) => complete(StatusCodes.InternalServerError, exc.getMessage)
+          concat(
+            path("info") {
+              entity(as[UserUpdateRequest]) { userUpdateRequest =>
+                onComplete(userService.updateUser(accessToken.userId, userUpdateRequest)) {
+                  case Success(_) => complete(StatusCodes.NoContent)
+                  case Failure(exc) => complete(StatusCodes.InternalServerError, exc.getMessage)
+                }
+              }
+            },
+            path("password") {
+              entity(as[PasswordUpdateRequest]) { passwordUpdateRequest =>
+                onComplete(userService.updatePassword(accessToken.userId, passwordUpdateRequest)) {
+                  case Success(_) => complete(StatusCodes.NoContent)
+                  case Failure(exc) => complete(StatusCodes.BadRequest, exc.getMessage)
+                }
+              }
             }
-          }
-        },
-        put {
-          entity(as[PasswordUpdateRequest]) { passwordUpdateRequest =>
-            onComplete(userService.updatePassword(accessToken.userId, passwordUpdateRequest)) {
-              case Success(_)   => complete(StatusCodes.NoContent)
-              case Failure(exc) => complete(StatusCodes.BadRequest, exc.getMessage)
-            }
-          }
+          )
         }
       )
     }

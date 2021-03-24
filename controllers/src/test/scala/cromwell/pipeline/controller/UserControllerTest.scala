@@ -2,18 +2,18 @@ package cromwell.pipeline.controller
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
+import cats.implicits._
 import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
+import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
+import cromwell.pipeline.datastorage.dto.{ User, UserNoCredentials }
+import cromwell.pipeline.model.validator.Enable
+import cromwell.pipeline.model.wrapper.{ Password, UserEmail, UserId }
 import cromwell.pipeline.service.UserService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import org.mockito.Mockito._
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
-import cats.implicits._
-import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
-import cromwell.pipeline.datastorage.dto.{ User, UserNoCredentials }
-import cromwell.pipeline.model.validator.Enable
-import cromwell.pipeline.model.wrapper.{ Password, UserEmail, UserId }
 
 import scala.concurrent.Future
 
@@ -27,7 +27,7 @@ class UserControllerTest
 
   private val userService = mock[UserService]
   private val userController = new UserController(userService)
-  private val password: String = "-Pa$$w0rd-"
+  private val password: String = "-Pa$$w0rd1-"
 
   "UserController" when {
 
@@ -123,7 +123,7 @@ class UserControllerTest
 
         when(userService.updateUser(userId, request)).thenReturn(Future.successful(1))
 
-        Put("/users", request) ~> userController.route(accessToken) ~> check {
+        Put("/users/info", request) ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NoContent
         }
       }
@@ -140,7 +140,7 @@ class UserControllerTest
 
         when(userService.updatePassword(userId, request)).thenReturn(Future.successful(1))
 
-        Put("/users", request) ~> userController.route(accessToken) ~> check {
+        Put("/users/password", request) ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NoContent
         }
       }
@@ -154,7 +154,7 @@ class UserControllerTest
         when(userService.updateUser(userId, request))
           .thenReturn(Future.failed(new RuntimeException("Something wrong.")))
 
-        Put("/users", request) ~> userController.route(accessToken) ~> check {
+        Put("/users/info", request) ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
         }
       }
@@ -173,7 +173,7 @@ class UserControllerTest
         when(userService.updatePassword(userId, request))
           .thenReturn(Future.failed(new RuntimeException("Something wrong.")))
 
-        Put("/users", request) ~> userController.route(accessToken) ~> check {
+        Put("/users/password", request) ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.BadRequest
         }
       }

@@ -2,15 +2,7 @@ package cromwell.pipeline.service
 
 import java.nio.file.Path
 
-import cromwell.pipeline.datastorage.dto.{
-  FileCommit,
-  FileTree,
-  GitLabVersion,
-  PipelineVersion,
-  Project,
-  ProjectFile,
-  SuccessResponseMessage
-}
+import cromwell.pipeline.datastorage.dto._
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -20,13 +12,13 @@ trait ProjectVersioning[E >: VersioningException] {
 
   def updateFile(project: Project, projectFile: ProjectFile, version: Option[PipelineVersion] = None)(
     implicit ec: ExecutionContext
-  ): AsyncResult[SuccessResponseMessage]
+  ): AsyncResult[UpdateFiledResponse]
 
   def updateFiles(project: Project, projectFiles: ProjectFiles)(
     implicit ec: ExecutionContext
   ): AsyncResult[List[SuccessResponseMessage]]
 
-  def createRepository(project: Project)(
+  def createRepository(localProject: LocalProject)(
     implicit ec: ExecutionContext
   ): AsyncResult[Project]
 

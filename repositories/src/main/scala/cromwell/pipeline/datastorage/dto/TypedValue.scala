@@ -23,7 +23,7 @@ object TypedValue {
     implicit val floatTyped: OFormat[FloatTyped] = Json.format
     implicit val booleanTyped: OFormat[BooleanTyped] = Json.format
 
-    adtFormat("$type")(
+    adtFormat("_type")(
       adtCase[StringTyped]("String"),
       adtCase[FileTyped]("File"),
       adtCase[IntTyped]("Int"),

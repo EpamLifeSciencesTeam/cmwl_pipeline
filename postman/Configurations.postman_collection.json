@@ -65,6 +65,35 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Deactivate configuration by project Id",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/configurations?project_id=project_id",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"configurations"
+					],
+					"query": [
+						{
+							"key": "project_id",
+							"value": "project_id"
+						}
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"protocolProfileBehavior": {}

@@ -2,19 +2,19 @@ package cromwell.pipeline.controller
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
+import cats.implicits._
 import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
 import cromwell.pipeline.ApplicationComponents
 import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
+import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
 import cromwell.pipeline.datastorage.dto.{ User, UserNoCredentials }
+import cromwell.pipeline.model.validator.Enable
+import cromwell.pipeline.model.wrapper.Password
 import cromwell.pipeline.utils.TestContainersUtils
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import org.scalatest.{ AsyncWordSpec, Matchers }
-import cats.implicits._
-import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
-import cromwell.pipeline.model.validator.Enable
-import cromwell.pipeline.model.wrapper.Password
 
 class UserControllerItTest
     extends AsyncWordSpec
@@ -35,7 +35,7 @@ class UserControllerItTest
     components.datastorageModule.pipelineDatabaseEngine.updateSchema()
   }
 
-  private val password: String = "-Pa$$w0rd-"
+  private val password: String = "-Pa$$w0rd1-"
 
   "UserController" when {
 
@@ -78,7 +78,7 @@ class UserControllerItTest
         userRepository.addUser(dummyUser).flatMap { _ =>
           userRepository.updateUser(dummyUser).map { _ =>
             val accessToken = AccessTokenContent(dummyUser.userId)
-            Put("/users", request) ~> userController.route(accessToken) ~> check {
+            Put("/users/info", request) ~> userController.route(accessToken) ~> check {
               status shouldBe StatusCodes.NoContent
             }
           }
@@ -99,7 +99,7 @@ class UserControllerItTest
         userRepository.addUser(dummyUser).flatMap { _ =>
           userRepository.updatePassword(dummyUser).map { _ =>
             val accessToken = AccessTokenContent(dummyUser.userId)
-            Put("/users", request) ~> userController.route(accessToken) ~> check {
+            Put("/users/password", request) ~> userController.route(accessToken) ~> check {
               status shouldBe StatusCodes.NoContent
             }
           }
