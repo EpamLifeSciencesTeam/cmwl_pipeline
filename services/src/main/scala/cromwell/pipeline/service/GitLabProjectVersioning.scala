@@ -225,14 +225,15 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
     }
 
     httpClient
-      .get[ProjectFileContent](
-        s"${config.url}/projects/${project.repositoryId.value}/repository/files/$filePath/raw",
+      .get[GitLabFileContent](
+        s"${config.url}/projects/${project.repositoryId.value}/repository/files/$filePath",
         Map("ref" -> fileVersion),
         config.token
       )
       .map {
-        case Response(HttpStatusCodes.OK, SuccessResponseBody(projFileContent), _) =>
-          Right(ProjectFile(path, projFileContent))
+        case Response(HttpStatusCodes.OK, SuccessResponseBody(gitLabFile), _) =>
+          val content = decodeBase64(gitLabFile.content)
+          Right(ProjectFile(path, ProjectFileContent(content)))
         case Response(HttpStatusCodes.OK, FailureResponseBody(error), _) =>
           Left(
             VersioningException.HttpException(
@@ -244,4 +245,6 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
       }
       .recover { case e: Throwable => Left(VersioningException.HttpException(e.getMessage)) }
   }
+
+  private def decodeBase64(str: String): String = new String(java.util.Base64.getDecoder.decode(str))
 }

@@ -279,16 +279,16 @@ class GitLabProjectVersioningTest
         val path = Paths.get("test.md")
         val encodedPathStr = URLEncoderUtils.encode(path.toString)
         when {
-          mockHttpClient.get[ProjectFileContent](
-            s"${gitLabConfig.url}/projects/${activeProject.repositoryId.value}/repository/files/$encodedPathStr/raw",
+          mockHttpClient.get[GitLabFileContent](
+            s"${gitLabConfig.url}/projects/${activeProject.repositoryId.value}/repository/files/$encodedPathStr",
             Map("ref" -> dummyPipelineVersion.name),
             gitLabConfig.token
           )
         }.thenReturn {
           Future.successful {
-            Response[ProjectFileContent](
+            Response[GitLabFileContent](
               HttpStatusCodes.OK,
-              SuccessResponseBody(ProjectFileContent("Test File")),
+              SuccessResponseBody(GitLabFileContent("VGVzdCBGaWxl")),
               EmptyHeaders
             )
           }
@@ -303,14 +303,14 @@ class GitLabProjectVersioningTest
         val path = Paths.get("test.md")
         val encodedPathStr = URLEncoderUtils.encode(path.toString)
         when {
-          mockHttpClient.get[ProjectFileContent](
-            s"${gitLabConfig.url}/projects/${activeProject.repositoryId.value}/repository/files/$encodedPathStr/raw",
+          mockHttpClient.get[GitLabFileContent](
+            s"${gitLabConfig.url}/projects/${activeProject.repositoryId.value}/repository/files/$encodedPathStr",
             Map("ref" -> dummyPipelineVersion.name),
             gitLabConfig.token
           )
         }.thenReturn {
           Future.successful {
-            Response[ProjectFileContent](HttpStatusCodes.NotFound, FailureResponseBody("Not Found"), EmptyHeaders)
+            Response[GitLabFileContent](HttpStatusCodes.NotFound, FailureResponseBody("Not Found"), EmptyHeaders)
           }
         }
 

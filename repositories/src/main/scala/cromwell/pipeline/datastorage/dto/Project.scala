@@ -166,6 +166,12 @@ object ProjectFileContent {
   implicit val projectFileContentFormat: Format[ProjectFileContent] = Json.valueFormat[ProjectFileContent]
 }
 
+final case class GitLabFileContent(content: String)
+
+object GitLabFileContent {
+  implicit lazy val encodingProjectFileContentFormat: OFormat[GitLabFileContent] = Json.format[GitLabFileContent]
+}
+
 sealed trait Visibility
 case object Private extends Visibility
 case object Internal extends Visibility
