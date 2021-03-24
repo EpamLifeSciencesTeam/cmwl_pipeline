@@ -121,5 +121,155 @@ Run the next commands
     - Replace the `workflow_id` with the id returned by the previous response.
     - A response with the workflow status will be returned.
  
+## File upload process in Cromwell Pipeline
+### Step 1: WDL file validation
+For validation WDL file send POST request <br>
+to address `<cromwell_pipeline_url>/files/validation` <br>
+with header `Authorization <auth_token>` <br>
+and request body:
+```
+{
+    "content": "<file_content>"
+}
+```
+* Instead of `<cromwell_pipeline_url>` insert the application URL
+* Instead of `<auth_token>` insert the authorization token
+* Instead of `<file_content>` insert the content from [cromwell-sample/hello.wdl](https://github.com/EpamLifeSciencesTeam/cmwl_pipeline/blob/a2a82a63ed8c66dc881892c8645e40ee58a36c1a/cromwell-sample/hello.wdl) file
+
+If validation succeed, response OK with HTTP status 200 will be returned.
+### Step 2: Create project (if doesn't exist)
+To create project send POST request <br>
+to address `<cromwell_pipeline_url>/projects` <br>
+with header `Authorization <auth_token>` <br>
+and request body:
+```
+{
+    "name": "<project_name>"
+}
+```
+* Instead of `<cromwell_pipeline_url>` insert the application URL
+* Instead of `<auth_token>` insert the authorization token
+* Instead of `<project_name>` insert the name of new project
+
+If creation succeed, response OK with HTTP status 200 will be returned.
+
+### Get project by name (if exists)
+To get project by name send GET request <br>
+to address `<cromwell_pipeline_url>/projects?name=<project_name>` <br>
+with header `Authorization <auth_token>` <br>
+* Instead of `<cromwell_pipeline_url>` insert the application URL
+* Instead of `<auth_token>` insert the authorization token
+
+If project exists, response OK with HTTP status 200, and the following response body will be returned:
+```
+{
+    "projectId": "<project_id>",
+    "ownerId": "<owner_id>",
+    "name": "<project_name>",
+    "active": true,
+    "repositoryId": <repository_id>,
+    "visibility": "<visibility>"
+}
+```
+### Step 3: Upload file to project
+To upload file into existing project send POST request <br>
+to address `<cromwell_pipeline_url>/files` <br>
+with header `Authorization <auth_token>` <br>
+and request body:
+```
+{
+    "projectId": "<project_id>",
+    "projectFile": {
+        "path": "<file_name>",
+        "content": "<file_content>"
+    }
+}
+```
+* Instead of `<cromwell_pipeline_url>` insert the application URL
+* Instead of `<auth_token>` insert the authorization token
+* Instead of `<project_id>` insert the project id from response in Step 2 (Get project by name)
+* Instead of `<file_name>` insert the file name ("hello.wdl")
+* Instead of `<file_content>` insert the content from [cromwell-sample/hello.wdl](https://github.com/EpamLifeSciencesTeam/cmwl_pipeline/blob/a2a82a63ed8c66dc881892c8645e40ee58a36c1a/cromwell-sample/hello.wdl) file
+
+If uploading succeed, response OK with HTTP status 200, and the following response body will be returned:
+```
+{
+    "file_path": "<file_name>",
+    "branch": "master"
+}
+```
+### Step 4: Build project configuration by project
+To build project configuration by project send POST request <br>
+to address `<cromwell_pipeline_url>/files/configurations` <br>
+with header `Authorization <auth_token>` <br>
+and request body:
+```
+{
+    "projectId": "<project_id>",
+    "projectFilePath": "<file_name>",
+}
+```
+* Instead of `<cromwell_pipeline_url>` insert the application URL
+* Instead of `<auth_token>` insert the authorization token
+* Instead of `<project_id>` insert the id of project, which configuration you want to build
+* Instead of `<file_name>` insert the file name ("hello.wdl")
+
+If building succeed, response OK with HTTP status 200, and the following response body will be returned:
+```
+{
+    "projectId": "<project_id>",
+    "active": true,
+    "projectFileConfigurations": [
+        {
+            "path": "<file_name>",
+            "inputs": [
+                {
+                    "name": "forkjoin.grep.float",
+                    "typedValue": {
+                        "_type": "Float"
+                    }
+                },
+                {
+                    "name": "forkjoin.grep.pattern",
+                    "typedValue": {
+                        "_type": "String"
+                    }
+                }
+            ]
+        }
+    ]
+}
+```
+### Step 5: Add configuration to project
+To add configuration to the project send PUT request <br>
+to address `<cromwell_pipeline_url>/configurations` <br>
+with header `Authorization <auth_token>` <br>
+and request body (JSON from response in Step 4):
+```
+{
+    "projectId": "<project_id>",
+    "active": true,
+    "projectFileConfigurations": [
+        {
+            "path": "<file_name>",
+            "inputs": [
+                {
+                    "name": "forkjoin.grep.float",
+                    "typedValue": {
+                        "_type": "Float"
+                    }
+                },
+                {
+                    "name": "forkjoin.grep.pattern",
+                    "typedValue": {
+                        "_type": "String"
+                    }
+                }
+            ]
+        }
+    ]
+}
+```
+If adding succeed, response OK with HTTP status 200 will be returned.
 ## Developer Guide
 https://kb.epam.com/display/EPMLSTR/Cromwell+Developer+Guide
