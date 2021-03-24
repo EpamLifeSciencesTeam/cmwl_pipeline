@@ -1,11 +1,16 @@
 package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dto._
+import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.womtool.WomToolAPI
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class ProjectFileService(womTool: WomToolAPI, projectVersioning: ProjectVersioning[VersioningException])(
+class ProjectFileService(
+  projectService: ProjectService,
+  womTool: WomToolAPI,
+  projectVersioning: ProjectVersioning[VersioningException]
+)(
   implicit executionContext: ExecutionContext
 ) {
 
@@ -16,11 +21,14 @@ class ProjectFileService(womTool: WomToolAPI, projectVersioning: ProjectVersioni
     }
 
   def uploadFile(
-    project: Project,
+    projectId: ProjectId,
     projectFile: ProjectFile,
-    version: Option[PipelineVersion]
+    version: Option[PipelineVersion],
+    userId: UserId
   ): Future[Either[VersioningException, UpdateFiledResponse]] =
-    projectVersioning.updateFile(project, projectFile, version)
+    projectService
+      .getUserProjectById(projectId, userId)
+      .flatMap(project => projectVersioning.updateFile(project, projectFile, version))
 
   def buildConfiguration(
     projectId: ProjectId,

@@ -104,10 +104,10 @@ object GeneratorUtils {
   lazy val projectFileContentGen: Gen[ProjectFileContent] = stringGen().map(ProjectFileContent(_))
 
   lazy val projectUpdateFileRequestGen: Gen[ProjectUpdateFileRequest] = for {
-    project <- projectGen
+    projectId <- projectIdGen
     projectFile <- projectFileGen
     pipelineVersion <- Gen.option(pipelineVersionGen)
-  } yield ProjectUpdateFileRequest(project, projectFile, pipelineVersion)
+  } yield ProjectUpdateFileRequest(projectId, projectFile, pipelineVersion)
 
   lazy val projectBuildConfigurationRequestGen: Gen[ProjectBuildConfigurationRequest] = for {
     projectId <- projectIdGen

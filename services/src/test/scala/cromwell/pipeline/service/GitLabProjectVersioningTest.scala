@@ -1,10 +1,10 @@
 package cromwell.pipeline.service
 
 import java.nio.file.{ Path, Paths }
-
 import akka.http.scaladsl.model.StatusCodes
 import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto.File.UpdateFileRequest
+import cromwell.pipeline.datastorage.dto.PipelineVersion.PipelineVersionException
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.utils._
 import org.mockito.Matchers.{ any, eq => exact }
@@ -265,6 +265,12 @@ class GitLabProjectVersioningTest
         gitLabProjectVersioning.updateFile(projectWithRepo, existFile, Some(dummyPipelineVersionHigher)).map {
           _ shouldBe Right(UpdateFiledResponse(newFile.path.toString, "master"))
         }
+      }
+
+      "return exception if version is invalid" taggedAs Service in {
+        val thrown = the[PipelineVersionException] thrownBy
+          gitLabProjectVersioning.updateFile(projectWithRepo, existFile, Some(PipelineVersion("1")))
+        thrown.message should equal("Format of version name: 'v(int).(int).(int)', but got: 1")
       }
     }
 
