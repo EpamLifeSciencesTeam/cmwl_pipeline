@@ -37,7 +37,7 @@ class UserController(userService: UserService)(implicit executionContext: Execut
             path("info") {
               entity(as[UserUpdateRequest]) { userUpdateRequest =>
                 onComplete(userService.updateUser(accessToken.userId, userUpdateRequest)) {
-                  case Success(_) => complete(StatusCodes.NoContent)
+                  case Success(_)   => complete(StatusCodes.NoContent)
                   case Failure(exc) => complete(StatusCodes.InternalServerError, exc.getMessage)
                 }
               }
@@ -45,7 +45,7 @@ class UserController(userService: UserService)(implicit executionContext: Execut
             path("password") {
               entity(as[PasswordUpdateRequest]) { passwordUpdateRequest =>
                 onComplete(userService.updatePassword(accessToken.userId, passwordUpdateRequest)) {
-                  case Success(_) => complete(StatusCodes.NoContent)
+                  case Success(_)   => complete(StatusCodes.NoContent)
                   case Failure(exc) => complete(StatusCodes.BadRequest, exc.getMessage)
                 }
               }

@@ -19,13 +19,14 @@ class ProjectController(projectService: ProjectService)(
     path("projects") {
       concat(
         get {
-          parameter('name.as[String]) { name =>
-            onComplete(projectService.getUserProjectByName(name, accessToken.userId)) {
-              case Success(project)                         => complete(project)
-              case Failure(e: ProjectNotFoundException)     => complete(StatusCodes.NotFound, e.getMessage)
-              case Failure(e: ProjectAccessDeniedException) => complete(StatusCodes.Forbidden, e.getMessage)
-              case Failure(e)                               => complete(StatusCodes.InternalServerError, e.getMessage)
-            }
+          parameter('name.as[String]) {
+            name =>
+              onComplete(projectService.getUserProjectByName(name, accessToken.userId)) {
+                case Success(project)                         => complete(project)
+                case Failure(e: ProjectNotFoundException)     => complete(StatusCodes.NotFound, e.getMessage)
+                case Failure(e: ProjectAccessDeniedException) => complete(StatusCodes.Forbidden, e.getMessage)
+                case Failure(e)                               => complete(StatusCodes.InternalServerError, e.getMessage)
+              }
           }
         },
         post {
