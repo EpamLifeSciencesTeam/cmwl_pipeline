@@ -2,8 +2,7 @@ language: scala
 scala:
 - 2.12.9
 script:
-- sbt clean compile undeclaredCompileDependenciesTest coverage test coverageAggregate
-  scalastyle it:test
+- sbt clean compile undeclaredCompileDependenciesTest coverage test coverageAggregate scalastyle it:test
 after_success:
 - sbt coveralls
 env:

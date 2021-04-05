@@ -1,0 +1,31 @@
+name: Cromwell Pipeline Scala CI
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+        scala: [ 2.12.10 ]
+        java: [ adopt@11 ]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout current branch (full)
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java and Scala
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: ${{ matrix.java }}
+
+      - name: Run tests
+        run: sbt ++${{ matrix.scala }} test
