@@ -53,8 +53,7 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
       }
 
       "return None if no configuration was matched" in {
-        when(configurationRepository.getByParam("projectId", projectId.value))
-          .thenReturn(Future.successful(List()))
+        when(configurationRepository.getByParam("projectId", projectId.value)).thenReturn(Future.successful(List()))
         configurationService.getById(projectId).map(_ shouldBe None)
       }
     }
@@ -73,11 +72,12 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
       }
 
       "return exception if no configuration was matched" in {
-        when(configurationRepository.getByParam("projectId", projectId.value))
-          .thenReturn(Future.successful(List()))
+        when(configurationRepository.getByParam("projectId", projectId.value)).thenReturn(Future.successful(List()))
 
-        configurationService.deactivateConfiguration(projectId).failed
-          .map(_ should have message "There is no project to deactivate")
+        configurationService
+          .deactivateConfiguration(projectId)
+          .failed
+          .map(exc => exc should have.message("There is no project to deactivate"))
       }
     }
   }

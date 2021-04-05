@@ -4,6 +4,7 @@ import com.dimafeng.testcontainers.PostgreSQLContainer
 import com.typesafe.config.{ Config, ConfigFactory }
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.wait.strategy.Wait
+import org.testcontainers.utility.DockerImageName
 
 object TestContainersUtils {
 
@@ -11,7 +12,7 @@ object TestContainersUtils {
 
   def getPostgreSQLContainer(postgresImageName: String = "postgres:12"): PostgreSQLContainer =
     PostgreSQLContainer(
-      dockerImageNameOverride = postgresImageName,
+      dockerImageNameOverride = DockerImageName.parse(postgresImageName),
       databaseName = postgreConfig.getString("databaseName"),
       username = postgreConfig.getString("user"),
       password = postgreConfig.getString("password")
