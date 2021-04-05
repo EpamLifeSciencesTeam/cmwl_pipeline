@@ -17,7 +17,7 @@ import cromwell.pipeline.service.AuthorizationException.{
 import cromwell.pipeline.utils.{ AuthConfig, ExpirationTimeInSeconds }
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures.whenReady
-import org.scalatest.{ WordSpec, Matchers }
+import org.scalatest.{ Matchers, WordSpec }
 import pdi.jwt.algorithms.JwtHmacAlgorithm
 import pdi.jwt.{ Jwt, JwtAlgorithm, JwtClaim }
 import play.api.libs.json.Json
