@@ -7,6 +7,16 @@ on:
     branches: [ develop ]
 
 jobs:
+  scalafmt-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: Checking your code to see if u r naughty or nice
+        uses: openlawteam/scalafmt-ci@v2
+        with:
+          args: "--exclude=third_party --list"
   build:
     strategy:
       matrix:
