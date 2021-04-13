@@ -25,7 +25,7 @@ lazy val commonSettings = Seq(
   compile in Compile := (compile in Compile).dependsOn(checkFormat).value,
   test in Test := (test in Test).dependsOn(checkFormat).value,
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports"),
-  coverageEnabled := true,
+  coverageEnabled in Test := true,
   coverageMinimum := 60,
   coverageFailOnMinimum := true
 )
@@ -52,7 +52,7 @@ lazy val datasource = project
 
 lazy val portal = project
   .configs(IntegrationTest)
-  .enablePlugins(JavaAppPackaging)
+  .enablePlugins(JavaAppPackaging, DockerPlugin)
   .settings(
     name := "Portal",
     commonSettings,
@@ -63,7 +63,8 @@ lazy val portal = project
       (resourceDirectory in Compile).value / "application.conf" -> "conf/application.conf",
       (resourceDirectory in Compile).value / "logback.xml" -> "conf/logback.xml"
     ),
-    addCommandAlias("testAll", "; test ; it:test")
+    addCommandAlias("testAll", "; test ; it:test"),
+    mainClass in Compile := Some("cromwell.pipeline.CromwellPipelineApp")
   )
   .aggregate(repositories, services, controllers, utils)
   .dependsOn(
