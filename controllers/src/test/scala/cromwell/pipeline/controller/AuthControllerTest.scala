@@ -3,16 +3,15 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.ContentTypes.`application/json`
 import akka.http.scaladsl.model.{ HttpEntity, StatusCodes }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import cats.implicits._
 import cromwell.pipeline.controller.AuthController._
 import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, SignInRequest, SignUpRequest }
-import cromwell.pipeline.model.validator.Enable
-import cromwell.pipeline.model.wrapper.{ Name, Password, UserEmail }
 import cromwell.pipeline.service.AuthService
 import cromwell.pipeline.service.AuthorizationException.{
   DuplicateUserException,
   InactiveUserException,
-  IncorrectPasswordException
+  IncorrectPasswordException,
+  RegistrationFailureException,
+  UserNotFoundException
 }
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ Assertion, Matchers, WordSpec }
@@ -41,8 +40,7 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
         val signInRequestStr = s"""{"email":"${email}","password":"${password}"}"""
 
         val httpEntity = HttpEntity(`application/json`, signInRequestStr)
-        (authService.signIn _ when SignInRequest(UserEmail(email, Enable.Unsafe), Password(password, Enable.Unsafe)))
-          .returns(Future.successful(Some(authResponse)))
+        (authService.signIn _ when SignInRequest(email, password)).returns(Future.successful(Some(authResponse)))
         Post("/auth/signIn", httpEntity) ~> authController.route ~> check {
           status shouldBe StatusCodes.OK
           checkAuthTokens
@@ -52,8 +50,8 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
       "return Unauthorized status if user doesn't exist" taggedAs Controller in {
         val signInRequestStr = s"""{"email":"${email}","password":"${password}"}"""
         val httpEntity = HttpEntity(`application/json`, signInRequestStr)
-        (authService.signIn _ when SignInRequest(UserEmail(email, Enable.Unsafe), Password(password, Enable.Unsafe)))
-          .returns(Future.successful(None))
+        (authService.signIn _ when SignInRequest(email, password))
+          .returns(Future.failed(UserNotFoundException("user has not been found")))
 
         Post("/auth/signIn", httpEntity) ~> authController.route ~> check {
           status shouldBe StatusCodes.Unauthorized
@@ -63,23 +61,21 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
       "return Unauthorized when password is incorrect" taggedAs Controller in {
         val signInRequestStr = s"""{"email":"${email}","password":"${incorrectPassword}"}"""
         val httpEntity = HttpEntity(`application/json`, signInRequestStr)
-        (authService.signIn _ when SignInRequest(
-          UserEmail(email, Enable.Unsafe),
-          Password(incorrectPassword, Enable.Unsafe)
-        )).returns(Future.failed(IncorrectPasswordException(AuthService.authorizationFailure)))
+        (authService.signIn _ when SignInRequest(email, incorrectPassword))
+          .returns(Future.failed(IncorrectPasswordException("incorrect password")))
         Post("/auth/signIn", httpEntity) ~> authController.route ~> check {
           status shouldBe StatusCodes.Unauthorized
         }
       }
 
-      "return Forbidden status if user is not active" taggedAs Controller in {
+      "return Unauthorized status if user is not active" taggedAs Controller in {
         val signInRequestStr = s"""{"email":"${email}","password":"${password}"}"""
         val httpEntity = HttpEntity(`application/json`, signInRequestStr)
-        (authService.signIn _ when SignInRequest(UserEmail(email, Enable.Unsafe), Password(password, Enable.Unsafe)))
-          .returns(Future.failed(InactiveUserException("User is not active")))
+        (authService.signIn _ when SignInRequest(email, password))
+          .returns(Future.failed(InactiveUserException("user is not active")))
 
         Post("/auth/signIn", httpEntity) ~> authController.route ~> check {
-          status shouldBe StatusCodes.Forbidden
+          status shouldBe StatusCodes.Unauthorized
         }
       }
     }
@@ -91,12 +87,8 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
           s"""{"email":"${email}","password":"${password}","firstName":"${firstName}","lastName":"${lastName}"}"""
         val authResponse = AuthResponse(accessToken, refreshToken, accessTokenExpiration)
         val httpEntity = HttpEntity(`application/json`, signInRequestStr)
-        (authService.signUp _ when SignUpRequest(
-          UserEmail(email, Enable.Unsafe),
-          Password(password, Enable.Unsafe),
-          Name(firstName, Enable.Unsafe),
-          Name(lastName, Enable.Unsafe)
-        )).returns(Future.successful(Some(authResponse)))
+        (authService.signUp _ when SignUpRequest(email, password, firstName, lastName))
+          .returns(Future.successful(Some(authResponse)))
 
         Post("/auth/signUp", httpEntity) ~> authController.route ~> check {
           status shouldBe StatusCodes.OK
@@ -104,17 +96,13 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
         }
       }
 
-      "return BadRequest with fields validation errors" ignore {
+      "return BadRequest with fields validation errors" taggedAs Controller in {
         val signUpRequestStr =
           s"""{"email":"${email}","password":"${password}","firstName":"${firstName}","lastName":"${lastName}"}"""
         val authResponse = AuthResponse(accessToken, refreshToken, accessTokenExpiration)
         val httpEntity = HttpEntity(`application/json`, signUpRequestStr)
-        (authService.signUp _ when SignUpRequest(
-          UserEmail(email, Enable.Unsafe),
-          Password(password, Enable.Unsafe),
-          Name(firstName, Enable.Unsafe),
-          Name(lastName, Enable.Unsafe)
-        )).returns(Future.successful(Some(authResponse)))
+        (authService.signUp _ when SignUpRequest(email, password, firstName, lastName))
+          .returns(Future.failed(RegistrationFailureException("")))
 
         Post("/auth/signUp", httpEntity) ~> authController.route ~> check {
           status shouldBe StatusCodes.BadRequest
@@ -125,12 +113,8 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
         val signUpRequestStr =
           s"""{"email":"${email}","password":"${password}","firstName":"${firstName}","lastName":"${lastName}"}"""
         val httpEntity = HttpEntity(`application/json`, signUpRequestStr)
-        (authService.signUp _ when SignUpRequest(
-          UserEmail(email, Enable.Unsafe),
-          Password(password, Enable.Unsafe),
-          Name(firstName, Enable.Unsafe),
-          Name(lastName, Enable.Unsafe)
-        )).returns(Future(throw new RuntimeException("Something wrong.")))
+        (authService.signUp _ when SignUpRequest(email, password, firstName, lastName))
+          .returns(Future(throw new RuntimeException("Something wrong.")))
 
         Post("/auth/signUp", httpEntity) ~> authController.route ~> check {
           status shouldBe StatusCodes.BadRequest
@@ -141,12 +125,8 @@ class AuthControllerTest extends WordSpec with Matchers with MockFactory with Sc
         val signUpRequestStr =
           s"""{"email":"${email}","password":"${password}","firstName":"${firstName}","lastName":"${lastName}"}"""
         val httpEntity = HttpEntity(`application/json`, signUpRequestStr)
-        (authService.signUp _ when SignUpRequest(
-          UserEmail(email, Enable.Unsafe),
-          Password(password, Enable.Unsafe),
-          Name(firstName, Enable.Unsafe),
-          Name(lastName, Enable.Unsafe)
-        )).returns(Future.failed(DuplicateUserException(s"${email} already exists")))
+        (authService.signUp _ when SignUpRequest(email, password, firstName, lastName))
+          .returns(Future.failed(DuplicateUserException(s"${email} already exists")))
 
         Post("/auth/signUp", httpEntity) ~> authController.route ~> check {
           status shouldBe StatusCodes.BadRequest

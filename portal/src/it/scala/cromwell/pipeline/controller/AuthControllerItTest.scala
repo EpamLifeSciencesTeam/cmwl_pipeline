@@ -8,13 +8,12 @@ import com.typesafe.config.Config
 import cromwell.pipeline.ApplicationComponents
 import cromwell.pipeline.controller.AuthController._
 import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
-import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils._
 import cromwell.pipeline.datastorage.dto.User
-import cromwell.pipeline.service.AuthService
 import cromwell.pipeline.utils.TestContainersUtils
 import org.scalatest.compatible.Assertion
 import org.scalatest.concurrent.ScalaFutures._
-import org.scalatest.{ WordSpec, Matchers }
+import org.scalatest.{ Matchers, WordSpec }
+import TestUserUtils._
 
 class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTest with ForAllTestContainer {
 
@@ -47,15 +46,15 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
         }
       }
 
-      "return status Forbidden if user is inactive" in {
+      "return status Unauthorized if user is inactive" in {
         val dummyUser: User = TestUserUtils.getDummyUser(active = false)
         whenReady(userRepository.addUser(dummyUser)) { _ =>
           val signInRequestStr =
             s"""{"email":"${dummyUser.email}","password":"${userPassword}"}"""
           val httpEntity = HttpEntity(`application/json`, signInRequestStr)
           Post("/auth/signIn", httpEntity) ~> authController.route ~> check {
-            status shouldBe StatusCodes.Forbidden
-            responseAs[String] shouldEqual "User is not active"
+            status shouldBe StatusCodes.Unauthorized
+            responseAs[String] shouldEqual "user is not active"
           }
         }
       }
@@ -69,7 +68,7 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
           val httpEntity = HttpEntity(`application/json`, signInRequestStr)
           Post("/auth/signIn", httpEntity) ~> authController.route ~> check {
             status shouldBe StatusCodes.Unauthorized
-            responseAs[String] shouldEqual AuthService.authorizationFailure
+            responseAs[String] shouldEqual "incorrect password"
           }
         }
       }

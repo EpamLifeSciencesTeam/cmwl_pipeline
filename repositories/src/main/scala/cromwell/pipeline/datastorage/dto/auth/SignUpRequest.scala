@@ -1,9 +1,8 @@
 package cromwell.pipeline.datastorage.dto.auth
 
-import cromwell.pipeline.model.wrapper.{ Name, Password, UserEmail }
 import play.api.libs.json.{ Json, OFormat }
 
-final case class SignUpRequest(email: UserEmail, password: Password, firstName: Name, lastName: Name)
+final case class SignUpRequest(email: String, password: String, firstName: String, lastName: String)
 
 object SignUpRequest {
   implicit val signUpRequestFormat: OFormat[SignUpRequest] = Json.format[SignUpRequest]

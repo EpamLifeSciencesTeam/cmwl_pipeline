@@ -1,14 +1,14 @@
 package cromwell.pipeline.service
 
-import cats.implicits._
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dao.repository.utils.TestUserUtils
-import cromwell.pipeline.datastorage.dto.UserNoCredentials
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
-import cromwell.pipeline.model.validator.Enable
-import cromwell.pipeline.model.wrapper.{ Name, Password, UserEmail, UserId }
+import cromwell.pipeline.datastorage.dto.UserNoCredentials
 import cromwell.pipeline.utils.StringUtils._
 import org.mockito.Mockito._
+import cats.implicits._
+import cromwell.pipeline.model.validator.Enable
+import cromwell.pipeline.model.wrapper.{ Name, UserEmail, UserId }
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
 
@@ -56,9 +56,9 @@ class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
           lastName = Name("updatedLastName", Enable.Unsafe)
         )
         val request = UserUpdateRequest(
-          user2.email,
-          user2.firstName,
-          user2.lastName
+          user2.email.unwrap,
+          user2.firstName.unwrap,
+          user2.lastName.unwrap
         )
 
         when(userRepository.getUserById(user.userId)).thenReturn(Future.successful(Some(user)))
@@ -66,6 +66,32 @@ class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
 
         userService.updateUser(user.userId, request).map { result =>
           result shouldBe 1
+        }
+      }
+
+      "returns failed if user doesn't exist" in {
+        val user = TestUserUtils.getDummyUser()
+        val request = UserUpdateRequest(
+          user.email.unwrap,
+          user.firstName.unwrap,
+          user.lastName.unwrap
+        )
+
+        when(userRepository.getUserById(user.userId)).thenReturn(Future.successful(None))
+
+        userService.updateUser(user.userId, request).failed.map {
+          _ should have.message("user has not been found")
+        }
+      }
+
+      "returns failed if invalid field (email)" in {
+        val user = TestUserUtils.getDummyUser()
+        val request = UserUpdateRequest("", "", "")
+
+        when(userRepository.getUserById(user.userId)).thenReturn(Future.successful(Some(user)))
+
+        userService.updateUser(user.userId, request).failed.map {
+          _ should have.message("NonEmptyChain(Email should match the following pattern <text_1>@<text_2>.<text_3>)")
         }
       }
     }
@@ -76,12 +102,7 @@ class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         val user = TestUserUtils.getDummyUser()
         val salt = "salt"
 
-        val request =
-          PasswordUpdateRequest(
-            TestUserUtils.userPassword,
-            Password(validPassword, Enable.Unsafe),
-            Password(validPassword, Enable.Unsafe)
-          )
+        val request = PasswordUpdateRequest(TestUserUtils.userPassword.value, validPassword, validPassword)
         val updatedUser = user.copy(passwordHash = calculatePasswordHash(validPassword, salt), passwordSalt = salt)
 
         when(userRepository.getUserById(user.userId)).thenReturn(Future.successful(Some(user)))
@@ -89,6 +110,58 @@ class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
 
         userService.updatePassword(user.userId, request, salt).map { result =>
           result shouldBe 1
+        }
+      }
+
+      "returns failed if user doesn't exist" in {
+        val user = TestUserUtils.getDummyUser()
+        val salt = "salt"
+        val request = PasswordUpdateRequest(TestUserUtils.userPassword.value, validPassword, validPassword)
+
+        when(userRepository.getUserById(user.userId)).thenReturn(Future.successful(None))
+
+        userService.updatePassword(user.userId, request, salt).failed.map {
+          _ should have.message("user has not been found")
+        }
+      }
+
+      "returns failed if invalid field (currentPassword)" in {
+        val user = TestUserUtils.getDummyUser()
+        val salt = "salt"
+        val request = PasswordUpdateRequest("", "", "")
+
+        when(userRepository.getUserById(user.userId)).thenReturn(Future.successful(Some(user)))
+
+        userService.updatePassword(user.userId, request, salt).failed.map {
+          _ should have.message(
+            "NonEmptyChain(Password must be at least 10 characters long, " +
+              "including an uppercase and a lowercase letter, " +
+              "one number and one special character.)"
+          )
+        }
+      }
+
+      "returns failed if user password differs from entered" in {
+        val user = TestUserUtils.getDummyUser()
+        val salt = "salt"
+        val request = PasswordUpdateRequest("Password_1", validPassword, validPassword)
+
+        when(userRepository.getUserById(user.userId)).thenReturn(Future.successful(Some(user)))
+
+        userService.updatePassword(user.userId, request, salt).failed.map {
+          _ should have.message("user password differs from entered")
+        }
+      }
+
+      "returns failed if new password incorrectly duplicated" in {
+        val user = TestUserUtils.getDummyUser()
+        val salt = "salt"
+        val request = PasswordUpdateRequest(TestUserUtils.userPassword.value, validPassword, "Password_1")
+
+        when(userRepository.getUserById(user.userId)).thenReturn(Future.successful(Some(user)))
+
+        userService.updatePassword(user.userId, request, salt).failed.map {
+          _ should have.message("new password incorrectly duplicated")
         }
       }
     }

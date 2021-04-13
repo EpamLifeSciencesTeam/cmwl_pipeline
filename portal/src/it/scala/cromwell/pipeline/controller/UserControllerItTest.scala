@@ -74,7 +74,7 @@ class UserControllerItTest
 
       "return status code NoContent if user was successfully updated" in {
         val dummyUser: User = TestUserUtils.getDummyUser()
-        val request = UserUpdateRequest(dummyUser.email, dummyUser.firstName, dummyUser.lastName)
+        val request = UserUpdateRequest(dummyUser.email.unwrap, dummyUser.firstName.unwrap, dummyUser.lastName.unwrap)
         userRepository.addUser(dummyUser).flatMap { _ =>
           userRepository.updateUser(dummyUser).map { _ =>
             val accessToken = AccessTokenContent(dummyUser.userId)
@@ -90,12 +90,7 @@ class UserControllerItTest
 
       "return status code NoContent if user's password was successfully updated" in {
         val dummyUser: User = TestUserUtils.getDummyUser()
-        val request =
-          PasswordUpdateRequest(
-            Password(password, Enable.Unsafe),
-            Password("new$Password1", Enable.Unsafe),
-            Password("new$Password1", Enable.Unsafe)
-          )
+        val request = PasswordUpdateRequest(password, "new$Password1", "new$Password1")
         userRepository.addUser(dummyUser).flatMap { _ =>
           userRepository.updatePassword(dummyUser).map { _ =>
             val accessToken = AccessTokenContent(dummyUser.userId)

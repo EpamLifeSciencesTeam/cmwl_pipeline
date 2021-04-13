@@ -9,7 +9,8 @@ import cromwell.pipeline.service.AuthService
 import cromwell.pipeline.service.AuthorizationException.{
   DuplicateUserException,
   InactiveUserException,
-  IncorrectPasswordException
+  IncorrectPasswordException,
+  UserNotFoundException
 }
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
@@ -31,7 +32,9 @@ class AuthController(authService: AuthService)(implicit executionContext: Execut
                 case Failure(IncorrectPasswordException(message)) =>
                   complete(HttpResponse(StatusCodes.Unauthorized, entity = message))
                 case Failure(InactiveUserException(message)) =>
-                  complete(HttpResponse(StatusCodes.Forbidden, entity = message))
+                  complete(HttpResponse(StatusCodes.Unauthorized, entity = message))
+                case Failure(UserNotFoundException(message)) =>
+                  complete(HttpResponse(StatusCodes.Unauthorized, entity = message))
                 case _ => complete(StatusCodes.Unauthorized)
               }
           }

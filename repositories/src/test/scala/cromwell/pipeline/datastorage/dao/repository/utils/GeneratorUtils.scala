@@ -73,24 +73,24 @@ object GeneratorUtils {
     email <- emailGen
     firstName <- nameGen
     lastName <- nameGen
-  } yield UserUpdateRequest(email, firstName, lastName)
+  } yield UserUpdateRequest(email.unwrap, firstName.unwrap, lastName.unwrap)
 
   lazy val passwordUpdateRequestGen: Gen[PasswordUpdateRequest] = for {
     currentPassword <- passwordGen
     newPassword <- passwordGen
-  } yield PasswordUpdateRequest(currentPassword, newPassword, newPassword)
+  } yield PasswordUpdateRequest(currentPassword.value, newPassword.value, newPassword.value)
 
   lazy val signUpRequestGen: Gen[SignUpRequest] = for {
     email <- emailGen
     password <- passwordGen
     firstName <- nameGen
     lastName <- nameGen
-  } yield SignUpRequest(email, password, firstName, lastName)
+  } yield SignUpRequest(email.unwrap, password.value, firstName.unwrap, lastName.unwrap)
 
   lazy val signInRequestGen: Gen[SignInRequest] = for {
     email <- emailGen
     password <- passwordGen
-  } yield SignInRequest(email, password)
+  } yield SignInRequest(email.unwrap, password.value)
 
   lazy val projectAdditionRequestGen: Gen[ProjectAdditionRequest] = stringGen().map(ProjectAdditionRequest(_))
 

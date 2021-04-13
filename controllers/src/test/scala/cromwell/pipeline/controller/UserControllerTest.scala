@@ -119,7 +119,7 @@ class UserControllerTest
         val dummyUser: User = TestUserUtils.getDummyUser()
         val userId = UserId.random
         val accessToken = AccessTokenContent(userId)
-        val request = UserUpdateRequest(dummyUser.email, dummyUser.firstName, dummyUser.lastName)
+        val request = UserUpdateRequest(dummyUser.email.unwrap, dummyUser.firstName.unwrap, dummyUser.lastName.unwrap)
 
         when(userService.updateUser(userId, request)).thenReturn(Future.successful(1))
 
@@ -132,11 +132,7 @@ class UserControllerTest
         val dummyUser: User = TestUserUtils.getDummyUser()
         val userId = dummyUser.userId
         val accessToken = AccessTokenContent(userId)
-        val request = PasswordUpdateRequest(
-          Password(password, Enable.Unsafe),
-          Password(password, Enable.Unsafe),
-          Password(password, Enable.Unsafe)
-        )
+        val request = PasswordUpdateRequest(password, password, password)
 
         when(userService.updatePassword(userId, request)).thenReturn(Future.successful(1))
 
@@ -149,7 +145,7 @@ class UserControllerTest
         val dummyUser: User = TestUserUtils.getDummyUser()
         val userId = dummyUser.userId
         val accessToken = AccessTokenContent(userId)
-        val request = UserUpdateRequest(dummyUser.email, dummyUser.firstName, dummyUser.lastName)
+        val request = UserUpdateRequest(dummyUser.email.unwrap, dummyUser.firstName.unwrap, dummyUser.lastName.unwrap)
 
         when(userService.updateUser(userId, request))
           .thenReturn(Future.failed(new RuntimeException("Something wrong.")))
@@ -164,11 +160,7 @@ class UserControllerTest
         val userId = dummyUser.userId
         val accessToken = AccessTokenContent(userId)
         val request =
-          PasswordUpdateRequest(
-            Password(password, Enable.Unsafe),
-            Password(password + "1", Enable.Unsafe),
-            Password(password, Enable.Unsafe)
-          )
+          PasswordUpdateRequest(password, password, password)
 
         when(userService.updatePassword(userId, request))
           .thenReturn(Future.failed(new RuntimeException("Something wrong.")))

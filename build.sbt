@@ -105,7 +105,9 @@ lazy val repositories =
 
 lazy val services =
   (project in file("services"))
-    .settings(libraryDependencies ++= jsonDependencies ++ mongoDependencies ++ cromwellDependencies :+ cats :+ playJson)
+    .settings(
+      libraryDependencies ++= jsonDependencies ++ mongoDependencies ++ cromwellDependencies :+ cats :+ playJson :+ sl4j
+    )
     .dependsOn(
       repositories % "compile->compile;test->test",
       utils % "compile->compile;test->test",
