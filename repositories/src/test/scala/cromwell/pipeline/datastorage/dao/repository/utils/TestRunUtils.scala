@@ -19,7 +19,7 @@ object TestRunUtils {
   def getDummyRun(
     runId: RunId = getDummyRunId,
     projectId: ProjectId = getDummyProjectId,
-    projectVersion: String = s"version-$randomUuidStr",
+    projectVersion: String = "v1.0.0",
     status: Status = Created,
     timeStart: Instant = getDummyTimeStart,
     timeEnd: Option[Instant] = getDummyTimeEnd(true),

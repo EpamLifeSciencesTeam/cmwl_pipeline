@@ -120,6 +120,13 @@ Run the next commands
 - `curl -X GET "http://ec2-54-218-82-67.us-west-2.compute.amazonaws.com/api/workflows/v1/{workflow_id}}/status" -H "accept: application/json"`
     - Replace the `workflow_id` with the id returned by the previous response.
     - A response with the workflow status will be returned.
+
+## Run Cromwell Pipeline in the Docker (Local)
+
+- Change values of the environment variables in [docker.sbt](portal/docker.sbt) file
+- Run `sbt clean docker:publishLocal` for creating Pipeline docker image using the local Docker server
+- Run `docker run -d --name cmwl_pipeline -p 8080:8080 cmwl_pipeline:0.1` for running Pipeline docker container
+- Use `http://localhost:8080` address for sending request
  
 ## File upload process in Cromwell Pipeline
 ### Step 1: WDL file validation

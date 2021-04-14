@@ -77,7 +77,7 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
         configurationService
           .deactivateConfiguration(projectId)
           .failed
-          .map(exc => exc should have.message("There is no project to deactivate"))
+          .map(_ should have.message("There is no project to deactivate"))
       }
     }
   }
