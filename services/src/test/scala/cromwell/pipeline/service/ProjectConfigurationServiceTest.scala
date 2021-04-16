@@ -17,6 +17,8 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
   private val configurationService = new ProjectConfigurationService(configurationRepository)
 
   "ConfigurationServiceTest" when {
+    val projectFileConfiguration =
+      ProjectFileConfiguration(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello")))))
     val configuration = ProjectConfiguration(
       TestProjectUtils.getDummyProjectId,
       active = true,
@@ -29,11 +31,31 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
     val updateResult = mock[UpdateResult]
 
     "add configuration" should {
+
+      val projectId = configuration.projectId.value
+
       "return complete status for creating configuration" in {
+        when(configurationRepository.getByParam("projectId", projectId))
+          .thenReturn(Future.successful(List(activeDocument)))
         when(updateResult.toString).thenReturn("Success update")
         when(configurationRepository.updateOne(activeDocument, "projectId", configuration.projectId.value))
           .thenReturn(Future.successful(updateResult))
         configurationService.addConfiguration(configuration).map(_ shouldBe "Success update")
+      }
+
+      "return complete status for updating exist configuration" in {
+        val newProjectFileConfiguration =
+          projectFileConfiguration.copy(inputs = List(FileParameter("nodeName", StringTyped(Some("hi")))))
+        val newConfiguration = configuration.copy(projectFileConfigurations = List(newProjectFileConfiguration))
+        val newActiveDocument = ProjectConfiguration.toDocument(newConfiguration)
+
+        when(configurationRepository.getByParam("projectId", projectId))
+          .thenReturn(Future.successful(List(activeDocument)))
+        when(updateResult.toString).thenReturn("Success update")
+        when(configurationRepository.updateOne(newActiveDocument, "projectId", projectId))
+          .thenReturn(Future.successful(updateResult))
+
+        configurationService.addConfiguration(newConfiguration).map(_ shouldBe "Success update")
       }
     }
 
