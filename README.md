@@ -123,9 +123,9 @@ Run the next commands
 
 ## Run Cromwell Pipeline in the Docker (Local)
 
-- Change values of the environment variables in [docker.sbt](portal/docker.sbt) file
+- Create .env file with environment variables from .env.example file in the root folder
 - Run `sbt clean docker:publishLocal` for creating Pipeline docker image using the local Docker server
-- Run `docker run -d --name cmwl_pipeline -p 8080:8080 cmwl_pipeline:0.1` for running Pipeline docker container
+- Run `docker-compose up` for running all docker containers or `docker run -d --name cmwl_pipeline -p 8080:8080 cmwl_pipeline:0.1` for running  only Pipeline
 - Use `http://localhost:8080` address for sending request
  
 ## File upload process in Cromwell Pipeline
