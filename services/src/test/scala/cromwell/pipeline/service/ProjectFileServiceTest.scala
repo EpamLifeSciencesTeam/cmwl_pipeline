@@ -59,7 +59,7 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
       "return success message for request" taggedAs Service in {
         when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
         when(projectVersioning.updateFile(project, projectFile, Some(version)))
-          .thenReturn(Future.successful(Right(UpdateFiledResponse(projectFile.path.toString, "master"))))
+          .thenReturn(Future.successful(Right(UpdateFiledResponse(projectFile.path.toString, "master"), version)))
         projectFileService
           .uploadFile(projectId, projectFile, Some(version), userId)
           .map(_ shouldBe Right(UpdateFiledResponse(projectFile.path.toString, "master")))

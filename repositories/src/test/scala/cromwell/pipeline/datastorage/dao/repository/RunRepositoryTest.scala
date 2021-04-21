@@ -4,7 +4,7 @@ import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
 import cromwell.pipeline.datastorage.DatastorageModule
 import cromwell.pipeline.datastorage.dao.repository.utils.{ TestProjectUtils, TestRunUtils, TestUserUtils }
-import cromwell.pipeline.datastorage.dto.{ Done, Project, Run, User }
+import cromwell.pipeline.datastorage.dto.{ Done, PipelineVersion, Project, Run, User }
 import cromwell.pipeline.utils.{ ApplicationConfig, TestContainersUtils }
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 

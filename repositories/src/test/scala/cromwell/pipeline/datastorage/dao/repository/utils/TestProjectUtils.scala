@@ -20,16 +20,18 @@ object TestProjectUtils {
     name: String = s"project-$randomUuidStr",
     repository: RepositoryId = getDummyRepositoryId,
     active: Boolean = true,
+    version: PipelineVersion,
     visibility: Visibility = Private
-  ): Project = Project(projectId, ownerId, name, active, repository, visibility)
+  ): Project = Project(projectId, ownerId, name, active, repository, version, visibility)
   def getDummyLocalProject(
     projectId: ProjectId = getDummyProjectId,
     ownerId: UserId = TestUserUtils.getDummyUserId,
     name: String = s"project-$randomUuidStr",
     active: Boolean = true,
+    version: PipelineVersion,
     visibility: Visibility = Private
   ): LocalProject =
-    LocalProject(projectId, ownerId, name, active, visibility)
+    LocalProject(projectId, ownerId, name, active, visibility, version)
   def getDummyCommit(id: String = randomUuidStr): Commit = Commit(id)
   def getDummyPipeLineVersion(
     v1: Int = 1 + randomInt(),

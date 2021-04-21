@@ -15,6 +15,7 @@ final case class Project(
   name: String,
   active: Boolean,
   repositoryId: RepositoryId,
+  version: PipelineVersion,
   visibility: Visibility = Private
 )
 object Project {
@@ -26,7 +27,8 @@ final case class LocalProject(
   ownerId: UserId,
   name: String,
   active: Boolean,
-  visibility: Visibility = Private
+  visibility: Visibility = Private,
+  version: PipelineVersion
 ) {
   def toProject(repositoryId: RepositoryId): Project =
     Project(
@@ -35,7 +37,8 @@ final case class LocalProject(
       name = name,
       active = active,
       repositoryId = repositoryId,
-      visibility = visibility
+      visibility = visibility,
+      version = version
     )
 }
 
@@ -91,7 +94,14 @@ object GitLabVersion {
 final case class PipelineVersion(major: VersionValue, minor: VersionValue, revision: VersionValue)
     extends Ordered[PipelineVersion] {
   import VersionValue._
+  import PipelineVersion._
   def name: String = s"v$major.$minor.$revision"
+
+//  def this(stringVersion: String) = this(
+//    PipelineVersion(stringVersion).major,
+//    PipelineVersion(stringVersion).minor,
+//    PipelineVersion(stringVersion).revision
+//  )
 
   private val ordering: Ordering[PipelineVersion] = Ordering.by(v => (v.major, v.minor, v.revision))
 
@@ -108,6 +118,8 @@ final case class PipelineVersion(major: VersionValue, minor: VersionValue, revis
     this.copy(revision = increment(this.revision))
 
   override def toString: String = this.name
+
+  def value: String = this.name
 }
 
 object PipelineVersion {

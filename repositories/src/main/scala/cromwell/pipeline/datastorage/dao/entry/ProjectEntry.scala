@@ -3,6 +3,7 @@ package cromwell.pipeline.datastorage.dao.entry
 import cromwell.pipeline.datastorage.Profile
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
+import slick.lifted.MappedToBase.mappedToIsomorphism
 import slick.lifted.{ ForeignKeyQuery, ProvenShape }
 
 trait ProjectEntry { this: Profile with UserEntry with CustomsWithEnumSupport with AliasesSupport =>
@@ -16,8 +17,10 @@ trait ProjectEntry { this: Profile with UserEntry with CustomsWithEnumSupport wi
     def active: Rep[Boolean] = column[Boolean]("active")
     def repositoryId: Rep[RepositoryId] = column[RepositoryId]("repository_id")
     def visibility: Rep[Visibility] = column[Visibility]("visibility")
-    def * : ProvenShape[Project] = (projectId, ownerId, name, active, repositoryId, visibility) <>
-      ((Project.apply _).tupled, Project.unapply)
+    def version: Rep[PipelineVersion] = column[PipelineVersion]("version")
+    def * : ProvenShape[Project] =
+      (projectId, ownerId, name, active, repositoryId, version, visibility) <>
+        ((Project.apply _).tupled, Project.unapply)
 
     def user: ForeignKeyQuery[UserTable, User] = foreignKey("fk_project_user", ownerId, users)(_.userId)
   }
@@ -40,4 +43,10 @@ trait ProjectEntry { this: Profile with UserEntry with CustomsWithEnumSupport wi
 
   def updateProjectNameAction(updatedProject: Project): ActionResult[Int] =
     projects.filter(_.projectId === updatedProject.projectId).map(project => project.name).update(updatedProject.name)
+
+  def updateProjectVersionAction(updatedProject: Project): ActionResult[Int] =
+    projects
+      .filter(_.projectId === updatedProject.projectId)
+      .map(project => project.version)
+      .update(updatedProject.version)
 }

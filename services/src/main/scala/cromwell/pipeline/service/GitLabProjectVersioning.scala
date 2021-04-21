@@ -50,15 +50,15 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
     responseBody: UpdateFiledResponse
   )(
     implicit ec: ExecutionContext
-  ): AsyncResult[UpdateFiledResponse] =
+  ): AsyncResult[(UpdateFiledResponse, PipelineVersion)] =
     createTag(repositoryId, version).map {
-      case Right(_)        => Right(responseBody)
+      case Right(_)        => Right(responseBody, version)
       case Left(exception) => Left(exception)
     }
 
   override def updateFile(project: Project, projectFile: ProjectFile, userVersion: Option[PipelineVersion])(
     implicit ec: ExecutionContext
-  ): AsyncResult[UpdateFiledResponse] = {
+  ): AsyncResult[(UpdateFiledResponse, PipelineVersion)] = {
     val path = URLEncoderUtils.encode(projectFile.path.toString)
     val repositoryId: RepositoryId = project.repositoryId
     val fileUrl = s"${config.url}projects/${repositoryId.value}/repository/files/$path"
@@ -189,6 +189,10 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
   override def getFilesVersions(project: Project, path: Path)(
     implicit ec: ExecutionContext
   ): AsyncResult[List[GitLabVersion]] = ???
+
+  override def getDefaultProjectVersion()(
+    implicit ec: ExecutionContext
+  ): PipelineVersion = PipelineVersion(config.defaultFileVersion)
 
   override def getFilesTree(project: Project, version: Option[PipelineVersion])(
     implicit ec: ExecutionContext
