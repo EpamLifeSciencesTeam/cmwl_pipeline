@@ -67,7 +67,8 @@ object GeneratorUtils {
     active <- Gen.oneOf(false, true)
     repository <- repositoryIdGen
     visibility <- Gen.oneOf(Visibility.values)
-  } yield Project(projectId, userId, name, active, repository, visibility)
+    version <- pipelineVersionGen
+  } yield Project(projectId, userId, name, active, repository, version, visibility)
 
   lazy val userUpdateRequestGen: Gen[UserUpdateRequest] = for {
     email <- emailGen

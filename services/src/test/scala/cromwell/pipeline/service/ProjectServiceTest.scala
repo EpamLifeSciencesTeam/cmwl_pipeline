@@ -2,14 +2,13 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dao.repository.utils.TestProjectUtils
-import cromwell.pipeline.datastorage.dto.{ LocalProject, Project, ProjectAdditionRequest, ProjectId }
+import cromwell.pipeline.datastorage.dto.{ LocalProject, PipelineVersion, Project, ProjectAdditionRequest, ProjectId }
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.service.Exceptions.ProjectNotFoundException
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
-
 import scala.concurrent.{ ExecutionContext, Future }
 
 class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar with BeforeAndAfterAll {
@@ -45,6 +44,22 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar w
         when(projectRepository.getProjectById(projectId)).thenReturn(Future(Some(project)))
 
         projectService.deactivateProjectById(projectId, userId).map { _ shouldBe project }
+      }
+    }
+
+    "updateProjectVersion" should {
+      "return correct version of project" taggedAs Service in {
+        val projectId = ProjectId("projectId")
+        val userId = UserId.random
+        val version = PipelineVersion("v1.0.0")
+
+        when(projectRepository.getProjectById(projectId)).thenReturn(Future(Some(dummyProject.copy(version = version))))
+
+        projectService.updateProjectVersion(version, projectId, userId)
+        projectRepository.getProjectById(projectId).map {
+          case Some(project) => project.version shouldBe version
+          case None          => fail()
+        }
       }
     }
 

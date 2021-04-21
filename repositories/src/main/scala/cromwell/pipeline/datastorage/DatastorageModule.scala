@@ -8,7 +8,7 @@ import cromwell.pipeline.datastorage.dao.repository.{
   RunRepository,
   UserRepository
 }
-import cromwell.pipeline.datastorage.dto.CustomsWithEnumSupport
+import cromwell.pipeline.datastorage.dto.{ CustomsWithEnumSupport, PipelineVersion }
 import cromwell.pipeline.model.validator.{ Enable, Wrapped }
 import cromwell.pipeline.model.wrapper.{ Name, RunId, UserEmail, UserId }
 import cromwell.pipeline.utils.ApplicationConfig
@@ -47,6 +47,9 @@ trait Profile {
     implicit def emailIso: Isomorphism[UserEmail, String] =
       iso[UserEmail, String](_.unwrap, UserEmail(_, Enable.Unsafe))
     implicit def nameIso: Isomorphism[Name, String] = iso[Name, String](_.unwrap, Name(_, Enable.Unsafe))
+
+    implicit def pipelineVersionIso: Isomorphism[PipelineVersion, String] =
+      iso[PipelineVersion, String](_.name, PipelineVersion(_))
 
     implicit def wrappedStringColumnExtension[T <: Wrapped[String]](c: Rep[T]): StringColumnExtensionMethods[String] =
       new StringColumnExtensionMethods[String](c.asInstanceOf[Rep[String]])

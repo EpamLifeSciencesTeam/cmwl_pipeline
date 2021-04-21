@@ -228,7 +228,7 @@ class GitLabProjectVersioningTest
         }
 
         gitLabProjectVersioning.updateFile(projectWithRepo, newFile, Some(dummyPipelineVersionHigher)).map {
-          _ shouldBe Right(UpdateFiledResponse(newFile.path.toString, "master"))
+          _ shouldBe Right(UpdateFiledResponse(newFile.path.toString, "master"), dummyPipelineVersionHigher)
         }
       }
 
@@ -263,7 +263,7 @@ class GitLabProjectVersioningTest
           }
         }
         gitLabProjectVersioning.updateFile(projectWithRepo, existFile, Some(dummyPipelineVersionHigher)).map {
-          _ shouldBe Right(UpdateFiledResponse(newFile.path.toString, "master"))
+          _ shouldBe Right(UpdateFiledResponse(newFile.path.toString, "master"), dummyPipelineVersionHigher)
         }
       }
 

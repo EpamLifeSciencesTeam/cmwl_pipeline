@@ -65,6 +65,15 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="add_column_for_project_version" author="oleg_koshelev">
+        <addColumn tableName="project">
+            <column name="version" type="varchar(255)" defaultValue="v0.0.1"/>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="project" columnName="version"/>
+        </rollback>
+    </changeSet>
+
     <changeSet id="create_run_table" author="manuel_vigueras">
         <createTable tableName="run">
             <column name="run_id" type="${uuid.type}"/>
