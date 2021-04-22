@@ -20,7 +20,7 @@ object TestProjectUtils {
     name: String = s"project-$randomUuidStr",
     repository: RepositoryId = getDummyRepositoryId,
     active: Boolean = true,
-    version: PipelineVersion,
+    version: PipelineVersion = PipelineVersion("v0.0.1"),
     visibility: Visibility = Private
   ): Project = Project(projectId, ownerId, name, active, repository, version, visibility)
   def getDummyLocalProject(
@@ -28,7 +28,7 @@ object TestProjectUtils {
     ownerId: UserId = TestUserUtils.getDummyUserId,
     name: String = s"project-$randomUuidStr",
     active: Boolean = true,
-    version: PipelineVersion,
+    version: PipelineVersion = PipelineVersion("v0.0.1"),
     visibility: Visibility = Private
   ): LocalProject =
     LocalProject(projectId, ownerId, name, active, visibility, version)
