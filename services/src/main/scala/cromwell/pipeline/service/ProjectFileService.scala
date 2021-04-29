@@ -4,6 +4,7 @@ import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.womtool.WomToolAPI
 
+import java.nio.file.Path
 import scala.concurrent.{ ExecutionContext, Future }
 
 class ProjectFileService(
@@ -32,11 +33,26 @@ class ProjectFileService(
 
   def buildConfiguration(
     projectId: ProjectId,
-    projectFile: ProjectFile
-  ): Future[Either[ValidationError, ProjectConfiguration]] =
-    Future(womTool.inputsToList(projectFile.content.content)).map {
-      case Left(value) => Left(ValidationError(value.toList))
-      case Right(nodes) =>
-        Right(ProjectConfiguration(projectId, active = true, List(ProjectFileConfiguration(projectFile.path, nodes))))
+    projectFilePath: Path,
+    version: Option[PipelineVersion],
+    userId: UserId
+  ): Future[ProjectConfiguration] = {
+
+    val eitherFile = for {
+      project <- projectService.getUserProjectById(projectId, userId)
+      eitherFile <- projectVersioning.getFile(project, projectFilePath, version)
+    } yield eitherFile
+
+    eitherFile.flatMap {
+      case Right(file) =>
+        womTool.inputsToList(file.content.content) match {
+          case Right(nodes) =>
+            Future.successful(
+              ProjectConfiguration(projectId, active = true, List(ProjectFileConfiguration(file.path, nodes)))
+            )
+          case Left(e) => Future.failed(ValidationError(e.toList))
+        }
+      case Left(versioningException) => Future.failed(versioningException)
     }
+  }
 }

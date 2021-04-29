@@ -196,13 +196,6 @@ object Visibility {
   def values = Seq(Private, Internal, Public)
 }
 
-final case class ProjectBuildConfigurationRequest(projectId: ProjectId, projectFile: ProjectFile)
-
-object ProjectBuildConfigurationRequest {
-  implicit val projectBuildConfigurationRequestFormat: OFormat[ProjectBuildConfigurationRequest] =
-    Json.format[ProjectBuildConfigurationRequest]
-}
-
 final case class ValidateFileContentRequest(content: ProjectFileContent)
 
 object ValidateFileContentRequest {

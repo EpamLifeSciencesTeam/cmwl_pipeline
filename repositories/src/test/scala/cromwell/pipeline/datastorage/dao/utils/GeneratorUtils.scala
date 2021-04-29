@@ -115,11 +115,6 @@ object GeneratorUtils {
     pipelineVersion <- Gen.option(pipelineVersionGen)
   } yield ProjectUpdateFileRequest(projectId, projectFile, pipelineVersion)
 
-  lazy val projectBuildConfigurationRequestGen: Gen[ProjectBuildConfigurationRequest] = for {
-    projectId <- projectIdGen
-    projectFile <- projectFileGen
-  } yield ProjectBuildConfigurationRequest(projectId, projectFile)
-
   lazy val typedValueGen: Gen[TypedValue] = {
     val range = 1024
 

@@ -5,14 +5,18 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.{
-  ProjectBuildConfigurationRequest,
+  PipelineVersion,
+  ProjectId,
   ProjectUpdateFileRequest,
   UpdateFiledResponse,
-  ValidateFileContentRequest
+  ValidateFileContentRequest,
+  ValidationError
 }
 import cromwell.pipeline.service.{ ProjectFileService, VersioningException }
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+import cromwell.pipeline.controller.utils.FromStringUnmarshallers._
 
+import java.nio.file.Path
 import scala.concurrent.ExecutionContext
 import scala.util.{ Failure, Success }
 
@@ -54,17 +58,26 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
     }
   }
 
-  private val buildConfiguration: Route = path("configurations") {
-    post {
-      entity(as[ProjectBuildConfigurationRequest]) { request =>
-        onComplete(wdlService.buildConfiguration(request.projectId, request.projectFile)) {
-          case Success(Left(e))              => complete(StatusCodes.UnprocessableEntity, e.errors)
-          case Success(Right(configuration)) => complete(configuration)
-          case Failure(e)                    => complete(StatusCodes.InternalServerError, e.getMessage)
+  private def buildConfiguration(implicit accessToken: AccessTokenContent): Route =
+    path("configurations") {
+      get {
+        parameters('project_id.as[ProjectId], 'project_file_path.as[Path], 'version.as[PipelineVersion].optional) {
+          (projectId, projectFilePath, version) =>
+            onComplete(
+              wdlService.buildConfiguration(
+                projectId,
+                projectFilePath,
+                version,
+                accessToken.userId
+              )
+            ) {
+              case Success(configuration)        => complete(configuration)
+              case Failure(ValidationError(msg)) => complete(StatusCodes.UnprocessableEntity, msg)
+              case Failure(e)                    => complete(StatusCodes.InternalServerError, e.getMessage)
+            }
         }
       }
     }
-  }
 
   val route: AccessTokenContent => Route = implicit accessToken =>
     pathPrefix("files") {

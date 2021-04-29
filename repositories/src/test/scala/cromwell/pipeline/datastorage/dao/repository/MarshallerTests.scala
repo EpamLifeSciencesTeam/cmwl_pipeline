@@ -107,15 +107,5 @@ class MarshallerTests extends AsyncWordSpec with Matchers with ScalaCheckDrivenP
         parseResult should equal(a)
       }
     }
-    "format ProjectBuildConfigurationRequest" in {
-      forAll { (a: ProjectBuildConfigurationRequest) =>
-        val parseResult: ProjectBuildConfigurationRequest =
-          projectBuildConfigurationRequestFormat.reads(projectBuildConfigurationRequestFormat.writes(a)) match {
-            case JsSuccess(value, _) => value
-            case JsError(_)          => fail("Could not parse request")
-          }
-        parseResult should equal(a)
-      }
-    }
   }
 }

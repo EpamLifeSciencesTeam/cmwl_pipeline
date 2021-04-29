@@ -81,26 +81,48 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
     }
 
     "build configuration" should {
+      val versionString = "v0.0.2"
+      val versionOption = Some(PipelineVersion("v0.0.2"))
       val projectId = TestProjectUtils.getDummyProjectId
-      val projectFile = ProjectFile(Paths.get("/home/test/file"), ProjectFileContent("{some context}"))
+      val path = "/home/test/file"
       val configuration = ProjectConfiguration(
         projectId,
         active = true,
         List(
           ProjectFileConfiguration(
-            Paths.get("/home/test/file"),
+            Paths.get(path),
             List(FileParameter("nodeName", StringTyped(Some("hello"))))
           )
         )
       )
-      val request = ProjectBuildConfigurationRequest(projectId, projectFile)
 
       "return configuration for file" in {
-        when(projectFileService.buildConfiguration(projectId, projectFile))
-          .thenReturn(Future.successful(Right(configuration)))
-        Post("/files/configurations", request) ~> projectFileController.route(accessToken) ~> check {
+        when(projectFileService.buildConfiguration(projectId, Paths.get(path), versionOption, accessToken.userId))
+          .thenReturn(Future.successful(configuration))
+        Get(s"/files/configurations?project_id=${projectId.value}&project_file_path=$path&version=$versionString") ~> projectFileController
+          .route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
           entityAs[ProjectConfiguration] shouldBe configuration
+        }
+      }
+
+      "return failed for Bad request" in {
+        when(projectFileService.buildConfiguration(projectId, Paths.get(path), versionOption, accessToken.userId))
+          .thenReturn(Future.failed(VersioningException.HttpException("Bad request")))
+        Get(s"/files/configurations?project_id=${projectId.value}&project_file_path=$path&version=$versionString") ~> projectFileController
+          .route(accessToken) ~> check {
+          status shouldBe StatusCodes.InternalServerError
+          entityAs[String] shouldBe "Bad request"
+        }
+      }
+
+      "return failed for invalid file" in {
+        when(projectFileService.buildConfiguration(projectId, Paths.get(path), versionOption, accessToken.userId))
+          .thenReturn(Future.failed(ValidationError(List("invalid some field"))))
+        Get(s"/files/configurations?project_id=${projectId.value}&project_file_path=$path&version=$versionString") ~> projectFileController
+          .route(accessToken) ~> check {
+          status shouldBe StatusCodes.UnprocessableEntity
+          entityAs[List[String]] shouldBe List("invalid some field")
         }
       }
     }

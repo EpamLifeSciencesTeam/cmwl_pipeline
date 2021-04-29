@@ -20,6 +20,4 @@ object FormatUtils {
   implicit val gitLabFileContentFormat: Format[GitLabFileContent] = GitLabFileContent.encodingProjectFileContentFormat
   implicit val projectUpdateFileRequestFormat: Format[ProjectUpdateFileRequest] =
     ProjectUpdateFileRequest.projectUpdateFileRequestFormat
-  implicit val projectBuildConfigurationRequestFormat: Format[ProjectBuildConfigurationRequest] =
-    ProjectBuildConfigurationRequest.projectBuildConfigurationRequestFormat
 }
