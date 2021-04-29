@@ -15,18 +15,18 @@ class ProjectConfigurationController(projectConfigurationService: ProjectConfigu
   implicit val ec: ExecutionContext
 ) {
 
-  private val addConfiguration: Route = put {
+  private def addConfiguration(implicit accessToken: AccessTokenContent): Route = put {
     entity(as[ProjectConfiguration]) { request =>
-      onComplete(projectConfigurationService.addConfiguration(request)) {
+      onComplete(projectConfigurationService.addConfiguration(request, accessToken.userId)) {
         case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
-        case Success(_) => complete(StatusCodes.NoContent)
+        case Success(_) => complete(StatusCodes.OK)
       }
     }
   }
 
-  private val getConfiguration: Route = get {
+  private def getConfiguration(implicit accessToken: AccessTokenContent): Route = get {
     parameter('project_id.as[String]) { projectId =>
-      onComplete(projectConfigurationService.getById(ProjectId(projectId))) {
+      onComplete(projectConfigurationService.getConfigurationById(ProjectId(projectId), accessToken.userId)) {
         case Failure(e)                   => complete(StatusCodes.InternalServerError, e.getMessage)
         case Success(Some(configuration)) => complete(configuration)
         case Success(None) =>
@@ -35,16 +35,16 @@ class ProjectConfigurationController(projectConfigurationService: ProjectConfigu
     }
   }
 
-  private val deactivateConfiguration: Route = delete {
+  private def deactivateConfiguration(implicit accessToken: AccessTokenContent): Route = delete {
     parameter('project_id.as[String]) { projectId =>
-      onComplete(projectConfigurationService.deactivateConfiguration(ProjectId(projectId))) {
+      onComplete(projectConfigurationService.deactivateConfiguration(ProjectId(projectId), accessToken.userId)) {
         case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
         case Success(_) => complete(StatusCodes.NoContent)
       }
     }
   }
 
-  val route: AccessTokenContent => Route = _ =>
+  val route: AccessTokenContent => Route = implicit accessToken =>
     pathPrefix("configurations") {
       addConfiguration ~
       getConfiguration ~

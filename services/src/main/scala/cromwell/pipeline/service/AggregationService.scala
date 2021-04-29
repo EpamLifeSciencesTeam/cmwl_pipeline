@@ -18,7 +18,7 @@ class AggregationService(
     val version = PipelineVersion(run.projectVersion)
     val projectFiles =
       getFilesByProjectId(run.projectId, run.userId, Some(version)).valueOrF(e => Future.failed(e))
-    val futureFileConfigurations = projectConfigurationService.getById(run.projectId).flatMap {
+    val futureFileConfigurations = projectConfigurationService.getConfigurationById(run.projectId, run.userId).flatMap {
       case Some(config) => Future.successful(config.projectFileConfigurations)
       case None         => Future.failed(new RuntimeException("Configurations for projectId " + run.projectId + " not found"))
     }
