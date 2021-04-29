@@ -20,7 +20,5 @@ object ArbitraryUtils {
   implicit val arbitraryGitLabFileContent: Arbitrary[GitLabFileContent] = Arbitrary(gitLabFileContentGen)
   implicit val arbitraryProjectUpdateFileRequest: Arbitrary[ProjectUpdateFileRequest] =
     Arbitrary(projectUpdateFileRequestGen)
-  implicit val arbitraryProjectBuildConfigurationRequest: Arbitrary[ProjectBuildConfigurationRequest] =
-    Arbitrary(projectBuildConfigurationRequestGen)
   implicit val arbitraryProjectConfiguration: Arbitrary[ProjectConfiguration] = Arbitrary(projectConfigurationGen)
 }

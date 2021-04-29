@@ -73,7 +73,7 @@
 		{
 			"name": "Build project configuration by project",
 			"request": {
-				"method": "POST",
+				"method": "GET",
 				"header": [
 					{
 						"key": "Authorization",
@@ -81,23 +81,28 @@
 						"type": "text"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"projectId\": \"\",\r\n    \"projectFile\": {\r\n        \"path\": \"\",\r\n        \"content\": \"{{valid_wdl_file}}\"\r\n    }\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
 				"url": {
-					"raw": "{{base_url}}/files/configurations",
+					"raw": "{{base_url}}/files/configurations?project_id=project_id&project_file_path=path&version=version",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"files",
 						"configurations"
+					],
+					"query": [
+						{
+							"key": "project_id",
+							"value": "project_id"
+						},
+						{
+							"key": "project_file_path",
+							"value": "path"
+						},
+						{
+							"key": "version",
+							"value": "version"
+						}
 					]
 				}
 			},

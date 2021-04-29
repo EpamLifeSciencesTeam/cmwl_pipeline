@@ -13,7 +13,6 @@ import cromwell.pipeline.datastorage.dto.{
 }
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.womtool.WomTool
-import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
@@ -79,22 +78,44 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
       val projectId = project.projectId
       val projectFileContent = ProjectFileContent("File content")
       val projectFile = ProjectFile(Paths.get("test.txt"), projectFileContent)
+      val version = Some(TestProjectUtils.getDummyPipeLineVersion())
+      val userId = UserId.random
 
       "return success message for request" taggedAs Service in {
+        when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
+        when(projectVersioning.getFile(project, projectFile.path, version))
+          .thenReturn(Future.successful(Right(projectFile)))
         when(womTool.inputsToList(projectFileContent.content)).thenReturn(Right(Nil))
         projectFileService
-          .buildConfiguration(projectId, projectFile)
+          .buildConfiguration(projectId, projectFile.path, version, userId)
           .map(
-            _ shouldBe
-              Right(ProjectConfiguration(projectId, true, List(ProjectFileConfiguration(projectFile.path, Nil))))
+            _ shouldBe ProjectConfiguration(
+              projectId,
+              active = true,
+              List(ProjectFileConfiguration(projectFile.path, Nil))
+            )
           )
       }
 
-      "return error message for error request" taggedAs Service in {
+      "return error message for invalid file request" taggedAs Service in {
+        when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
+        when(projectVersioning.getFile(project, projectFile.path, version))
+          .thenReturn(Future.successful(Right(projectFile)))
         when(womTool.inputsToList(projectFileContent.content)).thenReturn(Left(NonEmptyList(errorMessage, Nil)))
         projectFileService
-          .buildConfiguration(projectId, projectFile)
-          .map(_ shouldBe Left(ValidationError(List(errorMessage))))
+          .buildConfiguration(projectId, projectFile.path, version, userId)
+          .failed
+          .map(_ shouldBe ValidationError(List(errorMessage)))
+      }
+
+      "return error message for error request" taggedAs Service in {
+        when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
+        when(projectVersioning.getFile(project, projectFile.path, version))
+          .thenReturn(Future.successful(Left(VersioningException.FileException("404"))))
+        projectFileService
+          .buildConfiguration(projectId, projectFile.path, version, userId)
+          .failed
+          .map(_ shouldBe VersioningException.FileException("404"))
       }
     }
   }

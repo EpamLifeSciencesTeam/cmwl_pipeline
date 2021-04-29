@@ -2,7 +2,10 @@ package cromwell.pipeline.controller.utils
 
 import akka.http.scaladsl.unmarshalling.Unmarshaller
 import cats.data.Validated
+import cromwell.pipeline.datastorage.dto.{ PipelineVersion, ProjectId }
 import cromwell.pipeline.model.wrapper.RunId
+
+import java.nio.file.{ Path, Paths }
 
 object FromStringUnmarshallers {
 
@@ -12,4 +15,15 @@ object FromStringUnmarshallers {
       case Validated.Invalid(errors) => throw new RuntimeException(errors.head)
     }
   }
+  implicit val stringToProjectId: Unmarshaller[String, ProjectId] = Unmarshaller.strict[String, ProjectId] {
+    projectId =>
+      ProjectId(projectId)
+  }
+  implicit val stringToPath: Unmarshaller[String, Path] = Unmarshaller.strict[String, Path] { path =>
+    Paths.get(path)
+  }
+  implicit val stringToPipelineVersion: Unmarshaller[String, PipelineVersion] =
+    Unmarshaller.strict[String, PipelineVersion] { version =>
+      PipelineVersion(version)
+    }
 }
