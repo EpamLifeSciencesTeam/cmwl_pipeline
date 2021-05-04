@@ -11,12 +11,17 @@ import scala.concurrent.{ ExecutionContext, Future }
 class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
     extends ProjectVersioning[VersioningException] {
 
+  def getUpdatedProjectVersion(project: Project, optionUserVersion: Option[PipelineVersion])(
+    implicit ec: ExecutionContext
+  ): AsyncResult[PipelineVersion] =
+    getLastProjectVersion(project).map(projectVersion => getNewProjectVersion(projectVersion, optionUserVersion))
+
   private def getLastProjectVersion(project: Project)(implicit ec: ExecutionContext): Future[Option[PipelineVersion]] =
     getProjectVersions(project).flatMap {
       case Left(error)                      => Future.failed(error)
       case Right(Seq(_))                    => Future.successful(None)
       case Right(Seq(v: GitLabVersion, _*)) => Future.successful(Some(v.name))
-      case Right(Seq())                     => Future.successful(Some(PipelineVersion(config.defaultFileVersion)))
+      case Right(Seq())                     => Future.successful(Some(getDefaultProjectVersion()))
     }
 
   private def getNewProjectVersion(
@@ -56,32 +61,25 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
       case Left(exception) => Left(exception)
     }
 
-  override def updateFile(project: Project, projectFile: ProjectFile, userVersion: Option[PipelineVersion])(
+  override def updateFile(project: Project, projectFile: ProjectFile, version: PipelineVersion)(
     implicit ec: ExecutionContext
   ): AsyncResult[UpdateFiledResponse] = {
     val path = URLEncoderUtils.encode(projectFile.path.toString)
     val repositoryId: RepositoryId = project.repositoryId
     val fileUrl = s"${config.url}projects/${repositoryId.value}/repository/files/$path"
 
-    getLastProjectVersion(project).map(projectVersion => getNewProjectVersion(projectVersion, userVersion)).flatMap {
-      case Left(error) =>
-        Future.successful(Left(error))
-      case Right(newVersion) =>
-        val payload = UpdateFileRequest(projectFile.content, newVersion.toString, config.defaultBranch)
+    val payload = UpdateFileRequest(projectFile.content, version.toString, config.defaultBranch)
+    httpClient.put[UpdateFiledResponse, UpdateFileRequest](fileUrl, payload = payload, headers = config.token).flatMap {
+      case Response(_, SuccessResponseBody(body), _) =>
+        handleCreateTag(repositoryId, version, body)
+      case _ =>
         httpClient
-          .put[UpdateFiledResponse, UpdateFileRequest](fileUrl, payload = payload, headers = config.token)
+          .post[UpdateFiledResponse, UpdateFileRequest](fileUrl, payload = payload, headers = config.token)
           .flatMap {
             case Response(_, SuccessResponseBody(body), _) =>
-              handleCreateTag(repositoryId, newVersion, body)
-            case _ =>
-              httpClient
-                .post[UpdateFiledResponse, UpdateFileRequest](fileUrl, payload = payload, headers = config.token)
-                .flatMap {
-                  case Response(_, SuccessResponseBody(body), _) =>
-                    handleCreateTag(repositoryId, newVersion, body)
-                  case Response(_, FailureResponseBody(body), _) =>
-                    Future.successful(Left(VersioningException.HttpException(body)))
-                }
+              handleCreateTag(repositoryId, version, body)
+            case Response(_, FailureResponseBody(body), _) =>
+              Future.successful(Left(VersioningException.HttpException(body)))
           }
     }
   }
@@ -190,6 +188,10 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
     implicit ec: ExecutionContext
   ): AsyncResult[List[GitLabVersion]] = ???
 
+  override def getDefaultProjectVersion()(
+    implicit ec: ExecutionContext
+  ): PipelineVersion = PipelineVersion(config.defaultFileVersion)
+
   override def getFilesTree(project: Project, version: Option[PipelineVersion])(
     implicit ec: ExecutionContext
   ): AsyncResult[Seq[FileTree]] = {
@@ -221,7 +223,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
     val filePath: String = URLEncoderUtils.encode(path.toString)
     val fileVersion: String = version match {
       case Some(version) => version.name
-      case None          => config.defaultFileVersion
+      case None          => getDefaultProjectVersion().toString
     }
 
     httpClient

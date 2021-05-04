@@ -25,4 +25,6 @@ class ProjectRepository(pipelineDatabaseEngine: PipelineDatabaseEngine, projectE
   def updateProjectName(updatedProject: Project): Future[Int] =
     database.run(projectEntry.updateProjectNameAction(updatedProject))
 
+  def updateProjectVersion(updatedProject: Project): Future[Int] =
+    database.run(projectEntry.updateProjectVersionAction(updatedProject))
 }

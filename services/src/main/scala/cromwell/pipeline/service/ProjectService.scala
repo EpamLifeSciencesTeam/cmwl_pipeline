@@ -32,7 +32,8 @@ class ProjectService(projectRepository: ProjectRepository, projectVersioning: Pr
         projectId = ProjectId(UUID.randomUUID().toString),
         ownerId = userId,
         name = request.name,
-        active = true
+        active = true,
+        version = projectVersioning.getDefaultProjectVersion()
       )
     projectVersioning.createRepository(localProject).flatMap {
       case Left(exception) => Future.successful(Left(exception))
@@ -54,6 +55,10 @@ class ProjectService(projectRepository: ProjectRepository, projectVersioning: Pr
       projectRepository.updateProjectName(project.copy(name = request.name))
     }
 
+  def updateProjectVersion(projectId: ProjectId, version: PipelineVersion, userId: UserId): Future[Int] =
+    getUserProjectById(projectId, userId).flatMap { project =>
+      projectRepository.updateProjectVersion(project.copy(version = version))
+    }
 }
 
 object Exceptions {

@@ -2,7 +2,7 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dao.utils.TestProjectUtils
-import cromwell.pipeline.datastorage.dto.{ LocalProject, Project, ProjectAdditionRequest, ProjectId }
+import cromwell.pipeline.datastorage.dto.{ LocalProject, PipelineVersion, Project, ProjectAdditionRequest, ProjectId }
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.service.Exceptions.ProjectNotFoundException
 import org.mockito.Matchers.any
@@ -43,8 +43,20 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar w
 
         when(projectRepository.deactivateProjectById(projectId)).thenReturn(Future(0))
         when(projectRepository.getProjectById(projectId)).thenReturn(Future(Some(project)))
-
         projectService.deactivateProjectById(projectId, userId).map { _ shouldBe project }
+      }
+    }
+
+    "updateProjectVersion" should {
+      "succeed if repository returned successful result" taggedAs Service in {
+        val projectId = ProjectId("projectId")
+        val userId = UserId.random
+        val version = PipelineVersion("v1.0.0")
+        val project = TestProjectUtils.getDummyProject(projectId, userId)
+
+        when(projectRepository.getProjectById(projectId)).thenReturn(Future.successful(Some(project)))
+        when(projectRepository.updateProjectVersion(project.copy(version = version))).thenReturn(Future.successful(0))
+        projectService.updateProjectVersion(projectId, version, userId).map(_ shouldBe 0)
       }
     }
 

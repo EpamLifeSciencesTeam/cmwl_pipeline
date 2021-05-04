@@ -1,6 +1,5 @@
 package cromwell.pipeline.service
 
-import java.nio.file.{ Path, Paths }
 import akka.http.scaladsl.model.StatusCodes
 import cromwell.pipeline.datastorage.dao.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto.File.UpdateFileRequest
@@ -14,6 +13,7 @@ import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Reads
 
+import java.nio.file.{ Path, Paths }
 import scala.concurrent.{ ExecutionContext, Future }
 
 class GitLabProjectVersioningTest
@@ -93,6 +93,54 @@ class GitLabProjectVersioningTest
             }
           }
         }
+      }
+    }
+
+    "getUpdatedProjectVersion" should {
+      val userVersion = PipelineVersion("v0.0.1")
+      val project = TestProjectUtils.getDummyProject()
+      def request(project: Project): Future[Response[Seq[GitLabVersion]]] =
+        mockHttpClient.get[Seq[GitLabVersion]](
+          url = exact(gitLabConfig.url + "projects/" + project.repositoryId.value + "/repository/tags"),
+          headers = any[Map[String, String]],
+          params = any[Map[String, String]]
+        )(any[ExecutionContext], any[Reads[Seq[GitLabVersion]]])
+
+      "return new version received from user" taggedAs Service in {
+
+        when(request(project)).thenReturn {
+          Future.successful {
+            Response[Seq[GitLabVersion]](
+              HttpStatusCodes.OK,
+              SuccessResponseBody[Seq[GitLabVersion]](dummyVersions),
+              EmptyHeaders
+            )
+          }
+        }
+
+        gitLabProjectVersioning.getUpdatedProjectVersion(project, Some(userVersion)).map(_ shouldBe Right(userVersion))
+      }
+
+      "fail with VersioningException.ProjectException" taggedAs Service in {
+        val activeProject: Project = TestProjectUtils.getDummyProject()
+        when(request(activeProject)).thenReturn {
+          Future.successful {
+            Response[Seq[GitLabVersion]](
+              HttpStatusCodes.BadRequest,
+              FailureResponseBody("Response status: 400"),
+              EmptyHeaders
+            )
+          }
+        }
+        gitLabProjectVersioning
+          .getUpdatedProjectVersion(project, None)
+          .map(
+            _ shouldBe Left(
+              VersioningException.ProjectException(
+                "Can't take decision what version should it be: no version from user and no version in project yet"
+              )
+            )
+          )
       }
     }
 
@@ -226,7 +274,7 @@ class GitLabProjectVersioningTest
           }
         }
 
-        gitLabProjectVersioning.updateFile(projectWithRepo, newFile, Some(dummyPipelineVersionHigher)).map {
+        gitLabProjectVersioning.updateFile(projectWithRepo, newFile, dummyPipelineVersionHigher).map {
           _ shouldBe Right(UpdateFiledResponse(newFile.path.toString, "master"))
         }
       }
@@ -261,14 +309,14 @@ class GitLabProjectVersioningTest
             )
           }
         }
-        gitLabProjectVersioning.updateFile(projectWithRepo, existFile, Some(dummyPipelineVersionHigher)).map {
+        gitLabProjectVersioning.updateFile(projectWithRepo, existFile, dummyPipelineVersionHigher).map {
           _ shouldBe Right(UpdateFiledResponse(newFile.path.toString, "master"))
         }
       }
 
       "return exception if version is invalid" taggedAs Service in {
         val thrown = the[PipelineVersionException] thrownBy
-          gitLabProjectVersioning.updateFile(projectWithRepo, existFile, Some(PipelineVersion("1")))
+          gitLabProjectVersioning.updateFile(projectWithRepo, existFile, PipelineVersion("1"))
         thrown.message should equal("Format of version name: 'v(int).(int).(int)', but got: 1")
       }
     }
