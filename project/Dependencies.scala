@@ -21,7 +21,7 @@ object Dependencies {
     val yaml = "1.27"
     val liquibase = "3.8.6"
     val postgresql = "42.2.8"
-    val womtool = "48"
+    val womtool = "61"
     val logback = "1.2.3"
     val pegdown = "1.6.0"
     val wireMock = "2.27.2"

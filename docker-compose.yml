@@ -9,7 +9,7 @@ services:
       POSTGRES_DB: ${CMWL_DB_NAME}
       PG_DATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5432:5432"
+      - "${CMWL_DB_PORT_NUMBER}:5432"
     volumes:
       - ./docker/postgres:/var/lib/postgresql/data
     restart: always
@@ -22,10 +22,33 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${CMWL_MONGO_PASSWORD}
       MONGO_INITDB_DATABASE: ${CMWL_MONGO_DB}
     ports:
-      - "27017:27017"
+      - "${CMWL_MONGO_PORT}:27017"
     volumes:
       - ./docker/mongo:/data/db
     restart: always
+
+  cmwl_pipeline:
+    image: "cmwl_pipeline:0.1"
+    environment:
+      CMWL_PIPELINE_CONTAINER_PATH: ${CMWL_PIPELINE_CONTAINER_PATH}
+      CMWL_PIPELINE_CONTAINER_NAME: ${CMWL_PIPELINE_CONTAINER_NAME}
+      CMWL_PIPELINE_CONTAINER_LOGS: ${CMWL_PIPELINE_CONTAINER_LOGS}
+      CMWL_DB_SERVER_NAME: ${CMWL_DB_SERVER_NAME}
+      CMWL_DB_PORT_NUMBER: ${CMWL_DB_PORT_NUMBER}
+      CMWL_DB_NAME: ${CMWL_DB_NAME}
+      CMWL_DB_USER: ${CMWL_DB_USER}
+      CMWL_DB_PASSWORD: ${CMWL_DB_PASSWORD}
+      CMWL_MONGO_USER: ${CMWL_MONGO_USER}
+      CMWL_MONGO_PASSWORD: ${CMWL_MONGO_PASSWORD}
+      CMWL_MONGO_HOST: ${CMWL_MONGO_HOST}
+      CMWL_MONGO_PORT: ${CMWL_MONGO_PORT}
+      CMWL_MONGO_AUTH: ${CMWL_MONGO_AUTH}
+      CMWL_MONGO_DB: ${CMWL_MONGO_DB}
+      CMWL_MONGO_COLLECTION: ${CMWL_MONGO_COLLECTION}
+      CMWL_GITLAB_TOKEN: ${CMWL_GITLAB_TOKEN}
+      CMWL_GITLAB_URL: ${CMWL_GITLAB_URL}
+    ports:
+      - "${CMWL_PIPELINE_CONTAINER_PORT}:8080"
 
   gitlab:
     image: 'gitlab/gitlab-ce:latest'

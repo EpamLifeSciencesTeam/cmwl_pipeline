@@ -125,7 +125,7 @@ lazy val controllers =
 lazy val womtool = (project in file("womtool"))
   .configs(IntegrationTest)
   .settings(
-    resolvers += Resolver.bintrayRepo("scalalab", "pipeline"),
+    resolvers += "JFrog Artifactory".at("https://epamscalalab.jfrog.io/artifactory/scalalab/"),
     name := "WomTool",
     commonSettings,
     libraryDependencies ++= allTestDependencies ++ cromwellDependencies :+ pegdown :+ configHokon :+ cats,
