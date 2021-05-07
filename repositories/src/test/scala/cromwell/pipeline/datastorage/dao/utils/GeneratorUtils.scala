@@ -23,8 +23,6 @@ object GeneratorUtils {
 
   private lazy val projectIdGen: Gen[ProjectId] = Gen.uuid.map(id => ProjectId(id.toString))
 
-  private lazy val repositoryIdGen: Gen[RepositoryId] = Gen.chooseNum(0, 10).map(RepositoryId(_))
-
   private lazy val emailGen: Gen[UserEmail] = for {
     name <- stringGen()
     mail <- Gen.oneOf(Mail.values.toSeq)
@@ -61,17 +59,6 @@ object GeneratorUtils {
     path <- pathGen
     content <- projectFileContentGen
   } yield ProjectFile(path, content)
-
-  private lazy val userIdGen: Gen[UserId] = Gen.uuid.map(_.toString).map(UserId(_, Enable.Unsafe))
-
-  private lazy val projectGen: Gen[Project] = for {
-    projectId <- projectIdGen
-    userId <- userIdGen
-    name <- stringGen()
-    active <- booleanGen
-    repository <- repositoryIdGen
-    visibility <- Gen.oneOf(Visibility.values)
-  } yield Project(projectId, userId, name, active, repository, visibility)
 
   lazy val userUpdateRequestGen: Gen[UserUpdateRequest] = for {
     email <- emailGen

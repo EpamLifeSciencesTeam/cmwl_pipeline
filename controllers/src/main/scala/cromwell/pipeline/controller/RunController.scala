@@ -10,12 +10,9 @@ import cromwell.pipeline.model.wrapper.RunId
 import cromwell.pipeline.service.RunService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
-import scala.concurrent.ExecutionContext
 import scala.util.{ Failure, Success }
 
-class RunController(runService: RunService)(
-  implicit executionContext: ExecutionContext
-) {
+class RunController(runService: RunService) {
 
   private def getRun(implicit accessToken: AccessTokenContent): Route = get {
     parameter('run_id.as[RunId]) { runId =>

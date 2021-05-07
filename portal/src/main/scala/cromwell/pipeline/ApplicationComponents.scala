@@ -1,7 +1,6 @@
 package cromwell.pipeline
 
 import akka.actor.ActorSystem
-import akka.stream.Materializer
 import com.typesafe.config.{ Config, ConfigFactory }
 import cromwell.pipeline.auth.AuthModule
 import cromwell.pipeline.controller.{ AkkaHttpClient, ControllerModule }

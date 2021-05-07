@@ -9,12 +9,9 @@ import cromwell.pipeline.service.Exceptions.{ ProjectAccessDeniedException, Proj
 import cromwell.pipeline.service.{ ProjectService, VersioningException }
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
-import scala.concurrent.ExecutionContext
 import scala.util.{ Failure, Success }
 
-class ProjectController(projectService: ProjectService)(
-  implicit executionContext: ExecutionContext
-) {
+class ProjectController(projectService: ProjectService) {
 
   private def getProject(implicit accessToken: AccessTokenContent): Route = get {
     parameter('name.as[String]) { name =>

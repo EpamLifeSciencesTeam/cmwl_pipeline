@@ -24,7 +24,6 @@ class AdtJsonFormatterTest extends WordSpec with ScalaCheckDrivenPropertyChecks 
     "fail to write instance" when {
       "there is no Writes for this instance" in {
         val brokenFormat: OFormat[DummyTrait] = {
-          implicit val dummyImplAFormat: OFormat[DummyImplA] = Json.format
           implicit val dummyImplBFormat: OFormat[DummyImplB] = Json.format
           implicit val dummyImplObjFormat: OFormat[DummyImplObj.type] = objectFormat(DummyImplObj)
 

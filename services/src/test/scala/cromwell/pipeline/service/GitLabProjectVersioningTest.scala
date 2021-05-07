@@ -139,7 +139,6 @@ class GitLabProjectVersioningTest
     }
 
     "updateFile" should {
-      val successUpdateMessage = "File was updated"
       val successCreateMessage = "File was created"
       val tagUrl = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId.value}/repository/tags"
       val gitlabVersion = TestProjectUtils.getDummyGitLabVersion(dummyPipelineVersion)
