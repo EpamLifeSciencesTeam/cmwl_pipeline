@@ -8,12 +8,11 @@ import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdat
 import cromwell.pipeline.service.UserService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
-import scala.concurrent.ExecutionContext
 import scala.util.{ Failure, Success }
 
-class UserController(userService: UserService)(implicit executionContext: ExecutionContext) {
+class UserController(userService: UserService) {
 
-  private def getUser(implicit accessToken: AccessTokenContent): Route = get {
+  private val getUser: Route = get {
     parameter('email.as[String]) { email =>
       onComplete(userService.getUsersByEmail(email)) {
         case Success(r) => complete(r)

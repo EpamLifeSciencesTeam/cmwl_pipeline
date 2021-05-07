@@ -1,7 +1,7 @@
 package cromwell.pipeline.womtool
 
 import cats.data.NonEmptyList
-import cromwell.pipeline.datastorage.dto.{ FileParameter, ProjectFileContent }
+import cromwell.pipeline.datastorage.dto.FileParameter
 import wom.executable.WomBundle
 
 trait WomToolAPI {

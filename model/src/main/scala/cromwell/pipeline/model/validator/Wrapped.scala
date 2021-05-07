@@ -7,7 +7,6 @@ import cats.data.{ NonEmptyChain, Validated }
 import play.api.libs.json.{ Format, JsError, JsResult, JsSuccess, JsValue, Json }
 
 import scala.util.control.NoStackTrace
-import scala.language.implicitConversions
 
 trait Wrapped[T] extends Any {
   def unwrap: T

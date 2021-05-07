@@ -13,10 +13,9 @@ import cromwell.pipeline.service.AuthorizationException.{
 }
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
-import scala.concurrent.ExecutionContext
 import scala.util.{ Failure, Success }
 
-class AuthController(authService: AuthService)(implicit executionContext: ExecutionContext) {
+class AuthController(authService: AuthService) {
 
   import AuthController._
 
