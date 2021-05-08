@@ -51,7 +51,11 @@ class ProjectController(projectService: ProjectService) {
   private def updateProject(implicit accessToken: AccessTokenContent): Route = put {
     entity(as[ProjectUpdateNameRequest]) { request =>
       onComplete(projectService.updateProjectName(request, accessToken.userId)) {
-        case Success(_) => complete(StatusCodes.NoContent)
+        case Success(result) =>
+          result match {
+            case Left(e)  => complete(StatusCodes.InternalServerError, e.getMessage)
+            case Right(_) => complete(StatusCodes.OK)
+          }
         case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
       }
     }

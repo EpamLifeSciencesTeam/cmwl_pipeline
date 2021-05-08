@@ -50,9 +50,17 @@ class ProjectService(projectRepository: ProjectRepository, projectVersioning: Pr
       }
     }
 
-  def updateProjectName(request: ProjectUpdateNameRequest, userId: UserId): Future[Int] =
+  def updateProjectName(
+    request: ProjectUpdateNameRequest,
+    userId: UserId
+  ): Future[Either[VersioningException, ProjectId]] =
     getUserProjectById(request.projectId, userId).flatMap { project =>
-      projectRepository.updateProjectName(project.copy(name = request.name))
+      val updatedProject = project.copy(name = request.name)
+      projectVersioning.updateRepositoryName(updatedProject).flatMap {
+        case Left(exception) => Future.successful(Left(exception))
+        case Right(_) =>
+          projectRepository.updateProjectName(updatedProject).map(_ => Right(updatedProject.projectId))
+      }
     }
 
   def updateProjectVersion(projectId: ProjectId, version: PipelineVersion, userId: UserId): Future[Int] =

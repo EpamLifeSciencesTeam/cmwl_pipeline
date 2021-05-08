@@ -22,14 +22,15 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
 
   private val projectService = mock[ProjectService]
   private val projectController = new ProjectController(projectService)
+  private val stranger = TestUserUtils.getDummyUser()
 
   "Project controller" when {
     "get project by name" should {
-      "return a object of project type" taggedAs Controller in {
-        val projectByName: String = "dummyProject"
-        val dummyProject: Project = TestProjectUtils.getDummyProject()
-        val getProjectByNameResponse: Project = dummyProject
+      val projectByName: String = "dummyProject"
+      val dummyProject: Project = TestProjectUtils.getDummyProject()
 
+      "return a object of project type" taggedAs Controller in {
+        val getProjectByNameResponse: Project = dummyProject
         val accessToken = AccessTokenContent(dummyProject.ownerId)
         when(projectService.getUserProjectByName(projectByName, accessToken.userId))
           .thenReturn(Future.successful(getProjectByNameResponse))
@@ -37,6 +38,16 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
         Get("/projects?name=" + projectByName) ~> projectController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
           responseAs[Project] shouldEqual getProjectByNameResponse
+        }
+      }
+
+      "return status code InternalServerError if service returned failure" taggedAs Controller in {
+        val accessToken = AccessTokenContent(stranger.userId)
+        val error = new RuntimeException("Something went wrong")
+        when(projectService.getUserProjectByName(projectByName, accessToken.userId)).thenReturn(Future.failed(error))
+
+        Get("/projects?name=" + projectByName) ~> projectController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.InternalServerError
         }
       }
     }
@@ -95,16 +106,17 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
     }
 
     "update project" should {
-      "return status code NoContent if the update was successful" taggedAs Controller in {
+      "return status code OK if the update was successful" taggedAs Controller in {
         val userId = TestUserUtils.getDummyUserId
         val accessToken = AccessTokenContent(userId)
         val dummyProject = TestProjectUtils.getDummyProject()
         val request = ProjectUpdateNameRequest(dummyProject.projectId, dummyProject.name)
 
-        when(projectService.updateProjectName(request, userId)).thenReturn(Future.successful(1))
+        when(projectService.updateProjectName(request, userId))
+          .thenReturn(Future.successful(Right(dummyProject.projectId)))
 
         Put("/projects", request) ~> projectController.route(accessToken) ~> check {
-          status shouldBe StatusCodes.NoContent
+          status shouldBe StatusCodes.OK
         }
       }
 

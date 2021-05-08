@@ -2,7 +2,14 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dao.utils.TestProjectUtils
-import cromwell.pipeline.datastorage.dto.{ LocalProject, PipelineVersion, Project, ProjectAdditionRequest, ProjectId }
+import cromwell.pipeline.datastorage.dto.{
+  LocalProject,
+  PipelineVersion,
+  Project,
+  ProjectAdditionRequest,
+  ProjectId,
+  ProjectUpdateNameRequest
+}
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.service.Exceptions.ProjectNotFoundException
 import org.mockito.Matchers.any
@@ -45,6 +52,23 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar w
       }
     }
 
+    "updateProjectName" should {
+      "return projectId if update was successful" taggedAs Service in {
+        val newProjectName = s"new${dummyProject.name}"
+        val projectId = dummyProject.projectId
+        val ownerId = dummyProject.ownerId
+        val request = ProjectUpdateNameRequest(projectId, name = newProjectName)
+
+        when(projectRepository.getProjectById(projectId)).thenReturn(Future.successful(Some(dummyProject)))
+        when(projectVersioning.updateRepositoryName(any[Project])(any[ExecutionContext]))
+          .thenReturn(Future.successful(Right(dummyProject)))
+        when(projectRepository.updateProjectName(dummyProject.copy(name = newProjectName)))
+          .thenReturn(Future.successful(1))
+
+        projectService.updateProjectName(request, ownerId).map { _ shouldBe Right(projectId) }
+      }
+    }
+
     "deactivateProjectById" should {
       "return deactivated project" taggedAs Service in {
         val projectId = ProjectId("projectId")
@@ -53,6 +77,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar w
 
         when(projectRepository.deactivateProjectById(projectId)).thenReturn(Future(0))
         when(projectRepository.getProjectById(projectId)).thenReturn(Future(Some(project)))
+
         projectService.deactivateProjectById(projectId, userId).map { _ shouldBe project }
       }
     }
@@ -66,6 +91,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar w
 
         when(projectRepository.getProjectById(projectId)).thenReturn(Future.successful(Some(project)))
         when(projectRepository.updateProjectVersion(project.copy(version = version))).thenReturn(Future.successful(0))
+
         projectService.updateProjectVersion(projectId, version, userId).map(_ shouldBe 0)
       }
     }
