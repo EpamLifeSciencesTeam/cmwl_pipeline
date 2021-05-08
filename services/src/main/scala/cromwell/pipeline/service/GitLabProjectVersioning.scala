@@ -126,6 +126,31 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
         .recover { case e: Throwable => Left(VersioningException.HttpException(e.getMessage)) }
     }
 
+  override def updateRepositoryName(project: Project)(implicit ec: ExecutionContext): AsyncResult[Project] =
+    if (!project.active) {
+      Future.failed(VersioningException.RepositoryException("Could not update a repository for deleted project."))
+    } else {
+      val editRepoUrl: String = s"${config.url}projects/${project.repositoryId.value}"
+      val updateProjectGitLabRequest = UpdateProjectGitLabRequest(name = project.name)
+      httpClient
+        .put[GitLabRepositoryResponse, UpdateProjectGitLabRequest](
+          url = editRepoUrl,
+          headers = config.token,
+          payload = updateProjectGitLabRequest
+        )
+        .map {
+          case Response(_, SuccessResponseBody(_), _) =>
+            Right(project)
+          case Response(statusCode, FailureResponseBody(error), _) =>
+            Left {
+              VersioningException.RepositoryException {
+                s"The repository was not updated. Response status: $statusCode; Response body [$error]"
+              }
+            }
+        }
+        .recover { case e: Throwable => Left(VersioningException.HttpException(e.getMessage)) }
+    }
+
   override def getFiles(project: Project, path: Path)(implicit ec: ExecutionContext): AsyncResult[List[String]] = ???
 
   override def getProjectVersions(project: Project)(implicit ec: ExecutionContext): AsyncResult[Seq[GitLabVersion]] = {

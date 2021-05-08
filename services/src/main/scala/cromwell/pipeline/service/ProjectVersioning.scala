@@ -22,6 +22,10 @@ trait ProjectVersioning[E >: VersioningException] {
     implicit ec: ExecutionContext
   ): AsyncResult[Project]
 
+  def updateRepositoryName(project: Project)(
+    implicit ec: ExecutionContext
+  ): AsyncResult[Project]
+
   def getFiles(project: Project, path: Path)(
     implicit ec: ExecutionContext
   ): AsyncResult[List[String]]
