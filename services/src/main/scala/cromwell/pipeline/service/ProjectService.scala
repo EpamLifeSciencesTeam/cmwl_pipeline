@@ -26,7 +26,7 @@ class ProjectService(projectRepository: ProjectRepository, projectVersioning: Pr
       case None                                       => Future.failed(new ProjectNotFoundException)
     }
 
-  def addProject(request: ProjectAdditionRequest, userId: UserId): Future[Either[VersioningException, ProjectId]] = {
+  def addProject(request: ProjectAdditionRequest, userId: UserId): Future[Either[VersioningException, Project]] = {
     val localProject =
       LocalProject(
         projectId = ProjectId(UUID.randomUUID().toString),
@@ -37,7 +37,7 @@ class ProjectService(projectRepository: ProjectRepository, projectVersioning: Pr
       )
     projectVersioning.createRepository(localProject).flatMap {
       case Left(exception) => Future.successful(Left(exception))
-      case Right(project)  => projectRepository.addProject(project).map(Right(_))
+      case Right(project)  => projectRepository.addProject(project).map(prId => Right(project.copy(projectId = prId)))
     }
   }
 

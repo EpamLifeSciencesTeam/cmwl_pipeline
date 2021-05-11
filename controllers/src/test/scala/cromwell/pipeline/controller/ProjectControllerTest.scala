@@ -4,8 +4,13 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectDeleteRequest, ProjectUpdateNameRequest }
-import cromwell.pipeline.service.ProjectService
+import cromwell.pipeline.datastorage.dto.{
+  Project,
+  ProjectAdditionRequest,
+  ProjectDeleteRequest,
+  ProjectUpdateNameRequest
+}
+import cromwell.pipeline.service.{ ProjectService, VersioningException }
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
@@ -36,6 +41,29 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
       }
     }
 
+    "add project" should {
+
+      val dummyProject = TestProjectUtils.getDummyProject()
+      val accessToken = AccessTokenContent(dummyProject.ownerId)
+      val request = ProjectAdditionRequest("")
+
+      "return a object of project type" taggedAs Controller in {
+        when(projectService.addProject(request, accessToken.userId)).thenReturn(Future.successful(Right(dummyProject)))
+        Post("/projects", request) ~> projectController.route(accessToken) ~> check {
+          responseAs[Project] shouldBe dummyProject
+        }
+      }
+
+      "return server error if project addition was failed" taggedAs Controller in {
+        when(projectService.addProject(request, accessToken.userId)).thenReturn(
+          Future.successful(Left(VersioningException.RepositoryException("VersioningException.RepositoryException")))
+        )
+        Post("/projects", request) ~> projectController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.InternalServerError
+        }
+      }
+    }
+
     "delete project by id" should {
       "return deactivated project entity" taggedAs Controller in {
         val dummyProject = TestProjectUtils.getDummyProject()
@@ -50,7 +78,6 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
         Delete("/projects", request) ~> projectController.route(accessToken) ~> check {
           responseAs[Project] shouldBe deactivatedProject
         }
-
       }
 
       "return server error if project deactivation was failed" taggedAs Controller in {
