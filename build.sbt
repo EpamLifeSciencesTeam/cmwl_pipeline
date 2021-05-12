@@ -6,7 +6,8 @@ ThisBuild / scalacOptions := Seq(
   "-encoding",
   "utf8",
   "-deprecation",
-  "-Xfatal-warnings"
+  "-Xfatal-warnings",
+  "-Xlint:unused"
 )
 ThisBuild / useCoursier := false
 

@@ -1,16 +1,8 @@
 package cromwell.pipeline.service
 
-import java.nio.file.Paths
 import cats.data.NonEmptyList
 import cromwell.pipeline.datastorage.dao.utils.TestProjectUtils
-import cromwell.pipeline.datastorage.dto.{
-  ProjectConfiguration,
-  ProjectFile,
-  ProjectFileConfiguration,
-  ProjectFileContent,
-  UpdateFiledResponse,
-  ValidationError
-}
+import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.womtool.WomTool
 import org.mockito.Mockito.when
@@ -18,6 +10,7 @@ import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
 import wom.executable.WomBundle
 
+import java.nio.file.Paths
 import scala.concurrent.Future
 
 class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
@@ -54,18 +47,34 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
       val projectFileContent = ProjectFileContent("File content")
       val projectFile = ProjectFile(Paths.get("test.txt"), projectFileContent)
       val version = TestProjectUtils.getDummyPipeLineVersion()
+      val updateFiledResponse = UpdateFiledResponse(projectFile.path.toString, "master")
 
       "return success message for request" taggedAs Service in {
         when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
-        when(projectVersioning.updateFile(project, projectFile, Some(version)))
-          .thenReturn(Future.successful(Right(UpdateFiledResponse(projectFile.path.toString, "master"))))
+        when(projectVersioning.getUpdatedProjectVersion(project, Some(version)))
+          .thenReturn(Future.successful(Right(version)))
+        when(projectVersioning.updateFile(project, projectFile, version))
+          .thenReturn(Future.successful(Right(updateFiledResponse)))
+        when(projectService.updateProjectVersion(projectId, version, userId)).thenReturn(Future.successful(0))
         projectFileService
           .uploadFile(projectId, projectFile, Some(version), userId)
-          .map(_ shouldBe Right(UpdateFiledResponse(projectFile.path.toString, "master")))
+          .map(_ shouldBe Right(updateFiledResponse))
       }
 
-      "return error message for error request" taggedAs Service in {
-        when(projectVersioning.updateFile(project, projectFile, Some(version)))
+      "return error message for error request if it couldn't get updated version" taggedAs Service in {
+        when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
+        when(projectVersioning.getUpdatedProjectVersion(project, Some(version)))
+          .thenReturn(Future.successful(Left(VersioningException.HttpException("Something wrong"))))
+        projectFileService
+          .uploadFile(projectId, projectFile, Some(version), userId)
+          .map(_ shouldBe Left(VersioningException.HttpException("Something wrong")))
+      }
+
+      "return error message for error request if it couldn't update file" taggedAs Service in {
+        when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
+        when(projectVersioning.getUpdatedProjectVersion(project, Some(version)))
+          .thenReturn(Future.successful(Right(version)))
+        when(projectVersioning.updateFile(project, projectFile, version))
           .thenReturn(Future.successful(Left(VersioningException.HttpException("Something wrong"))))
         projectFileService
           .uploadFile(projectId, projectFile, Some(version), userId)

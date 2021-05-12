@@ -5,6 +5,12 @@
 This style guide acts as the official guide to follow this project. It is a snapshot of the Udacity git style guide
 that you might find under the [link](https://udacity.github.io/git-styleguide/).
 
+## Branch name
+Provide meaningful branch name, which includes jira ticket number and very short description of what is it about.
+Example branch name: EPMLSTRCMW-NNN_Add_branch_name_section_to_the_documentation.
+
+Also, if you're working with hot issues, which is not reflected in Jira, you can work with IS-00 number instead of ticket number.
+
 ## Commit Messages
 ### Message Structure
 
@@ -43,8 +49,7 @@ Not all commits are complex enough to warrant a body, therefore it is optional a
 when a commit requires a bit of explanation and context. Use the body to explain the **what** and **why** of a commit,
 not the how.
 
-When writing a body, the blank line between the title and the body is required and you should limit the length
-of each line to no more than 72 characters.
+When writing a body, the blank line between the title and the body is required.
 
 ### The Footer
 

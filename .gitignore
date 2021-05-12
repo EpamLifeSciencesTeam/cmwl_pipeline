@@ -5,3 +5,11 @@
 **/target
 **/logs
 .env
+.bloop
+.metals
+.vscode
+project/.bloop
+project/project/*
+project/metals.sbt
+docker
+null

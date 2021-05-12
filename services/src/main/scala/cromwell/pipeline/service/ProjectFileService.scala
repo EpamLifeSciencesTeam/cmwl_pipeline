@@ -27,9 +27,17 @@ class ProjectFileService(
     version: Option[PipelineVersion],
     userId: UserId
   ): Future[Either[VersioningException, UpdateFiledResponse]] =
-    projectService
-      .getUserProjectById(projectId, userId)
-      .flatMap(project => projectVersioning.updateFile(project, projectFile, version))
+    projectService.getUserProjectById(projectId, userId).flatMap { project =>
+      projectVersioning.getUpdatedProjectVersion(project, version).flatMap {
+        case Left(versioningException) => Future.successful(Left(versioningException))
+        case Right(newVersion) =>
+          projectVersioning.updateFile(project, projectFile, newVersion).flatMap {
+            case Left(versioningException) => Future.successful(Left(versioningException))
+            case Right(response) =>
+              projectService.updateProjectVersion(projectId, newVersion, userId).map(_ => Right(response))
+          }
+      }
+    }
 
   def buildConfiguration(
     projectId: ProjectId,

@@ -10,7 +10,7 @@ trait ProjectVersioning[E >: VersioningException] {
   type AsyncResult[T] = Future[Either[E, T]]
   type ProjectFiles = List[ProjectFile]
 
-  def updateFile(project: Project, projectFile: ProjectFile, version: Option[PipelineVersion] = None)(
+  def updateFile(project: Project, projectFile: ProjectFile, version: PipelineVersion)(
     implicit ec: ExecutionContext
   ): AsyncResult[UpdateFiledResponse]
 
@@ -49,4 +49,12 @@ trait ProjectVersioning[E >: VersioningException] {
   def getFile(project: Project, path: Path, version: Option[PipelineVersion] = None)(
     implicit ec: ExecutionContext
   ): AsyncResult[ProjectFile]
+
+  def getDefaultProjectVersion()(
+    implicit ec: ExecutionContext
+  ): PipelineVersion
+
+  def getUpdatedProjectVersion(project: Project, optionUserVersion: Option[PipelineVersion])(
+    implicit ec: ExecutionContext
+  ): AsyncResult[PipelineVersion]
 }

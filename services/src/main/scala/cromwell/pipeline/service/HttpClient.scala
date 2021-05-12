@@ -12,7 +12,7 @@ package cromwell.pipeline.service
  *
  * @version 1.0
  */
-import play.api.libs.json.{ Json, OFormat, OWrites, Reads, Writes }
+import play.api.libs.json.{ Reads, Writes }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
