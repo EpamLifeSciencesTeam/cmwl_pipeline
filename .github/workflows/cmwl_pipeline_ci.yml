@@ -31,7 +31,9 @@ jobs:
       - name: Run tests
         run: sbt coverage test coverage it:test
 
-      - name: Upload coverage data to Coveralls
-        run: sbt coverageAggregate coveralls
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload coverage data to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+
