@@ -23,24 +23,24 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar w
 
     "addProject" should {
       val request = ProjectAdditionRequest(name = dummyProject.name)
-      val newProjectId = TestProjectUtils.getDummyProjectId
       val ownerId = dummyProject.ownerId
 
       "return a new project" taggedAs Service in {
         when(projectVersioning.createRepository(any[LocalProject])(any[ExecutionContext]))
           .thenReturn(Future.successful(Right(dummyProject)))
-        when(projectRepository.addProject(dummyProject)).thenReturn(Future.successful(newProjectId))
+        when(projectRepository.addProject(dummyProject)).thenReturn(Future.successful(dummyProject.projectId))
 
         projectService.addProject(request, ownerId).map {
-          _ shouldBe Right(dummyProject.copy(projectId = newProjectId))
+          _ shouldBe Right(dummyProject)
         }
       }
 
       "fail with VersioningException.RepositoryException" taggedAs Service in {
+        val repositoryException = VersioningException.RepositoryException("VersioningException")
         when(projectVersioning.createRepository(any[LocalProject])(any[ExecutionContext]))
-          .thenReturn(Future.successful(Left(VersioningException.RepositoryException("VersioningException"))))
+          .thenReturn(Future.successful(Left(repositoryException)))
         projectService.addProject(request, ownerId).map {
-          _ shouldBe Left(VersioningException.RepositoryException("VersioningException"))
+          _ shouldBe Left(repositoryException)
         }
       }
     }

@@ -47,7 +47,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
       val accessToken = AccessTokenContent(dummyProject.ownerId)
       val request = ProjectAdditionRequest("")
 
-      "return a object of project type" taggedAs Controller in {
+      "return created project" taggedAs Controller in {
         when(projectService.addProject(request, accessToken.userId)).thenReturn(Future.successful(Right(dummyProject)))
         Post("/projects", request) ~> projectController.route(accessToken) ~> check {
           responseAs[Project] shouldBe dummyProject
