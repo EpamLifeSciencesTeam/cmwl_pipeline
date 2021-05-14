@@ -37,7 +37,7 @@ class ProjectService(projectRepository: ProjectRepository, projectVersioning: Pr
       )
     projectVersioning.createRepository(localProject).flatMap {
       case Left(exception) => Future.successful(Left(exception))
-      case Right(project)  => projectRepository.addProject(project).map(prId => Right(project.copy(projectId = prId)))
+      case Right(project)  => projectRepository.addProject(project).map(_ => Right(project))
     }
   }
 
