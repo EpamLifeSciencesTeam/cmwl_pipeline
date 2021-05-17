@@ -28,7 +28,8 @@ lazy val commonSettings = Seq(
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports"),
   coverageEnabled in Test := true,
   coverageMinimum := 60,
-  coverageFailOnMinimum := true
+  coverageFailOnMinimum := true,
+  coverageExcludedPackages := "cromwell.pipeline.database.*"
 )
 
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")
@@ -47,7 +48,7 @@ lazy val datasource = project
   .settings(
     name := "Datasource",
     commonSettings,
-    libraryDependencies ++= dbDependencies :+ configHokon :+ mongoBson :+ mongoDriverCore
+    libraryDependencies ++= dbDependencies ++ logDependencies :+ configHokon :+ mongoBson :+ mongoDriverCore
   )
   .dependsOn(utils)
 
@@ -57,13 +58,9 @@ lazy val portal = project
   .settings(
     name := "Portal",
     commonSettings,
-    libraryDependencies ++= akkaDependencies ++ jsonDependencies :+ configHokon :+ akkaHttpCore :+ sl4j,
+    libraryDependencies ++= akkaDependencies ++ jsonDependencies ++ logDependencies :+ configHokon :+ akkaHttpCore,
     Defaults.itSettings,
     Seq(parallelExecution in Test := false),
-    mappings in Universal ++= Seq(
-      (resourceDirectory in Compile).value / "application.conf" -> "conf/application.conf",
-      (resourceDirectory in Compile).value / "logback.xml" -> "conf/logback.xml"
-    ),
     addCommandAlias("testAll", "; test ; it:test"),
     mainClass in Compile := Some("cromwell.pipeline.CromwellPipelineApp")
   )
@@ -100,6 +97,7 @@ lazy val utils =
 lazy val repositories =
   (project in file("repositories"))
     .settings(
+      Seq(parallelExecution in Test := false),
       libraryDependencies ++= allTestDependencies ++ jsonDependencies ++ mongoDependencies :+ cats :+ slick :+ slickPg :+ slickPgCore :+ configHokon :+ playJson :+ catsKernel :+ playFunctional
     )
     .configs(IntegrationTest)
