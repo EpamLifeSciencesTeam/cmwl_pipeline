@@ -63,6 +63,6 @@ services:
       - '9443:443'
       - '9022:22'
     volumes:
-      - '/srv/gitlab/config:/etc/gitlab'
-      - '/srv/gitlab/logs:/var/log/gitlab'
-      - '/srv/gitlab/data:/var/opt/gitlab'
+      - ./docker/gitlab/config:/etc/gitlab
+      - ./docker/gitlab/logs:/var/log/gitlab
+      - ./docker/gitlab/data:/var/opt/gitlab
