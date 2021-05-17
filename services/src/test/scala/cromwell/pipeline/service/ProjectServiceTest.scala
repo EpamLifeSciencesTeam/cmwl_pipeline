@@ -2,24 +2,17 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dao.utils.TestProjectUtils
-import cromwell.pipeline.datastorage.dto.{
-  LocalProject,
-  PipelineVersion,
-  Project,
-  ProjectAdditionRequest,
-  ProjectId,
-  ProjectUpdateNameRequest
-}
+import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.service.Exceptions.ProjectNotFoundException
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
-import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
+import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar with BeforeAndAfterAll {
+class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
 
   private val projectRepository = mock[ProjectRepository]
   private val projectVersioning = mock[ProjectVersioning[VersioningException]]

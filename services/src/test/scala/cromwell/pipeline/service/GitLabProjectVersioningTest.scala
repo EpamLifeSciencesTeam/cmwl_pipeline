@@ -8,7 +8,6 @@ import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.utils._
 import org.mockito.Matchers.{ any, eq => exact }
 import org.mockito.Mockito.when
-import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Reads
@@ -16,12 +15,7 @@ import play.api.libs.json.Reads
 import java.nio.file.{ Path, Paths }
 import scala.concurrent.{ ExecutionContext, Future }
 
-class GitLabProjectVersioningTest
-    extends AsyncWordSpec
-    with ScalaFutures
-    with Matchers
-    with MockitoSugar
-    with AkkaTestSources {
+class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with MockitoSugar {
 
   val mockHttpClient: HttpClient = mock[HttpClient]
   val gitLabConfig: GitLabConfig = ApplicationConfig.load().gitLabConfig
@@ -53,7 +47,7 @@ class GitLabProjectVersioningTest
         )
 
       "throw new VersioningException for inactive project" taggedAs Service in {
-        whenReady(gitLabProjectVersioning.createRepository(inactiveLocalProject).failed) {
+        gitLabProjectVersioning.createRepository(inactiveLocalProject).failed.map {
           _ shouldBe VersioningException.RepositoryException("Could not create a repository for deleted project.")
         }
       }
@@ -154,7 +148,7 @@ class GitLabProjectVersioningTest
         )
 
       "fail with VersioningException for inactive project" taggedAs Service in {
-        whenReady(gitLabProjectVersioning.updateRepositoryName(inactiveProject).failed) {
+        gitLabProjectVersioning.updateRepositoryName(inactiveProject).failed.map {
           _ shouldBe VersioningException.RepositoryException("Could not update a repository for deleted project.")
         }
       }
