@@ -1,21 +1,26 @@
 # cmwl_pipeline
 
 Dependencies:
-- Java 8 
-- Scala 2.12
-- SBT 1.3.0
+- Java 11
+- Scala 2.12.9
+- SBT 1.3.4
 
 
 # Getting Started
 
 ## Installation
-First, install Java 8 JDK, Scala 2.12, the Scala build tool, and Docker on your computer.
+### required dependencies installation
+Install Java 11 JDK, Scala 2.12.9, the Scala build tool
 
+### docker installation
 To install Docker and docker-compose CLI, run the **scripts/install-docker.sh** script.
 
-Install `git-hooks`, execute the following command:
-```bash
-bash hooks/install.sh
+### git lfs installation 
+`git lfs` is required for pulling large files (> 100 MB). Follow these instructions to install it<br>
+https://docs.github.com/en/github/managing-large-files/installing-git-large-file-storage <br>
+Once it's installed, execute<br>
+```
+git pull lfs
 ```
 
 ## Compiling
