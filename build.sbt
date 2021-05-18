@@ -57,7 +57,7 @@ lazy val portal = project
   .settings(
     name := "Portal",
     commonSettings,
-    libraryDependencies ++= akkaDependencies ++ jsonDependencies ++ cromwellDependencies :+ configHokon :+ akkaHttpCore :+ sl4j,
+    libraryDependencies ++= akkaDependencies ++ jsonDependencies :+ configHokon :+ akkaHttpCore :+ sl4j,
     Defaults.itSettings,
     Seq(parallelExecution in Test := false),
     mappings in Universal ++= Seq(
@@ -107,7 +107,7 @@ lazy val repositories =
 
 lazy val services =
   (project in file("services"))
-    .settings(libraryDependencies ++= jsonDependencies ++ mongoDependencies ++ cromwellDependencies :+ cats :+ playJson)
+    .settings(libraryDependencies ++= jsonDependencies ++ mongoDependencies :+ cats :+ playJson)
     .dependsOn(
       repositories % "compile->compile;test->test",
       utils % "compile->compile;test->test",
@@ -119,17 +119,16 @@ lazy val services =
 lazy val controllers =
   (project in file("controllers"))
     .settings(
-      libraryDependencies ++= akkaDependencies ++ jsonDependencies ++ cromwellDependencies :+ cats :+ akkaHttpCore :+ playJson
+      libraryDependencies ++= akkaDependencies ++ jsonDependencies :+ cats :+ akkaHttpCore :+ playJson
     )
     .dependsOn(services, utils, model, repositories % "test->test")
 
 lazy val womtool = (project in file("womtool"))
   .configs(IntegrationTest)
   .settings(
-    resolvers += "JFrog Artifactory".at("https://epamscalalab.jfrog.io/artifactory/scalalab/"),
     name := "WomTool",
     commonSettings,
-    libraryDependencies ++= allTestDependencies ++ cromwellDependencies :+ pegdown :+ configHokon :+ cats,
+    libraryDependencies ++= allTestDependencies :+ pegdown :+ configHokon :+ cats,
     addCommandAlias("testAll", "; test ; it:test")
   )
   .dependsOn(repositories)

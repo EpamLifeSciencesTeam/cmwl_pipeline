@@ -16,6 +16,10 @@ jobs:
     steps:
       - name: Checkout current branch
         uses: actions/checkout@v2
+        with:
+          lfs: true
+      - name: Checkout LFS objects
+        run: git lfs checkout
 
       - name: Setup Java and Scala
         uses: olafurpg/setup-scala@v10
