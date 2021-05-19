@@ -34,6 +34,18 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
     }
   }
 
+  private def getFile(implicit accessToken: AccessTokenContent): Route = get {
+    parameter('project_id.as[ProjectId], 'project_file_path.as[Path], 'version.as[PipelineVersion].optional) {
+      (projectId, projectFilePath, version) =>
+        onComplete(
+          wdlService.getFile(projectId, projectFilePath, version, accessToken.userId)
+        ) {
+          case Success(projectFile) => complete(projectFile)
+          case Failure(e)           => complete(StatusCodes.NotFound, e.getMessage)
+        }
+    }
+  }
+
   private def uploadFile(implicit accessToken: AccessTokenContent): Route = post {
     entity(as[ProjectUpdateFileRequest]) { request =>
       onComplete(for {
@@ -58,31 +70,31 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
     }
   }
 
-  private def buildConfiguration(implicit accessToken: AccessTokenContent): Route =
-    path("configurations") {
-      get {
-        parameters('project_id.as[ProjectId], 'project_file_path.as[Path], 'version.as[PipelineVersion].optional) {
-          (projectId, projectFilePath, version) =>
-            onComplete(
-              wdlService.buildConfiguration(
-                projectId,
-                projectFilePath,
-                version,
-                accessToken.userId
-              )
-            ) {
-              case Success(configuration)        => complete(configuration)
-              case Failure(ValidationError(msg)) => complete(StatusCodes.UnprocessableEntity, msg)
-              case Failure(e)                    => complete(StatusCodes.InternalServerError, e.getMessage)
-            }
-        }
+  private def buildConfiguration(implicit accessToken: AccessTokenContent): Route = path("configurations") {
+    get {
+      parameters('project_id.as[ProjectId], 'project_file_path.as[Path], 'version.as[PipelineVersion].optional) {
+        (projectId, projectFilePath, version) =>
+          onComplete(
+            wdlService.buildConfiguration(
+              projectId,
+              projectFilePath,
+              version,
+              accessToken.userId
+            )
+          ) {
+            case Success(configuration)        => complete(configuration)
+            case Failure(ValidationError(msg)) => complete(StatusCodes.UnprocessableEntity, msg)
+            case Failure(e)                    => complete(StatusCodes.InternalServerError, e.getMessage)
+          }
       }
     }
+  }
 
   val route: AccessTokenContent => Route = implicit accessToken =>
     pathPrefix("files") {
       validateFile ~
       buildConfiguration ~
+      getFile ~
       uploadFile
     }
 }
