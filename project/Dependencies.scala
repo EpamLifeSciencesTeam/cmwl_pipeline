@@ -21,7 +21,6 @@ object Dependencies {
     val yaml = "1.27"
     val liquibase = "3.8.6"
     val postgresql = "42.2.8"
-    val womtool = "61"
     val logback = "1.2.3"
     val pegdown = "1.6.0"
     val wireMock = "2.27.2"
@@ -56,7 +55,6 @@ object Dependencies {
   val yaml = "org.yaml" % "snakeyaml" % Version.yaml
   val liquibase = "org.liquibase" % "liquibase-core" % Version.liquibase
   val postgresql = "org.postgresql" % "postgresql" % Version.postgresql
-  val womtool = "pipeline" % "womtool" % Version.womtool
   val logback = "ch.qos.logback" % "logback-classic" % Version.logback
   val wireMock = "com.github.tomakehurst" % "wiremock" % Version.wireMock % Test
   val sl4j = "org.slf4j" % "slf4j-api" % Version.sl4j
@@ -76,5 +74,4 @@ object Dependencies {
   lazy val allTestDependencies =
     coreTestDependencies ++ Seq(akkaTestKit, akkaHttpTestKit, logback, wireMock)
   lazy val testContainers = Seq(tcCore, tcPostgres)
-  lazy val cromwellDependencies = Seq(womtool)
 }
