@@ -15,14 +15,6 @@ Install Java 11 JDK, Scala 2.12.9, the Scala build tool
 ### docker installation
 To install Docker and docker-compose CLI, run the **scripts/install-docker.sh** script.
 
-### git lfs installation 
-`git lfs` is required for pulling large files (> 100 MB). Follow these instructions to install it<br>
-https://docs.github.com/en/github/managing-large-files/installing-git-large-file-storage <br>
-Once it's installed, execute<br>
-```
-git pull lfs
-```
-
 ## Compiling
 To compile from the command line, use the command below:
 ```
