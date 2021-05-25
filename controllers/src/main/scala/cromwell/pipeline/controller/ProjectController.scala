@@ -27,9 +27,9 @@ class ProjectController(projectService: ProjectService) {
   private def addProject(implicit accessToken: AccessTokenContent): Route = post {
     entity(as[ProjectAdditionRequest]) { request =>
       onComplete(projectService.addProject(request, accessToken.userId)) {
-        case Success(projectId) =>
-          projectId match {
-            case Right(_)                     => complete(StatusCodes.OK)
+        case Success(project) =>
+          project match {
+            case Right(project)               => complete(project)
             case Left(e: VersioningException) => complete(StatusCodes.InternalServerError, e.getMessage)
           }
         case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
@@ -51,7 +51,11 @@ class ProjectController(projectService: ProjectService) {
   private def updateProject(implicit accessToken: AccessTokenContent): Route = put {
     entity(as[ProjectUpdateNameRequest]) { request =>
       onComplete(projectService.updateProjectName(request, accessToken.userId)) {
-        case Success(_) => complete(StatusCodes.NoContent)
+        case Success(result) =>
+          result match {
+            case Left(e)  => complete(StatusCodes.InternalServerError, e.getMessage)
+            case Right(_) => complete(StatusCodes.OK)
+          }
         case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
       }
     }

@@ -19,7 +19,7 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
   private val configurationService = new ProjectConfigurationService(configurationRepository, projectService)
   private val projectId: ProjectId = dummyProject.projectId
   private val userId: UserId = dummyProject.ownerId
-  private val wrongUserId: UserId = TestUserUtils.getDummyUserId
+  private val strangerId: UserId = TestUserUtils.getDummyUserId
 
   private val projectFileConfiguration: ProjectFileConfiguration =
     ProjectFileConfiguration(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello")))))
@@ -78,11 +78,11 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
 
     "add new configuration for project and user is not project owner" should {
       val error = new ProjectAccessDeniedException
-      when(projectService.getUserProjectById(projectId, wrongUserId)).thenReturn(Future.failed(error))
+      when(projectService.getUserProjectById(projectId, strangerId)).thenReturn(Future.failed(error))
 
       "return failure" in {
         when(configurationRepository.getById(projectId)).thenReturn(Future.successful(Some(activeConfiguration)))
-        configurationService.addConfiguration(activeConfiguration, wrongUserId).failed.map(_ shouldBe error)
+        configurationService.addConfiguration(activeConfiguration, strangerId).failed.map(_ shouldBe error)
       }
     }
 
@@ -116,9 +116,9 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
 
     "get configuration by project id and user is not project owner" should {
       val error = new ProjectAccessDeniedException
-      when(projectService.getUserProjectById(projectId, wrongUserId)).thenReturn(Future.failed(error))
+      when(projectService.getUserProjectById(projectId, strangerId)).thenReturn(Future.failed(error))
       "return failure" in {
-        configurationService.getConfigurationById(projectId, wrongUserId).failed.map(_ shouldBe error)
+        configurationService.getConfigurationById(projectId, strangerId).failed.map(_ shouldBe error)
       }
     }
 
@@ -142,11 +142,11 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
 
     "deactivate configuration and user is not project owner" should {
       val error = new ProjectAccessDeniedException
-      when(projectService.getUserProjectById(projectId, wrongUserId)).thenReturn(Future.failed(error))
+      when(projectService.getUserProjectById(projectId, strangerId)).thenReturn(Future.failed(error))
 
       "return exception" in {
         configurationService
-          .deactivateConfiguration(projectId, wrongUserId)
+          .deactivateConfiguration(projectId, strangerId)
           .failed
           .map(_ should have.message("Access denied. You  not owner of the project"))
       }
