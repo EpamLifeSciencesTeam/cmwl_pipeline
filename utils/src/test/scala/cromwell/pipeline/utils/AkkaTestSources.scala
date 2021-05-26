@@ -5,7 +5,9 @@ import akka.stream.Materializer
 import akka.stream.Materializer.matFromSystem
 import org.scalatest.{ BeforeAndAfterAll, Suite }
 
-trait AkkaTestSources extends BeforeAndAfterAll {
+import scala.concurrent.Await
+
+trait AkkaTestSources extends BeforeAndAfterAll with TestTimeout {
   this: Suite =>
   implicit lazy val actorSystem: ActorSystem = ActorSystem("test")
   implicit lazy val materializer: Materializer = matFromSystem(actorSystem)
@@ -16,7 +18,7 @@ trait AkkaTestSources extends BeforeAndAfterAll {
   }
 
   override protected def afterAll(): Unit = {
-    actorSystem.terminate()
+    Await.result(actorSystem.terminate(), timeoutAsDuration)
     super.afterAll()
   }
 }

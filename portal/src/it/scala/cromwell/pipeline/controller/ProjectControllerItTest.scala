@@ -8,19 +8,19 @@ import cromwell.pipeline.ApplicationComponents
 import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.{ Project, ProjectDeleteRequest, ProjectUpdateNameRequest }
-import cromwell.pipeline.utils.TestContainersUtils
+import cromwell.pipeline.utils.{ TestContainersUtils, TestTimeout }
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import org.scalatest.{ AsyncWordSpec, Matchers }
 
 import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 
 class ProjectControllerItTest
     extends AsyncWordSpec
     with Matchers
     with ScalatestRouteTest
     with PlayJsonSupport
-    with ForAllTestContainer {
+    with ForAllTestContainer
+    with TestTimeout {
 
   override val container: PostgreSQLContainer = TestContainersUtils.getPostgreSQLContainer()
   implicit lazy val config: Config = TestContainersUtils.getConfigForPgContainer(container)
@@ -38,7 +38,7 @@ class ProjectControllerItTest
           projectRepository.addProject(dummyProject).map(_ => ())
         }
       },
-      Duration.Inf
+      timeoutAsDuration
     )
   }
 
