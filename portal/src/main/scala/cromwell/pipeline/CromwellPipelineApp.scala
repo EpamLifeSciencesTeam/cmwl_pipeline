@@ -7,6 +7,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{ RejectionHandler, Route, ValidationRejection }
 import cromwell.pipeline.auth.token.MissingAccessTokenRejection
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
+import cromwell.pipeline.utils.configs.ConfigJsonOps
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContextExecutor
@@ -19,6 +20,7 @@ object CromwellPipelineApp extends App {
   val log = LoggerFactory.getLogger(CromwellPipelineApp.getClass)
   val components = new ApplicationComponents()
 
+  import components.applicationConfig
   import components.applicationConfig.webServiceConfig
   import components.controllerModule._
   import components.datastorageModule._
@@ -48,5 +50,6 @@ object CromwellPipelineApp extends App {
   }
 
   log.info(s"Server online at http://${webServiceConfig.interface}:${webServiceConfig.port}/")
+  log.info(ConfigJsonOps.configToJsonString(applicationConfig))
   Http().newServerAt(webServiceConfig.interface, webServiceConfig.port).bindFlow(route)
 }
