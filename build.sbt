@@ -27,9 +27,10 @@ lazy val commonSettings = Seq(
   test in Test := (test in Test).dependsOn(checkFormat).value,
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports"),
   coverageEnabled in Test := true,
-  coverageMinimum := 60,
+  coverageMinimum := 50,
   coverageFailOnMinimum := true,
-  coverageExcludedPackages := "cromwell.pipeline.database.*"
+  coverageExcludedPackages :=
+    "cromwell\\.pipeline; cromwell\\.pipeline\\.database.*"
 )
 
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")
