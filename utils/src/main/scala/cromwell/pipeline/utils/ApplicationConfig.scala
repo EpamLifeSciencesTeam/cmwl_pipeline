@@ -31,6 +31,14 @@ final case class MongoConfig(
   collection: String
 ) extends ConfigComponent
 
+final case class PostgreConfig(
+  serverName: String,
+  portNumber: Int,
+  databaseName: String,
+  user: String,
+  password: Array[Char]
+) extends ConfigComponent
+
 final case class ExpirationTimeInSeconds(accessToken: Long, refreshToken: Long, userSession: Long)
 
 class ApplicationConfig(val config: Config) {
@@ -88,9 +96,25 @@ class ApplicationConfig(val config: Config) {
     )
   }
 
+  lazy val postgreConfig: PostgreConfig = {
+    val _config = config.getConfig("database.postgres_dc.db.properties")
+    PostgreConfig(
+      serverName = _config.getString("serverName"),
+      portNumber = _config.getInt("portNumber"),
+      databaseName = _config.getString("databaseName"),
+      user = _config.getString("user"),
+      password = _config.getString("password").toCharArray
+    )
+  }
+
 }
 
 object ApplicationConfig {
   def load(config: Config = ConfigFactory.load()): ApplicationConfig =
     new ApplicationConfig(config)
+
+  def unapply(
+    config: ApplicationConfig
+  ): Option[(WebServiceConfig, AuthConfig, GitLabConfig, MongoConfig, PostgreConfig)] =
+    Option((config.webServiceConfig, config.authConfig, config.gitLabConfig, config.mongoConfig, config.postgreConfig))
 }
