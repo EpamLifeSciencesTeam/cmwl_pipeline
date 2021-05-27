@@ -66,11 +66,6 @@ sbt undeclaredCompileDependencies
 ```
 
 Default configuration can be overloaded in application.properties file located in the same directory as service jar
-## Local database usage
-Locally we could start Postgres and Mongo db instances via
-```
-docker-compose -f postgres-mongo.yml up
-```
 ## Build With
 * [SBT](https://www.scala-sbt.org/) Build and dependency management
 * [AkkaHTTP](https://doc.akka.io/docs/akka-http/current/index.html)  Asynchronous, streaming-first HTTP server and client
@@ -124,7 +119,15 @@ Run the next commands
 - Run `sbt clean docker:publishLocal` for creating Pipeline docker image using the local Docker server
 - Run `docker-compose up` for running all docker containers or `docker run -d --name cmwl_pipeline -p 8080:8080 cmwl_pipeline:0.1` for running  only Pipeline
 - Use `http://localhost:8080` address for sending request
- 
+
+## Run Pipeline and all services in Docker locally
+- You can use existing .env.example file or create your own to provide environmental variables.
+- Run `sbt clean portal/docker:publishLocal` for creating Pipeline docker image using the local Docker server.
+- Run `docker-compose --env-file .env.example up` for starting docker images of Pipeline, Gitlab, Postgres and Mongo.
+- If you want to run IntelliJ, just comment out Pipeline in docker-compose and provide correct env variables to IntelliJ 
+run configuration.
+- Other elements could be removed from docker-compose in a similar fashion
+
 ## File upload process in Cromwell Pipeline
 ### Step 1: WDL file validation
 For validation WDL file send POST request <br>

@@ -19,7 +19,7 @@ object Dependencies {
     val tcCore = "0.39.3"
     val tcPostgres = "1.15.2"
     val yaml = "1.27"
-    val liquibase = "3.8.6"
+    val liquibase = "4.3.5"
     val postgresql = "42.2.8"
     val logback = "1.2.3"
     val pegdown = "1.6.0"
@@ -74,4 +74,5 @@ object Dependencies {
   lazy val allTestDependencies =
     coreTestDependencies ++ Seq(akkaTestKit, akkaHttpTestKit, logback, wireMock)
   lazy val testContainers = Seq(tcCore, tcPostgres)
+  lazy val logDependencies = Seq(logback, sl4j)
 }
