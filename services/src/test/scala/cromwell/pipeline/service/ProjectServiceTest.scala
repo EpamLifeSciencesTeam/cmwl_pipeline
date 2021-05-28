@@ -53,12 +53,10 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         val request = ProjectUpdateNameRequest(projectId, name = newProjectName)
 
         when(projectRepository.getProjectById(projectId)).thenReturn(Future.successful(Some(dummyProject)))
-        when(projectVersioning.updateRepositoryName(any[Project])(any[ExecutionContext]))
-          .thenReturn(Future.successful(Right(dummyProject)))
         when(projectRepository.updateProjectName(dummyProject.copy(name = newProjectName)))
           .thenReturn(Future.successful(1))
 
-        projectService.updateProjectName(request, ownerId).map { _ shouldBe Right(projectId) }
+        projectService.updateProjectName(request, ownerId).map { _ shouldBe projectId }
       }
     }
 

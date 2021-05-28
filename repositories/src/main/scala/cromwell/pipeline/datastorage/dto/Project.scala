@@ -48,13 +48,6 @@ object PostProject {
   implicit lazy val postProject: OFormat[PostProject] = Json.format[PostProject]
 }
 
-final case class UpdateProjectGitLabRequest(name: String)
-
-object UpdateProjectGitLabRequest {
-  implicit lazy val updateProjectGitLabRequestFormat: OFormat[UpdateProjectGitLabRequest] =
-    Json.format[UpdateProjectGitLabRequest]
-}
-
 final case class ProjectId(value: String) extends MappedTo[String]
 
 object ProjectId {
