@@ -112,8 +112,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
         val dummyProject = TestProjectUtils.getDummyProject()
         val request = ProjectUpdateNameRequest(dummyProject.projectId, dummyProject.name)
 
-        when(projectService.updateProjectName(request, userId))
-          .thenReturn(Future.successful(Right(dummyProject.projectId)))
+        when(projectService.updateProjectName(request, userId)).thenReturn(Future.successful(dummyProject.projectId))
 
         Put("/projects", request) ~> projectController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
