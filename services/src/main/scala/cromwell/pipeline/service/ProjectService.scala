@@ -1,12 +1,11 @@
 package cromwell.pipeline.service
 
-import java.util.UUID
-
 import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.service.Exceptions.{ ProjectAccessDeniedException, ProjectNotFoundException }
 
+import java.util.UUID
 import scala.concurrent.{ ExecutionContext, Future }
 
 class ProjectService(projectRepository: ProjectRepository, projectVersioning: ProjectVersioning[VersioningException])(
@@ -14,16 +13,16 @@ class ProjectService(projectRepository: ProjectRepository, projectVersioning: Pr
 ) {
 
   private[service] def getUserProjectById(projectId: ProjectId, userId: UserId): Future[Project] =
-    projectRepository.getProjectById(projectId).flatMap(getForUserOrFail(_, userId))
+    projectRepository.getProjectById(projectId).flatMap(project => getForUserOrFail(project.toSeq, userId))
 
   def getUserProjectByName(namePattern: String, userId: UserId): Future[Project] =
-    projectRepository.getProjectByName(namePattern).flatMap(getForUserOrFail(_, userId))
+    projectRepository.getProjectsByName(namePattern).flatMap(getForUserOrFail(_, userId))
 
-  private def getForUserOrFail(project: Option[Project], userId: UserId): Future[Project] =
-    project match {
-      case Some(project) if project.ownerId == userId => Future.successful(project)
-      case Some(_)                                    => Future.failed(new ProjectAccessDeniedException)
-      case None                                       => Future.failed(new ProjectNotFoundException)
+  private def getForUserOrFail(projects: Seq[Project], userId: UserId): Future[Project] =
+    projects.find(_.ownerId == userId) match {
+      case Some(project)             => Future.successful(project)
+      case None if projects.nonEmpty => Future.failed(new ProjectAccessDeniedException)
+      case _                         => Future.failed(new ProjectNotFoundException)
     }
 
   def addProject(request: ProjectAdditionRequest, userId: UserId): Future[Either[VersioningException, Project]] = {

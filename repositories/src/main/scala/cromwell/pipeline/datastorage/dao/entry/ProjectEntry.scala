@@ -31,8 +31,8 @@ trait ProjectEntry { this: Profile with UserEntry with CustomsWithEnumSupport wi
     projects.filter(_.projectId === projectId).take(1)
   }
 
-  def getProjectByNameAction = Compiled { name: Rep[String] =>
-    projects.filter(_.name === name).take(1)
+  def getProjectsByNameAction = Compiled { name: Rep[String] =>
+    projects.filter(_.name === name)
   }
 
   def addProjectAction(project: Project): ActionResult[ProjectId] =
