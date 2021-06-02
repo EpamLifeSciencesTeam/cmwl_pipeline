@@ -84,8 +84,10 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       val versionString = "v0.0.2"
       val versionOption = Some(PipelineVersion("v0.0.2"))
       val projectId = TestProjectUtils.getDummyProjectId
+      val projectConfigurationId = ProjectConfigurationId.randomId
       val path = "/home/test/file"
       val configuration = ProjectConfiguration(
+        projectConfigurationId,
         projectId,
         active = true,
         List(
@@ -93,7 +95,8 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
             Paths.get(path),
             List(FileParameter("nodeName", StringTyped(Some("hello"))))
           )
-        )
+        ),
+        ProjectConfigurationVersion.defaultVersion
       )
 
       "return configuration for file" in {

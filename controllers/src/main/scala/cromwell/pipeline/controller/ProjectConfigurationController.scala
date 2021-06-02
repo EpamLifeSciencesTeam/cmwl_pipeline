@@ -26,7 +26,7 @@ class ProjectConfigurationController(projectConfigurationService: ProjectConfigu
 
   private def getConfiguration(implicit accessToken: AccessTokenContent): Route = get {
     parameter('project_id.as[String]) { projectId =>
-      onComplete(projectConfigurationService.getConfigurationById(ProjectId(projectId), accessToken.userId)) {
+      onComplete(projectConfigurationService.getLastByProjectId(ProjectId(projectId), accessToken.userId)) {
         case Failure(e)                   => complete(StatusCodes.InternalServerError, e.getMessage)
         case Success(Some(configuration)) => complete(configuration)
         case Success(None) =>
@@ -37,7 +37,7 @@ class ProjectConfigurationController(projectConfigurationService: ProjectConfigu
 
   private def deactivateConfiguration(implicit accessToken: AccessTokenContent): Route = delete {
     parameter('project_id.as[String]) { projectId =>
-      onComplete(projectConfigurationService.deactivateConfiguration(ProjectId(projectId), accessToken.userId)) {
+      onComplete(projectConfigurationService.deactivateLastByProjectId(ProjectId(projectId), accessToken.userId)) {
         case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
         case Success(_) => complete(StatusCodes.NoContent)
       }

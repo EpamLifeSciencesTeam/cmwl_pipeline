@@ -22,11 +22,13 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
   "ProjectConfigurationController" when {
     val accessToken = AccessTokenContent(TestUserUtils.getDummyUserId)
     val configuration = ProjectConfiguration(
+      ProjectConfigurationId.randomId,
       TestProjectUtils.getDummyProjectId,
       active = true,
       List(
         ProjectFileConfiguration(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello")))))
-      )
+      ),
+      ProjectConfigurationVersion.defaultVersion
     )
 
     "update configuration" should {
@@ -52,7 +54,7 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
       val projectId = TestProjectUtils.getDummyProjectId
 
       "return configuration by existing project id" in {
-        when(configurationService.getConfigurationById(projectId, accessToken.userId))
+        when(configurationService.getLastByProjectId(projectId, accessToken.userId))
           .thenReturn(Future.successful(Some(configuration)))
         Get("/configurations?project_id=" + projectId.value) ~> configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
@@ -61,8 +63,7 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
       }
 
       "return message about no project with this project id" in {
-        when(configurationService.getConfigurationById(projectId, accessToken.userId))
-          .thenReturn(Future.successful(None))
+        when(configurationService.getLastByProjectId(projectId, accessToken.userId)).thenReturn(Future.successful(None))
         Get("/configurations?project_id=" + projectId.value) ~> configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NotFound
           entityAs[String] shouldBe s"There is no configuration with project_id: ${projectId.value}"
@@ -75,14 +76,14 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
       val projectId = TestProjectUtils.getDummyProjectId
 
       "return success for deactivate configuration" in {
-        when(configurationService.deactivateConfiguration(projectId, accessToken.userId)).thenReturn(Future.unit)
+        when(configurationService.deactivateLastByProjectId(projectId, accessToken.userId)).thenReturn(Future.unit)
         Delete("/configurations?project_id=" + projectId.value) ~> configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NoContent
         }
       }
 
       "return InternalServerError when failure deactivate configuration" in {
-        when(configurationService.deactivateConfiguration(projectId, accessToken.userId))
+        when(configurationService.deactivateLastByProjectId(projectId, accessToken.userId))
           .thenReturn(Future.failed(error))
         Delete("/configurations?project_id=" + projectId.value) ~> configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError

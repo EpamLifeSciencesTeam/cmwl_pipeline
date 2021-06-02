@@ -9,6 +9,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class ProjectFileService(
   projectService: ProjectService,
+  projectConfigurationService: ProjectConfigurationService,
   womTool: WomToolAPI,
   projectVersioning: ProjectVersioning[VersioningException]
 )(
@@ -51,12 +52,25 @@ class ProjectFileService(
       eitherFile <- projectVersioning.getFile(project, projectFilePath, version)
     } yield eitherFile
 
+    val configurationVersion =
+      projectConfigurationService.getLastByProjectId(projectId, userId).map {
+        case Some(configuration) => configuration.version.increaseValue
+        case None                => ProjectConfigurationVersion.defaultVersion
+      }
+
     eitherFile.flatMap {
       case Right(file) =>
         womTool.inputsToList(file.content.content) match {
           case Right(nodes) =>
-            Future.successful(
-              ProjectConfiguration(projectId, active = true, List(ProjectFileConfiguration(file.path, nodes)))
+            configurationVersion.map(
+              version =>
+                ProjectConfiguration(
+                  ProjectConfigurationId.randomId,
+                  projectId,
+                  active = true,
+                  List(ProjectFileConfiguration(file.path, nodes)),
+                  version
+                )
             )
           case Left(e) => Future.failed(ValidationError(e.toList))
         }
