@@ -48,7 +48,7 @@ class ProjectControllerItTest
 
   "ProjectController" when {
     "getProjectByName" should {
-      "return a project with the same name" in {
+      "return a project with the same name and current userId" in {
         val projectByNameRequest = dummyProject.name
         val accessToken = AccessTokenContent(dummyProject.ownerId)
 
@@ -64,6 +64,16 @@ class ProjectControllerItTest
 
         Get("/projects?name=" + projectByNameRequest) ~> projectController.route(accessToken) ~> check {
           status shouldBe StatusCodes.Forbidden
+        }
+      }
+
+      "return a status code 404 if project doesn't exist" in {
+        val nonExistProject = TestProjectUtils.getDummyProject()
+        val projectByNameRequest = nonExistProject.name
+        val accessToken = AccessTokenContent(nonExistProject.ownerId)
+
+        Get("/projects?name=" + projectByNameRequest) ~> projectController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.NotFound
         }
       }
     }
