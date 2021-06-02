@@ -4,7 +4,7 @@ import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dao.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
-import cromwell.pipeline.service.Exceptions.ProjectNotFoundException
+import cromwell.pipeline.service.Exceptions.{ ProjectAccessDeniedException, ProjectNotFoundException }
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
@@ -104,6 +104,30 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         when(projectRepository.getProjectById(projectId)).thenReturn(Future(None))
 
         projectService.getUserProjectById(projectId, userId).failed.map { _ shouldBe ProjectNotFoundException() }
+      }
+    }
+
+    "getUserProjectByName" should {
+      val project1 = TestProjectUtils.getDummyProject()
+      val project2 = TestProjectUtils.getDummyProject(name = project1.name)
+
+      "return project with corresponding user id" taggedAs Service in {
+        when(projectRepository.getProjectsByName(project2.name)).thenReturn(Future.successful(Seq(project1, project2)))
+        projectService.getUserProjectByName(project2.name, project2.ownerId).map { _ shouldBe project2 }
+      }
+
+      "fail with ProjectAccessDeniedException" taggedAs Service in {
+        when(projectRepository.getProjectsByName(project1.name)).thenReturn(Future.successful(Seq(project2)))
+        projectService.getUserProjectByName(project1.name, project1.ownerId).failed.map {
+          _ shouldBe ProjectAccessDeniedException()
+        }
+      }
+
+      "fail with ProjectNotFoundException" taggedAs Service in {
+        when(projectRepository.getProjectsByName(project1.name)).thenReturn(Future.successful(Seq()))
+        projectService.getUserProjectByName(project1.name, project1.ownerId).failed.map {
+          _ shouldBe ProjectNotFoundException()
+        }
       }
     }
   }
