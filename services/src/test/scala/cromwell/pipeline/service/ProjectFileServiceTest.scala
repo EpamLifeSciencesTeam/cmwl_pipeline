@@ -18,7 +18,9 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
   private val womTool = mock[WomTool]
   private val projectVersioning = mock[ProjectVersioning[VersioningException]]
   private val projectService = mock[ProjectService]
-  private val projectFileService = new ProjectFileService(projectService, womTool, projectVersioning)
+  private val configurationService = mock[ProjectConfigurationService]
+  private val projectFileService =
+    new ProjectFileService(projectService, configurationService, womTool, projectVersioning)
 
   private val correctWdl = "task hello {}"
   private val incorrectWdl = "task hello {"
@@ -95,14 +97,18 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
         when(projectVersioning.getFile(project, projectFile.path, version))
           .thenReturn(Future.successful(Right(projectFile)))
         when(womTool.inputsToList(projectFileContent.content)).thenReturn(Right(Nil))
+        when(configurationService.getLastByProjectId(projectId, userId)).thenReturn(Future.successful(None))
         projectFileService
           .buildConfiguration(projectId, projectFile.path, version, userId)
           .map(
-            _ shouldBe ProjectConfiguration(
-              projectId,
-              active = true,
-              List(ProjectFileConfiguration(projectFile.path, Nil))
-            )
+            builtConfiguration =>
+              builtConfiguration shouldBe ProjectConfiguration(
+                id = builtConfiguration.id,
+                projectId = projectId,
+                active = true,
+                projectFileConfigurations = List(ProjectFileConfiguration(projectFile.path, Nil)),
+                version = ProjectConfigurationVersion.defaultVersion
+              )
           )
       }
 
@@ -111,6 +117,7 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
         when(projectVersioning.getFile(project, projectFile.path, version))
           .thenReturn(Future.successful(Right(projectFile)))
         when(womTool.inputsToList(projectFileContent.content)).thenReturn(Left(NonEmptyList(errorMessage, Nil)))
+        when(configurationService.getLastByProjectId(projectId, userId)).thenReturn(Future.successful(None))
         projectFileService
           .buildConfiguration(projectId, projectFile.path, version, userId)
           .failed
@@ -121,6 +128,7 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
         when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
         when(projectVersioning.getFile(project, projectFile.path, version))
           .thenReturn(Future.successful(Left(VersioningException.FileException("404"))))
+        when(configurationService.getLastByProjectId(projectId, userId)).thenReturn(Future.successful(None))
         projectFileService
           .buildConfiguration(projectId, projectFile.path, version, userId)
           .failed
