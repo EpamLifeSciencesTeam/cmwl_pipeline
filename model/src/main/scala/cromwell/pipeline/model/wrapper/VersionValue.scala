@@ -14,6 +14,7 @@ object VersionValue extends Wrapped.Companion {
   val pattern = "^[0-9]+$"
   implicit val versionNumberFormat: Format[VersionValue] = wrapperFormat
   def increment(value: VersionValue): VersionValue = create(value.unwrap + 1)
+  def resetValue: VersionValue = create(0)
   def fromString(value: String): ValidationResult[Wrapper] =
     validateString(value) match {
       case Validated.Valid(content)  => Validated.Valid(create(content.toInt))
