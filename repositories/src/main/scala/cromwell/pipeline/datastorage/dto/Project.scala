@@ -110,10 +110,10 @@ final case class PipelineVersion(major: VersionValue, minor: VersionValue, revis
     ordering.compare(this, that)
 
   def increaseMajor: PipelineVersion =
-    this.copy(major = increment(this.major))
+    this.copy(major = increment(this.major), minor = resetValue, revision = resetValue)
 
   def increaseMinor: PipelineVersion =
-    this.copy(minor = increment(this.minor))
+    this.copy(minor = increment(this.minor), revision = resetValue)
 
   def increaseRevision: PipelineVersion =
     this.copy(revision = increment(this.revision))
