@@ -5,6 +5,7 @@ object Dependencies {
   object Version {
     val akka = "2.6.12"
     val akkaHttp = "10.2.3"
+    val akkaHttpCors = "1.1.1"
     val slick = "3.3.3"
     val slickPg = "0.19.4"
     val hikariCP = "3.3.3"
@@ -34,6 +35,7 @@ object Dependencies {
   val akkaStreams = "com.typesafe.akka" %% "akka-stream" % Version.akka
   val akkaHttp = "com.typesafe.akka" %% "akka-http" % Version.akkaHttp
   val akkaHttpCore = "com.typesafe.akka" %% "akka-http-core" % Version.akkaHttp
+  val akkaHttpCors = "ch.megard" %% "akka-http-cors" % Version.akkaHttpCors
   val slick = "com.typesafe.slick" %% "slick" % Version.slick
   val slickPg = "com.github.tminglei" %% "slick-pg" % Version.slickPg
   val slickPgCore = "com.github.tminglei" %% "slick-pg_core" % Version.slickPg
