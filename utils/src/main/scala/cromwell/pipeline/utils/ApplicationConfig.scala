@@ -6,7 +6,11 @@ import pdi.jwt.algorithms.JwtHmacAlgorithm
 
 sealed trait ConfigComponent
 
-final case class WebServiceConfig(interface: String, port: Int) extends ConfigComponent
+final case class WebServiceConfig(
+  interface: String,
+  port: Int,
+  cors: CorsConfig
+) extends ConfigComponent
 
 final case class GitLabConfig(
   url: String,
@@ -39,13 +43,21 @@ final case class PostgreConfig(
   password: Array[Char]
 ) extends ConfigComponent
 
+final case class CorsConfig(allowedOrigins: Seq[String]) extends ConfigComponent
+
 final case class ExpirationTimeInSeconds(accessToken: Long, refreshToken: Long, userSession: Long)
 
 class ApplicationConfig(val config: Config) {
 
+  import scala.collection.JavaConverters._
+
   lazy val webServiceConfig: WebServiceConfig = {
     val _config = config.getConfig("webservice")
-    WebServiceConfig(interface = _config.getString("interface"), port = _config.getInt("port"))
+    WebServiceConfig(
+      interface = _config.getString("interface"),
+      port = _config.getInt("port"),
+      cors = CorsConfig(_config.getStringList("cors.allowedOrigins").asScala)
+    )
   }
 
   lazy val authConfig: AuthConfig = {
@@ -115,6 +127,7 @@ object ApplicationConfig {
 
   def unapply(
     config: ApplicationConfig
-  ): Option[(WebServiceConfig, AuthConfig, GitLabConfig, MongoConfig, PostgreConfig)] =
-    Option((config.webServiceConfig, config.authConfig, config.gitLabConfig, config.mongoConfig, config.postgreConfig))
+  ): Option[(WebServiceConfig, AuthConfig, GitLabConfig, MongoConfig, PostgreConfig)] = Option(
+    (config.webServiceConfig, config.authConfig, config.gitLabConfig, config.mongoConfig, config.postgreConfig)
+  )
 }
