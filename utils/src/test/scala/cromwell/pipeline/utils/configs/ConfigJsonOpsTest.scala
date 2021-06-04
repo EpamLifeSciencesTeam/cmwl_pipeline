@@ -11,6 +11,9 @@ class ConfigJsonOpsTest extends WordSpec {
     s"""webservice {
        |  interface = "wsInterface"
        |  port = 4040
+       |  cors {
+       |    allowedOrigins = [ "http://localhost:3000" ]
+       |  }
        |}
        |auth {
        |  secretKey = "authSecretKey"
@@ -56,6 +59,9 @@ class ConfigJsonOpsTest extends WordSpec {
     s"""webservice {
        |  interface = "wsInterface"
        |  port = 4040
+       |  cors {
+       |    allowedOrigins = [ "http://localhost:3000" ]
+       |  }
        |}
        |auth {
        |  secretKey = ""
@@ -105,7 +111,10 @@ class ConfigJsonOpsTest extends WordSpec {
        |{
        |  "WebServiceConfig" : {
        |    "interface" : "wsInterface",
-       |    "port" : 4040
+       |    "port" : 4040,
+       |    "cors" : {
+       |      "allowedOrigins" : [ "http://localhost:3000" ]
+       |    }
        |  },
        |  "AuthConfig" : {
        |    "secretKey" : "*********",
@@ -150,7 +159,10 @@ class ConfigJsonOpsTest extends WordSpec {
        |{
        |  "WebServiceConfig" : {
        |    "interface" : "wsInterface",
-       |    "port" : 4040
+       |    "port" : 4040,
+       |    "cors" : {
+       |      "allowedOrigins" : [ "http://localhost:3000" ]
+       |    }
        |  },
        |  "AuthConfig" : {
        |    "secretKey" : "",
