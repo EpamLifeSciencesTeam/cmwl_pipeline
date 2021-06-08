@@ -3,16 +3,21 @@ package cromwell.pipeline.datastorage.dao.repository
 import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
 import cromwell.pipeline.datastorage.DatastorageModule
-import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestUserUtils }
+import cromwell.pipeline.datastorage.dao.utils.{ PostgreTablesCleaner, TestProjectUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto.{ PipelineVersion, Project, User }
 import cromwell.pipeline.utils.{ ApplicationConfig, TestContainersUtils }
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 
-class ProjectRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfterAll with ForAllTestContainer {
+class ProjectRepositoryTest
+    extends AsyncWordSpec
+    with Matchers
+    with BeforeAndAfterAll
+    with ForAllTestContainer
+    with PostgreTablesCleaner {
 
   override val container: PostgreSQLContainer = TestContainersUtils.getPostgreSQLContainer()
-  private lazy val config: Config = TestContainersUtils.getConfigForPgContainer(container)
-  private lazy val datastorageModule: DatastorageModule = new DatastorageModule(ApplicationConfig.load(config))
+  protected lazy val config: Config = TestContainersUtils.getConfigForPgContainer(container)
+  protected lazy val datastorageModule: DatastorageModule = new DatastorageModule(ApplicationConfig.load(config))
 
   override protected def beforeAll(): Unit = {
     super.beforeAll
@@ -41,13 +46,14 @@ class ProjectRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAf
     "updateProjectVersion" should {
 
       "return project with correct version" taggedAs Dao in {
-        val version = PipelineVersion("v0.0.2")
-        projectRepository.addProject(dummyProject)
-        projectRepository.updateProjectVersion(dummyProject.copy(version = version))
-
-        projectRepository
-          .getProjectById(dummyProject.projectId)
-          .map(optProject => optProject shouldEqual Some(dummyProject.copy(version = version)))
+        val newVersion = PipelineVersion("v0.0.2")
+        val result = for {
+          _ <- userRepository.addUser(dummyUser)
+          _ <- projectRepository.addProject(dummyProject)
+          _ <- projectRepository.updateProjectVersion(dummyProject.copy(version = newVersion))
+          newVersionProject <- projectRepository.getProjectById(dummyProject.projectId)
+        } yield newVersionProject
+        result.map(newVersionProject => newVersionProject shouldEqual Some(dummyProject.copy(version = newVersion)))
       }
     }
   }
