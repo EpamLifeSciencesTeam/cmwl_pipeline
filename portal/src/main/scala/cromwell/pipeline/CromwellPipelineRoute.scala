@@ -16,12 +16,16 @@ object CromwellPipelineRoute {
 
 final class CromwellPipelineRoute(applicationConfig: ApplicationConfig, controllerModule: ControllerModule) {
   import CromwellPipelineRoute._
+  import applicationConfig.webServiceConfig.{ cors => appConfigCors }
   import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
   import controllerModule._
+  import cromwell.pipeline.controller.AuthController._
 
-  private val allowedOrigins = applicationConfig.webServiceConfig.cors.allowedOrigins.map(HttpOrigin(_))
+  private val allowedOrigins = appConfigCors.allowedOrigins.map(HttpOrigin(_))
   private val httpOriginMatcher = HttpOriginMatcher.create(allowedOrigins: _*)
-  private val corsSettings = CorsSettings.defaultSettings.withAllowedOrigins(httpOriginMatcher)
+  private val authHeaders = List(AccessTokenHeader, RefreshTokenHeader, AccessTokenExpirationHeader)
+  private val corsSettings =
+    CorsSettings.defaultSettings.withAllowedOrigins(httpOriginMatcher).withExposedHeaders(authHeaders)
 
   val route: Route = cors(corsSettings) {
     authController.route ~ securityDirective.authenticated {
