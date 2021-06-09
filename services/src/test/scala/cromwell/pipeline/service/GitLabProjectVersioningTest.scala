@@ -138,59 +138,6 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
       }
     }
 
-    "updateRepository" should {
-
-      def request(putProject: UpdateProjectGitLabRequest): Future[Response[GitLabRepositoryResponse]] =
-        mockHttpClient.put[GitLabRepositoryResponse, UpdateProjectGitLabRequest](
-          url = s"${gitLabConfig.url}projects/${updatingProject.repositoryId.value}",
-          headers = gitLabConfig.token,
-          payload = putProject
-        )
-
-      "fail with VersioningException for inactive project" taggedAs Service in {
-        gitLabProjectVersioning.updateRepositoryName(inactiveProject).failed.map {
-          _ shouldBe VersioningException.RepositoryException("Could not update a repository for deleted project.")
-        }
-      }
-
-      "return updated Project with 200 response" taggedAs Service in {
-
-        when(request(putUpdateProject)).thenReturn {
-          Future.successful {
-            Response[GitLabRepositoryResponse](
-              HttpStatusCodes.Created,
-              SuccessResponseBody[GitLabRepositoryResponse](gitLabRepositoryResponse),
-              EmptyHeaders
-            )
-          }
-        }
-
-        gitLabProjectVersioning.updateRepositoryName(updatingProject).map {
-          _ shouldBe Right(updatingProject)
-        }
-      }
-
-      "fail with VersioningException with 400 response" taggedAs Service in {
-        val errorMsg = "The repository was not updated. Response status: 400"
-        when(request(putUpdateProject)).thenReturn {
-          Future.successful {
-            Response[GitLabRepositoryResponse](
-              HttpStatusCodes.BadRequest,
-              FailureResponseBody(errorMsg),
-              EmptyHeaders
-            )
-          }
-        }
-        gitLabProjectVersioning.updateRepositoryName(updatingProject).map {
-          _ shouldBe Left {
-            VersioningException.RepositoryException {
-              s"The repository was not updated. Response status: 400; Response body [$errorMsg]"
-            }
-          }
-        }
-      }
-    }
-
     "getProjectVersions" should {
       def request(project: Project): Future[Response[Seq[GitLabVersion]]] =
         mockHttpClient.get[Seq[GitLabVersion]](
@@ -573,12 +520,10 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
     lazy val activeLocalProject: LocalProject = TestProjectUtils.getDummyLocalProject().copy(active = true)
     lazy val inactiveLocalProject: LocalProject = TestProjectUtils.getDummyLocalProject(active = false)
     lazy val activeProject: Project = activeLocalProject.toProject(gitLabRepositoryResponse.id)
-    lazy val updatingProject: Project = activeProject.copy(name = "New" + activeProject.name)
     lazy val inactiveProject: Project = activeProject.copy(active = false)
     lazy val projectWithRepo: Project = activeLocalProject.toProject(gitLabRepositoryResponse.id)
 
-    lazy val postProject: PostProject = PostProject(name = activeProject.name)
-    lazy val putUpdateProject: UpdateProjectGitLabRequest = UpdateProjectGitLabRequest(name = updatingProject.name)
+    lazy val postProject: PostProject = PostProject(name = activeProject.projectId.value)
 
     lazy val dummyPipelineVersion: PipelineVersion = TestProjectUtils.getDummyPipeLineVersion()
     lazy val dummyPipelineVersionHigher: PipelineVersion = dummyPipelineVersion.increaseMinor

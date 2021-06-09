@@ -59,7 +59,7 @@ lazy val portal = project
   .settings(
     name := "Portal",
     commonSettings,
-    libraryDependencies ++= akkaDependencies ++ jsonDependencies ++ logDependencies :+ configHokon :+ akkaHttpCore,
+    libraryDependencies ++= akkaDependencies ++ jsonDependencies ++ logDependencies :+ configHokon :+ akkaHttpCore :+ akkaHttpCors,
     Defaults.itSettings,
     Seq(parallelExecution in Test := false),
     addCommandAlias("testAll", "; test ; it:test"),
