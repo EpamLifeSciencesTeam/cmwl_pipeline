@@ -16,7 +16,7 @@ object ConfigJsonOps extends ConfigJsonOps {
 
     val secretCAWrites: Writes[SecretData[Array[Char]]] = secretDataWrites(Writes.StringWrites.contramap(new String(_)))
 
-    implicit val akkaHttpCorsWrites: Writes[CorsConfig] =
+    implicit val corsWrites: Writes[CorsConfig] =
       (__ \ "allowedOrigins").write[Seq[String]].contramap[CorsConfig](_.allowedOrigins)
 
     implicit val wsWrites: Writes[WebServiceConfig] =
