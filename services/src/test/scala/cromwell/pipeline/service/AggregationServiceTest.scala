@@ -1,21 +1,8 @@
 package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestRunUtils, TestUserUtils }
-import cromwell.pipeline.datastorage.dto.{
-  CromwellInput,
-  FileParameter,
-  FileTree,
-  PipelineVersion,
-  Project,
-  ProjectConfiguration,
-  ProjectConfigurationId,
-  ProjectConfigurationVersion,
-  ProjectFile,
-  ProjectFileConfiguration,
-  ProjectFileContent,
-  StringTyped
-}
-import cromwell.pipeline.service.Exceptions.ProjectNotFoundException
+import cromwell.pipeline.datastorage.dto._
+import cromwell.pipeline.service.ProjectService.Exceptions.ProjectNotFoundException
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
