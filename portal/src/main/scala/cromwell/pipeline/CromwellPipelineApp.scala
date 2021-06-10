@@ -27,25 +27,40 @@ object CromwellPipelineApp extends App {
     .result()
     .withFallback(RejectionHandler.default)
 
-  Try {
-    val components = new ApplicationComponents()
+  def initializeApplicationComponents: Try[ApplicationComponents] = Try {
+    new ApplicationComponents()
+  }
 
-    import components.applicationConfig
-    import components.applicationConfig.webServiceConfig
+  def updateDb(components: ApplicationComponents): Try[Unit] = {
     import components.datastorageModule._
-
     pipelineDatabaseEngine.updateSchema()
+  }
 
-    val route = new CromwellPipelineRoute(components.applicationConfig, components.controllerModule).route
+  def startHttpServer(components: ApplicationComponents): Try[Unit] =
+    Try {
+      import components.applicationConfig
+      import components.applicationConfig.webServiceConfig
+      val route = new CromwellPipelineRoute(applicationConfig, components.controllerModule).route
+      log.info(s"Server online at http://${webServiceConfig.interface}:${webServiceConfig.port}/")
+      log.info(ConfigJsonOps.configToJsonString(applicationConfig))
+      Http().newServerAt(webServiceConfig.interface, webServiceConfig.port).bindFlow(route)
+    }
 
-    log.info(s"Server online at http://${webServiceConfig.interface}:${webServiceConfig.port}/")
-    log.info(ConfigJsonOps.configToJsonString(applicationConfig))
-    Http().newServerAt(webServiceConfig.interface, webServiceConfig.port).bindFlow(route)
-  } match {
-    case Success(_) =>
-      log.info(s"Application is running!")
-    case Failure(e) =>
+  val app = for {
+
+    applicationComponents <- initializeApplicationComponents
+
+    _ <- updateDb(applicationComponents)
+
+    _ <- startHttpServer(applicationComponents)
+
+  } yield ()
+
+  app match {
+    case Success(_) => log.info(s"Application is running!")
+
+    case Failure(exception) =>
+      log.error(s"Application cannot be started:", exception)
       system.terminate()
-      log.error(s"Application cannot be started:", e)
   }
 }

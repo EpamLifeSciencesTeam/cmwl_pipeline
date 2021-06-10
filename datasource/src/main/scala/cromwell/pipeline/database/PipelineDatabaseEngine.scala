@@ -1,13 +1,13 @@
 package cromwell.pipeline.database
 
-import java.sql.Connection
-
 import com.typesafe.config.{ Config, ConfigFactory }
 import slick.basic.DatabaseConfig
 import slick.jdbc.JdbcProfile
 
+import java.sql.Connection
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.util.Try
 
 class PipelineDatabaseEngine(config: Config = ConfigFactory.load()) extends AutoCloseable {
 
@@ -19,7 +19,7 @@ class PipelineDatabaseEngine(config: Config = ConfigFactory.load()) extends Auto
 
   import profile.api._
 
-  def updateSchema(): Unit =
+  def updateSchema(): Try[Unit] =
     withConnection(LiquibaseUtils.updateSchema(changeLogResourcePath))
 
   private def withConnection[A](actionFunc: Connection => A): A = {
