@@ -12,6 +12,24 @@ jobs:
     name: Check Commit Message
     runs-on: ubuntu-latest
     steps:
+      - name: Check PR JIRA reference
+        uses: gsactions/commit-message-checker@v1
+        with:
+          pattern: '^(\[WIP\] )?((EPMLSTRCMW-\d{1,4})|(IS-00)) .*$'
+          error: 'Pull Request name must start with a JIRA ticket reference'
+          flags: 's'
+          excludeDescription: 'true'
+          excludeTitle: 'false'
+          checkAllCommitMessages: 'false'
+      - name: Check PR description
+        uses: gsactions/commit-message-checker@v1
+        with:
+          pattern: '^(\[WIP\] )?([A-Z]+-\d+) .{10,}$'
+          error: 'Pull Request name must have meaningful description'
+          flags: 's'
+          excludeDescription: 'true'
+          excludeTitle: 'false'
+          checkAllCommitMessages: 'false'
       - name: Check Commit Type
         uses: gsactions/commit-message-checker@v1
         with:
