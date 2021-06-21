@@ -20,15 +20,18 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
   private val projectId: ProjectId = dummyProject.projectId
   private val userId: UserId = dummyProject.ownerId
   private val strangerId: UserId = TestUserUtils.getDummyUserId
+  private val projectConfigurationId = ProjectConfigurationId.randomId
 
   private val projectFileConfiguration: ProjectFileConfiguration =
     ProjectFileConfiguration(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello")))))
 
   private val activeConfiguration: ProjectConfiguration =
     ProjectConfiguration(
-      projectId = projectId,
+      projectConfigurationId,
+      projectId,
       active = true,
-      projectFileConfigurations = List(projectFileConfiguration)
+      List(projectFileConfiguration),
+      ProjectConfigurationVersion.defaultVersion
     )
 
   private val inactiveConfiguration: ProjectConfiguration =
@@ -47,30 +50,32 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
       when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(dummyProject))
 
       "return success if creation was successful" in {
-        when(configurationRepository.getById(projectId)).thenReturn(Future.successful(None))
+        when(configurationRepository.getAllByProjectId(projectId)).thenReturn(Future.successful(Seq.empty))
         when(configurationRepository.addConfiguration(activeConfiguration)).thenReturn(Future.successful(result))
         configurationService.addConfiguration(activeConfiguration, userId).map(_ shouldBe result)
       }
 
       "return success if update was successful" in {
-        when(configurationRepository.getById(projectId)).thenReturn(Future.successful(Some(activeConfiguration)))
+        when(configurationRepository.getAllByProjectId(projectId))
+          .thenReturn(Future.successful(Seq(activeConfiguration)))
         when(configurationRepository.updateConfiguration(updatedConfiguration)).thenReturn(Future.successful(result))
         configurationService.addConfiguration(updatedConfiguration, userId).map(_ shouldBe result)
       }
 
       "return failure if it couldn't fetch existing configuration" in {
-        when(configurationRepository.getById(projectId)).thenReturn(Future.failed(error))
+        when(configurationRepository.getAllByProjectId(projectId)).thenReturn(Future.failed(error))
         configurationService.addConfiguration(activeConfiguration, userId).failed.map(_ shouldBe error)
       }
 
       "return failure if creation wasn't successful" in {
-        when(configurationRepository.getById(projectId)).thenReturn(Future.successful(None))
+        when(configurationRepository.getAllByProjectId(projectId)).thenReturn(Future.successful(Seq.empty))
         when(configurationRepository.addConfiguration(activeConfiguration)).thenReturn(Future.failed(error))
         configurationService.addConfiguration(activeConfiguration, userId).failed.map(_ shouldBe error)
       }
 
       "return failure if update wasn't successful" in {
-        when(configurationRepository.getById(projectId)).thenReturn(Future.successful(Some(activeConfiguration)))
+        when(configurationRepository.getAllByProjectId(projectId))
+          .thenReturn(Future.successful(Seq(activeConfiguration)))
         when(configurationRepository.updateConfiguration(activeConfiguration)).thenReturn(Future.failed(error))
         configurationService.addConfiguration(activeConfiguration, userId).failed.map(_ shouldBe error)
       }
@@ -81,7 +86,8 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
       when(projectService.getUserProjectById(projectId, strangerId)).thenReturn(Future.failed(error))
 
       "return failure" in {
-        when(configurationRepository.getById(projectId)).thenReturn(Future.successful(Some(activeConfiguration)))
+        when(configurationRepository.getAllByProjectId(projectId))
+          .thenReturn(Future.successful(Seq(activeConfiguration)))
         configurationService.addConfiguration(activeConfiguration, strangerId).failed.map(_ shouldBe error)
       }
     }
@@ -91,26 +97,27 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
 
       "return project if it was found" in {
         val result: Option[ProjectConfiguration] = Some(activeConfiguration)
-        when(configurationRepository.getById(projectId)).thenReturn(Future.successful(result))
-        configurationService.getConfigurationById(projectId, userId).map(_ shouldBe result)
+        when(configurationRepository.getAllByProjectId(projectId))
+          .thenReturn(Future.successful(Seq(activeConfiguration)))
+        configurationService.getLastByProjectId(projectId, userId).map(_ shouldBe result)
       }
 
       "not return inactive project" in {
-        val result: Option[ProjectConfiguration] = Some(inactiveConfiguration)
-        when(configurationRepository.getById(projectId)).thenReturn(Future.successful(result))
-        configurationService.getConfigurationById(projectId, userId).map(_ shouldBe None)
+        val result: Seq[ProjectConfiguration] = Seq(inactiveConfiguration)
+        when(configurationRepository.getAllByProjectId(projectId)).thenReturn(Future.successful(result))
+        configurationService.getLastByProjectId(projectId, userId).map(_ shouldBe None)
       }
 
       "not fail if project wasn't found" in {
         val result: Option[ProjectConfiguration] = None
-        when(configurationRepository.getById(projectId)).thenReturn(Future.successful(result))
-        configurationService.getConfigurationById(projectId, userId).map(_ shouldBe result)
+        when(configurationRepository.getAllByProjectId(projectId)).thenReturn(Future.successful(Seq.empty))
+        configurationService.getLastByProjectId(projectId, userId).map(_ shouldBe result)
       }
 
       "return failure if repository returned error" in {
         val error = new Exception("Oh no")
-        when(configurationRepository.getById(projectId)).thenReturn(Future.failed(error))
-        configurationService.getConfigurationById(projectId, userId).failed.map(_ shouldBe error)
+        when(configurationRepository.getAllByProjectId(projectId)).thenReturn(Future.failed(error))
+        configurationService.getLastByProjectId(projectId, userId).failed.map(_ shouldBe error)
       }
     }
 
@@ -118,7 +125,7 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
       val error = new ProjectAccessDeniedException
       when(projectService.getUserProjectById(projectId, strangerId)).thenReturn(Future.failed(error))
       "return failure" in {
-        configurationService.getConfigurationById(projectId, strangerId).failed.map(_ shouldBe error)
+        configurationService.getLastByProjectId(projectId, strangerId).failed.map(_ shouldBe error)
       }
     }
 
@@ -126,15 +133,16 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
       when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(dummyProject))
       "return complete status for deactivating configuration" in {
         val result: Unit = ()
-        when(configurationRepository.getById(projectId)).thenReturn(Future.successful(Some(activeConfiguration)))
+        when(configurationRepository.getAllByProjectId(projectId))
+          .thenReturn(Future.successful(Seq(activeConfiguration)))
         when(configurationRepository.updateConfiguration(inactiveConfiguration)).thenReturn(Future.successful(result))
-        configurationService.deactivateConfiguration(projectId, userId).map(_ shouldBe result)
+        configurationService.deactivateLastByProjectId(projectId, userId).map(_ shouldBe result)
       }
 
       "return exception if no configuration was matched" in {
-        when(configurationRepository.getById(projectId)).thenReturn(Future.successful(None))
+        when(configurationRepository.getAllByProjectId(projectId)).thenReturn(Future.successful(Seq.empty))
         configurationService
-          .deactivateConfiguration(projectId, userId)
+          .deactivateLastByProjectId(projectId, userId)
           .failed
           .map(_ should have.message("There is no project to deactivate"))
       }
@@ -146,7 +154,7 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
 
       "return exception" in {
         configurationService
-          .deactivateConfiguration(projectId, strangerId)
+          .deactivateLastByProjectId(projectId, strangerId)
           .failed
           .map(_ should have.message("Access denied. You  not owner of the project"))
       }

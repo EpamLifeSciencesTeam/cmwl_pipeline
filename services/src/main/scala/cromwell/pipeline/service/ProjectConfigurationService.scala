@@ -24,7 +24,7 @@ class ProjectConfigurationService(repository: ProjectConfigurationRepository, pr
     def toProjectFileConfiguration(path: Path, inputs: Map[String, TypedValue]): ProjectFileConfiguration =
       ProjectFileConfiguration(path, inputs.map((FileParameter.apply _).tupled).toList)
 
-    getConfigurationById(projectConfiguration.projectId, userId).flatMap {
+    getLastByProjectId(projectConfiguration.projectId, userId).flatMap {
       case Some(config) =>
         val oldFileConfigsMap = config.projectFileConfigurations.map(toTuple).toMap
         val newFileConfigsMap = projectConfiguration.projectFileConfigurations.map(toTuple).toMap
@@ -39,13 +39,16 @@ class ProjectConfigurationService(repository: ProjectConfigurationRepository, pr
     }
   }
 
-  def getConfigurationById(projectId: ProjectId, userId: UserId): Future[Option[ProjectConfiguration]] =
-    projectService
-      .getUserProjectById(projectId, userId)
-      .flatMap(_ => repository.getById(projectId).map(_.filter(_.active)))
+  private def getByProjectId(projectId: ProjectId, userId: UserId): Future[Seq[ProjectConfiguration]] =
+    projectService.getUserProjectById(projectId, userId).flatMap(_ => repository.getAllByProjectId(projectId))
 
-  def deactivateConfiguration(projectId: ProjectId, userId: UserId): Future[Unit] =
-    getConfigurationById(projectId, userId).flatMap {
+  def getLastByProjectId(projectId: ProjectId, userId: UserId): Future[Option[ProjectConfiguration]] =
+    getByProjectId(projectId, userId).map(
+      _.filter(_.active).sortBy(_.version).lastOption
+    )
+
+  def deactivateLastByProjectId(projectId: ProjectId, userId: UserId): Future[Unit] =
+    getLastByProjectId(projectId: ProjectId, userId: UserId).flatMap {
       case Some(config) => updateConfiguration(config.copy(active = false))
       case _            => Future.failed(new RuntimeException("There is no project to deactivate"))
     }

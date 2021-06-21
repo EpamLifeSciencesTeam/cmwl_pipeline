@@ -23,6 +23,9 @@ object GeneratorUtils {
 
   private lazy val projectIdGen: Gen[ProjectId] = Gen.uuid.map(id => ProjectId(id.toString))
 
+  private lazy val projectConfigurationIdGen: Gen[ProjectConfigurationId] =
+    Gen.uuid.map(id => ProjectConfigurationId(id.toString))
+
   private lazy val emailGen: Gen[UserEmail] = for {
     name <- stringGen()
     mail <- Gen.oneOf(Mail.values.toSeq)
@@ -44,6 +47,10 @@ object GeneratorUtils {
     minor <- versionValueGen
     revision <- versionValueGen
   } yield PipelineVersion(major, minor, revision)
+
+  private lazy val projectConfigurationVersionGen: Gen[ProjectConfigurationVersion] = for {
+    version <- versionValueGen
+  } yield ProjectConfigurationVersion(version)
 
   private lazy val passwordGen: Gen[Password] = for {
     upperCase <- Gen.alphaUpperStr.suchThat(s => s.nonEmpty)
@@ -128,10 +135,12 @@ object GeneratorUtils {
   } yield ProjectFileConfiguration(path, fileParameters)
 
   lazy val projectConfigurationGen: Gen[ProjectConfiguration] = for {
+    id <- projectConfigurationIdGen
     projectId <- projectIdGen
     active <- booleanGen
     projectFileConfigurations <- listOfN(projectFileConfigurationGen)
-  } yield ProjectConfiguration(projectId, active, projectFileConfigurations)
+    version <- projectConfigurationVersionGen
+  } yield ProjectConfiguration(id, projectId, active, projectFileConfigurations, version)
 
   object Mail extends Enumeration {
     val Mail, Gmail, Epam, Yandex = Value

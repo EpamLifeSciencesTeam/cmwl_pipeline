@@ -16,29 +16,41 @@ class ProjectConfigurationRepositoryTest extends AsyncWordSpec with Matchers wit
 
   private val documentRepository = mock[DocumentRepository]
   private val configurationRepository = new ProjectConfigurationRepository(documentRepository)
-
   private val projectFileConfiguration: ProjectFileConfiguration =
     ProjectFileConfiguration(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello")))))
   private val projectId: ProjectId = TestProjectUtils.getDummyProjectId
-
+  private val projectConfigurationId = ProjectConfigurationId.randomId
   private val configuration: ProjectConfiguration =
     ProjectConfiguration(
-      projectId = projectId,
+      projectConfigurationId,
+      projectId,
       active = true,
-      projectFileConfigurations = List(projectFileConfiguration)
+      List(projectFileConfiguration),
+      ProjectConfigurationVersion.defaultVersion
     )
 
   "ProjectConfigurationRepository" when {
     "add configuration for project" should {
       "return success if creation was successful" in {
         val result: Unit = ()
-        when(documentRepository.upsertOne(configuration, "projectId", projectId.value))
-          .thenReturn(Future.successful(result))
+        when(
+          documentRepository.upsertOne(
+            configuration,
+            "id",
+            configuration.id.value
+          )
+        ).thenReturn(Future.successful(result))
         configurationRepository.addConfiguration(configuration).map(_ shouldBe result)
       }
       "return failure if creation wasn't successful" in {
         val error = new Exception("Oh no")
-        when(documentRepository.upsertOne(configuration, "projectId", projectId.value)).thenReturn(Future.failed(error))
+        when(
+          documentRepository.upsertOne(
+            configuration,
+            "id",
+            configuration.id.value
+          )
+        ).thenReturn(Future.failed(error))
         configurationRepository.addConfiguration(configuration).failed.map(_ shouldBe error)
       }
     }
@@ -46,13 +58,24 @@ class ProjectConfigurationRepositoryTest extends AsyncWordSpec with Matchers wit
     "update configuration for project" should {
       "return success if update was successful" in {
         val result: Unit = ()
-        when(documentRepository.upsertOne(configuration, "projectId", projectId.value))
-          .thenReturn(Future.successful(result))
+        when(
+          documentRepository.upsertOne(
+            configuration,
+            "id",
+            configuration.id.value
+          )
+        ).thenReturn(Future.successful(result))
         configurationRepository.updateConfiguration(configuration).map(_ shouldBe result)
       }
       "return failure if update wasn't successful" in {
         val error = new Exception("Oh no")
-        when(documentRepository.upsertOne(configuration, "projectId", projectId.value)).thenReturn(Future.failed(error))
+        when(
+          documentRepository.upsertOne(
+            configuration,
+            "id",
+            configuration.id.value
+          )
+        ).thenReturn(Future.failed(error))
         configurationRepository.updateConfiguration(configuration).failed.map(_ shouldBe error)
       }
     }
@@ -61,14 +84,13 @@ class ProjectConfigurationRepositoryTest extends AsyncWordSpec with Matchers wit
       "return configuration by project id" in {
         when(documentRepository.getByParam("projectId", projectId.value))
           .thenReturn(Future.successful(List(configuration)))
-        configurationRepository.getById(projectId).map(_ shouldBe Some(configuration))
+        configurationRepository.getAllByProjectId(projectId).map(_ shouldBe List(configuration))
       }
 
       "return None if no configuration was matched" in {
         when(documentRepository.getByParam("projectId", projectId.value)).thenReturn(Future.successful(List()))
-        configurationRepository.getById(projectId).map(_ shouldBe None)
+        configurationRepository.getAllByProjectId(projectId).map(_.headOption shouldBe None)
       }
     }
   }
-
 }

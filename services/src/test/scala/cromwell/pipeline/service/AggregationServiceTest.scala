@@ -8,6 +8,8 @@ import cromwell.pipeline.datastorage.dto.{
   PipelineVersion,
   Project,
   ProjectConfiguration,
+  ProjectConfigurationId,
+  ProjectConfigurationVersion,
   ProjectFile,
   ProjectFileConfiguration,
   ProjectFileContent,
@@ -38,13 +40,16 @@ class AggregationServiceTest extends AsyncWordSpec with Matchers with MockitoSug
       val path = Paths.get("test.wdl")
       val run = TestRunUtils.getDummyRun(runId = runId, projectId = projectId, userId = userId)
       val version = PipelineVersion(run.projectVersion)
+      val configurationId = ProjectConfigurationId.randomId
       val projectConfigurations =
         ProjectConfiguration(
+          configurationId,
           projectId,
           active = true,
           List(
             ProjectFileConfiguration(path, List(FileParameter("_type", StringTyped(Some("String")))))
-          )
+          ),
+          ProjectConfigurationVersion.defaultVersion
         )
 
       "should return CromwellInput" taggedAs Service in {
@@ -64,7 +69,7 @@ class AggregationServiceTest extends AsyncWordSpec with Matchers with MockitoSug
         when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(dummyProject))
         when(projectVersioning.getFilesTree(dummyProject, Some(version))).thenReturn(Future.successful(Right(trees)))
         when(projectVersioning.getFile(dummyProject, path, Some(version))).thenReturn(Future.successful(Right(file)))
-        when(projectConfigurationService.getConfigurationById(projectId, userId))
+        when(projectConfigurationService.getLastByProjectId(projectId, userId))
           .thenReturn(Future.successful(Some(projectConfigurations)))
 
         aggregatorService.aggregate(run).map {
@@ -75,7 +80,7 @@ class AggregationServiceTest extends AsyncWordSpec with Matchers with MockitoSug
       "should return exception if project not found" taggedAs Service in {
         when(projectService.getUserProjectById(projectId, userId))
           .thenReturn(Future.failed(new ProjectNotFoundException))
-        when(projectConfigurationService.getConfigurationById(projectId, userId))
+        when(projectConfigurationService.getLastByProjectId(projectId, userId))
           .thenReturn(Future.successful(Some(projectConfigurations)))
 
         aggregatorService.aggregate(run).failed.map {
@@ -90,7 +95,7 @@ class AggregationServiceTest extends AsyncWordSpec with Matchers with MockitoSug
         when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(dummyProject))
         when(projectVersioning.getFilesTree(dummyProject, Some(version))).thenReturn(Future.successful(Right(trees)))
         when(projectVersioning.getFile(dummyProject, path, Some(version))).thenReturn(Future.successful(Right(file)))
-        when(projectConfigurationService.getConfigurationById(projectId, userId)).thenReturn(Future.successful(None))
+        when(projectConfigurationService.getLastByProjectId(projectId, userId)).thenReturn(Future.successful(None))
 
         aggregatorService.aggregate(run).failed.map {
           _ should have.message("Configurations for projectId " + projectId + " not found")
@@ -101,7 +106,7 @@ class AggregationServiceTest extends AsyncWordSpec with Matchers with MockitoSug
         when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(dummyProject))
         when(projectVersioning.getFilesTree(dummyProject, Some(version)))
           .thenReturn(Future.successful(Left(VersioningException.FileException("Could not take the files tree"))))
-        when(projectConfigurationService.getConfigurationById(projectId, userId))
+        when(projectConfigurationService.getLastByProjectId(projectId, userId))
           .thenReturn(Future.successful(Some(projectConfigurations)))
 
         aggregatorService.aggregate(run).failed.map {
