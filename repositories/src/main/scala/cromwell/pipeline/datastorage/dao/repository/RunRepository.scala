@@ -7,17 +7,36 @@ import cromwell.pipeline.model.wrapper.{ RunId, UserId }
 
 import scala.concurrent.Future
 
-class RunRepository(pipelineDatabaseEngine: PipelineDatabaseEngine, runEntry: RunEntry) {
+trait RunRepository {
 
-  import pipelineDatabaseEngine._
-  import pipelineDatabaseEngine.profile.api._
+  def getRunByIdAndUser(runId: RunId, userId: UserId): Future[Option[Run]]
 
-  def getRunByIdAndUser(runId: RunId, userId: UserId): Future[Option[Run]] =
-    database.run(runEntry.getRunByIdAndUser(runId, userId).result.headOption)
+  def deleteRunById(runId: RunId): Future[Int]
 
-  def deleteRunById(runId: RunId): Future[Int] = database.run(runEntry.deleteRunById(runId))
+  def addRun(run: Run): Future[RunId]
 
-  def addRun(run: Run): Future[RunId] = database.run(runEntry.addRun(run))
+  def updateRun(updatedRun: Run): Future[Int]
 
-  def updateRun(updatedRun: Run): Future[Int] = database.run(runEntry.updateRun(updatedRun))
+}
+
+object RunRepository {
+
+  def apply(pipelineDatabaseEngine: PipelineDatabaseEngine, runEntry: RunEntry): RunRepository =
+    new RunRepository {
+
+      import pipelineDatabaseEngine._
+
+      import pipelineDatabaseEngine.profile.api._
+
+      def getRunByIdAndUser(runId: RunId, userId: UserId): Future[Option[Run]] =
+        database.run(runEntry.getRunByIdAndUser(runId, userId).result.headOption)
+
+      def deleteRunById(runId: RunId): Future[Int] = database.run(runEntry.deleteRunById(runId))
+
+      def addRun(run: Run): Future[RunId] = database.run(runEntry.addRun(run))
+
+      def updateRun(updatedRun: Run): Future[Int] = database.run(runEntry.updateRun(updatedRun))
+
+    }
+
 }

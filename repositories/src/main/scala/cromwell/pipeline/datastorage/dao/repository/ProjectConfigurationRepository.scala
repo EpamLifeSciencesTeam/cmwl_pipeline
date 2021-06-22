@@ -6,20 +6,38 @@ import cromwell.pipeline.datastorage.dto.{ ProjectConfiguration, ProjectConfigur
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class ProjectConfigurationRepository(repository: DocumentRepository)(implicit ec: ExecutionContext) {
+trait ProjectConfigurationRepository {
 
-  private def upsertConfiguration(projectConfiguration: ProjectConfiguration): Future[Unit] =
-    repository.upsertOne(projectConfiguration, "id", projectConfiguration.id.value)
+  def addConfiguration(projectConfiguration: ProjectConfiguration): Future[Unit]
 
-  def addConfiguration(projectConfiguration: ProjectConfiguration): Future[Unit] =
-    upsertConfiguration(projectConfiguration)
+  def updateConfiguration(projectConfiguration: ProjectConfiguration): Future[Unit]
 
-  def updateConfiguration(projectConfiguration: ProjectConfiguration): Future[Unit] =
-    upsertConfiguration(projectConfiguration)
+  def getById(id: ProjectConfigurationId): Future[Option[ProjectConfiguration]]
 
-  def getById(id: ProjectConfigurationId): Future[Option[ProjectConfiguration]] =
-    repository.getByParam("id", id.value).map(_.headOption)
+  def getAllByProjectId(projectId: ProjectId): Future[Seq[ProjectConfiguration]]
 
-  def getAllByProjectId(projectId: ProjectId): Future[Seq[ProjectConfiguration]] =
-    repository.getByParam("projectId", projectId.value)
+}
+
+object ProjectConfigurationRepository {
+
+  def apply(repository: DocumentRepository)(implicit ec: ExecutionContext): ProjectConfigurationRepository =
+    new ProjectConfigurationRepository {
+
+      private def upsertConfiguration(projectConfiguration: ProjectConfiguration): Future[Unit] =
+        repository.upsertOne(projectConfiguration, "id", projectConfiguration.id.value)
+
+      def addConfiguration(projectConfiguration: ProjectConfiguration): Future[Unit] =
+        upsertConfiguration(projectConfiguration)
+
+      def updateConfiguration(projectConfiguration: ProjectConfiguration): Future[Unit] =
+        upsertConfiguration(projectConfiguration)
+
+      def getById(id: ProjectConfigurationId): Future[Option[ProjectConfiguration]] =
+        repository.getByParam("id", id.value).map(_.headOption)
+
+      def getAllByProjectId(projectId: ProjectId): Future[Seq[ProjectConfiguration]] =
+        repository.getByParam("projectId", projectId.value)
+
+    }
+
 }
