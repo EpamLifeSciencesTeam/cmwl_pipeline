@@ -15,7 +15,7 @@ import cromwell.pipeline.model.wrapper.{ Name, RunId, UserEmail, UserId }
 import cromwell.pipeline.utils.ApplicationConfig
 import org.mongodb.scala.{ Document, MongoCollection }
 import slick.jdbc.JdbcProfile
-import slick.lifted.StringColumnExtensionMethods
+import slick.lifted.{ Isomorphism, Rep, StringColumnExtensionMethods }
 
 import scala.concurrent.ExecutionContext
 
@@ -29,21 +29,18 @@ class DatastorageModule(applicationConfig: ApplicationConfig)(implicit execution
   lazy val documentRepository: DocumentRepository = new DocumentRepository(mongoCollection)
 
   lazy val userRepository: UserRepository =
-    new UserRepository(pipelineDatabaseEngine, databaseLayer)
+    UserRepository(pipelineDatabaseEngine, databaseLayer)
   lazy val projectRepository: ProjectRepository =
-    new ProjectRepository(pipelineDatabaseEngine, databaseLayer)
+    ProjectRepository(pipelineDatabaseEngine, databaseLayer)
   lazy val runRepository: RunRepository =
-    new RunRepository(pipelineDatabaseEngine, databaseLayer)
+    RunRepository(pipelineDatabaseEngine, databaseLayer)
   lazy val configurationRepository: ProjectConfigurationRepository =
-    new ProjectConfigurationRepository(documentRepository)
+    ProjectConfigurationRepository(documentRepository)
 }
 
 trait Profile {
   val profile: JdbcProfile
   object Implicits {
-
-    import cats.implicits.catsStdShowForString
-    import profile.api._
 
     import scala.language.implicitConversions
 
