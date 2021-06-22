@@ -34,6 +34,18 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
     }
   }
 
+  private def getFile(implicit accessToken: AccessTokenContent): Route = get {
+    parameter('project_id.as[ProjectId], 'project_file_path.as[Path], 'version.as[PipelineVersion].optional) {
+      (projectId, projectFilePath, version) =>
+        onComplete(
+          wdlService.getFile(projectId, projectFilePath, version, accessToken.userId)
+        ) {
+          case Success(projectFile) => complete(projectFile)
+          case Failure(e)           => complete(StatusCodes.NotFound, e.getMessage)
+        }
+    }
+  }
+
   private def uploadFile(implicit accessToken: AccessTokenContent): Route = post {
     entity(as[ProjectUpdateFileRequest]) { request =>
       onComplete(for {
@@ -83,6 +95,7 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
     pathPrefix("files") {
       validateFile ~
       buildConfiguration ~
+      getFile ~
       uploadFile
     }
 }

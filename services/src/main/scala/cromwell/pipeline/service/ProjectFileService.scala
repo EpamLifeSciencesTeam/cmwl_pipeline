@@ -40,6 +40,19 @@ class ProjectFileService(
       }
     }
 
+  def getFile(
+    projectId: ProjectId,
+    path: Path,
+    version: Option[PipelineVersion] = None,
+    userId: UserId
+  ): Future[ProjectFile] =
+    projectService.getUserProjectById(projectId, userId).flatMap { project =>
+      projectVersioning.getFile(project, path, version).flatMap {
+        case Left(versioningException) => Future.failed(versioningException)
+        case Right(projectFile)        => Future.successful(projectFile)
+      }
+    }
+
   def buildConfiguration(
     projectId: ProjectId,
     projectFilePath: Path,
