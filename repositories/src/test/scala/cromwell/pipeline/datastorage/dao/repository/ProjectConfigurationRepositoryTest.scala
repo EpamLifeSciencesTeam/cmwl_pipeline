@@ -15,7 +15,7 @@ import scala.concurrent.Future
 class ProjectConfigurationRepositoryTest extends AsyncWordSpec with Matchers with MockitoSugar {
 
   private val documentRepository = mock[DocumentRepository]
-  private val configurationRepository = new ProjectConfigurationRepository(documentRepository)
+  private val configurationRepository = ProjectConfigurationRepository(documentRepository)
   private val projectFileConfiguration: ProjectFileConfiguration =
     ProjectFileConfiguration(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello")))))
   private val projectId: ProjectId = TestProjectUtils.getDummyProjectId

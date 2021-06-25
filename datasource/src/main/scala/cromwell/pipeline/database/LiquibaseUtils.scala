@@ -1,5 +1,6 @@
 package cromwell.pipeline.database
 
+import cromwell.pipeline.database.LiquibaseExceptions.LiquibaseUpdateSchemaException
 import liquibase.database.DatabaseFactory
 import liquibase.database.jvm.JdbcConnection
 import liquibase.resource.ClassLoaderResourceAccessor
@@ -15,17 +16,26 @@ object LiquibaseUtils {
   private val DefaultContexts = new Contexts()
   private val DefaultLabelExpression = new LabelExpression()
 
-  def updateSchema(changeLogResourcePath: String)(jdbcConnection: Connection): Unit = {
+  def updateSchema(
+    changeLogResourcePath: String
+  )(jdbcConnection: Connection): Try[Unit] = {
     val liquibaseConnection = new JdbcConnection(jdbcConnection)
+
     Try {
       val database = DatabaseFactory.getInstance.findCorrectDatabaseImplementation(liquibaseConnection)
       val liquibase = new Liquibase(changeLogResourcePath, new ClassLoaderResourceAccessor(), database)
 
       liquibase.update(DefaultContexts, DefaultLabelExpression)
     } match {
-      case Failure(exception) => log.error("An error during the schema update via liquibase.", exception)
-      case Success(_)         => log.error("Successfully updated db schema via liquibase!")
+      case Failure(exception) =>
+        liquibaseConnection.close()
+        val liquibaseUpdateSchemaException = LiquibaseUpdateSchemaException(exception)
+        log.error(liquibaseUpdateSchemaException.message, liquibaseUpdateSchemaException.cause)
+        Failure(liquibaseUpdateSchemaException)
+      case Success(_) =>
+        liquibaseConnection.close()
+        log.info("Successfully updated db schema via liquibase!")
+        Success(())
     }
-    liquibaseConnection.close()
   }
 }

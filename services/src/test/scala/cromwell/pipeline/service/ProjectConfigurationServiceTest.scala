@@ -1,15 +1,15 @@
 package cromwell.pipeline.service
 
-import java.nio.file.Paths
 import cromwell.pipeline.datastorage.dao.repository.ProjectConfigurationRepository
 import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
-import cromwell.pipeline.service.Exceptions.ProjectAccessDeniedException
+import cromwell.pipeline.service.ProjectService.Exceptions.ProjectAccessDeniedException
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
 
+import java.nio.file.Paths
 import scala.concurrent.Future
 
 class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
