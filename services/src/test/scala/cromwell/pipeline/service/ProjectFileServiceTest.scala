@@ -27,6 +27,15 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
   private val errorMessage = "ERROR: miss bracket"
 
   "ProjectFileServiceTest" when {
+    val userId = UserId.random
+    val project = TestProjectUtils.getDummyProject()
+    val projectId = project.projectId
+    val projectFilePath = Paths.get("test.txt")
+    val projectFileContent = ProjectFileContent(correctWdl)
+    val projectFile = ProjectFile(projectFilePath, projectFileContent)
+    val version = TestProjectUtils.getDummyPipeLineVersion()
+    val optionVersion = Some(version)
+
     "validateFile" should {
       "return valid message to valid file" taggedAs Service in {
         val request = ProjectFileContent(correctWdl)
@@ -43,23 +52,17 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
     }
 
     "upload file" should {
-      val userId = UserId.random
-      val project = TestProjectUtils.getDummyProject()
-      val projectId = project.projectId
-      val projectFileContent = ProjectFileContent("File content")
-      val projectFile = ProjectFile(Paths.get("test.txt"), projectFileContent)
-      val version = TestProjectUtils.getDummyPipeLineVersion()
-      val updateFiledResponse = UpdateFiledResponse(projectFile.path.toString, "master")
+      val updateFiledResponse = UpdateFiledResponse(projectFilePath.toString, "master")
 
       "return success message for request" taggedAs Service in {
         when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
-        when(projectVersioning.getUpdatedProjectVersion(project, Some(version)))
+        when(projectVersioning.getUpdatedProjectVersion(project, optionVersion))
           .thenReturn(Future.successful(Right(version)))
         when(projectVersioning.updateFile(project, projectFile, version))
           .thenReturn(Future.successful(Right(updateFiledResponse)))
         when(projectService.updateProjectVersion(projectId, version, userId)).thenReturn(Future.successful(0))
         projectFileService
-          .uploadFile(projectId, projectFile, Some(version), userId)
+          .uploadFile(projectId, projectFile, optionVersion, userId)
           .map(_ shouldBe Right(updateFiledResponse))
       }
 
@@ -85,21 +88,14 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
     }
 
     "build configuration" should {
-      val project = TestProjectUtils.getDummyProject()
-      val projectId = project.projectId
-      val projectFileContent = ProjectFileContent("File content")
-      val projectFile = ProjectFile(Paths.get("test.txt"), projectFileContent)
-      val version = Some(TestProjectUtils.getDummyPipeLineVersion())
-      val userId = UserId.random
-
       "return success message for request" taggedAs Service in {
         when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
-        when(projectVersioning.getFile(project, projectFile.path, version))
+        when(projectVersioning.getFile(project, projectFile.path, optionVersion))
           .thenReturn(Future.successful(Right(projectFile)))
         when(womTool.inputsToList(projectFileContent.content)).thenReturn(Right(Nil))
         when(configurationService.getLastByProjectId(projectId, userId)).thenReturn(Future.successful(None))
         projectFileService
-          .buildConfiguration(projectId, projectFile.path, version, userId)
+          .buildConfiguration(projectId, projectFile.path, optionVersion, userId)
           .map(
             builtConfiguration =>
               builtConfiguration shouldBe ProjectConfiguration(
@@ -114,25 +110,49 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
 
       "return error message for invalid file request" taggedAs Service in {
         when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
-        when(projectVersioning.getFile(project, projectFile.path, version))
+        when(projectVersioning.getFile(project, projectFile.path, optionVersion))
           .thenReturn(Future.successful(Right(projectFile)))
         when(womTool.inputsToList(projectFileContent.content)).thenReturn(Left(NonEmptyList(errorMessage, Nil)))
         when(configurationService.getLastByProjectId(projectId, userId)).thenReturn(Future.successful(None))
         projectFileService
-          .buildConfiguration(projectId, projectFile.path, version, userId)
+          .buildConfiguration(projectId, projectFile.path, optionVersion, userId)
           .failed
           .map(_ shouldBe ValidationError(List(errorMessage)))
       }
 
       "return error message for error request" taggedAs Service in {
         when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
-        when(projectVersioning.getFile(project, projectFile.path, version))
+        when(projectVersioning.getFile(project, projectFile.path, optionVersion))
           .thenReturn(Future.successful(Left(VersioningException.FileException("404"))))
         when(configurationService.getLastByProjectId(projectId, userId)).thenReturn(Future.successful(None))
         projectFileService
-          .buildConfiguration(projectId, projectFile.path, version, userId)
+          .buildConfiguration(projectId, projectFile.path, optionVersion, userId)
           .failed
           .map(_ shouldBe VersioningException.FileException("404"))
+      }
+    }
+
+    "get file" should {
+      "return file with full request" taggedAs Service in {
+        when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
+        when(projectVersioning.getFile(project, projectFilePath, optionVersion))
+          .thenReturn(Future.successful(Right(projectFile)))
+        projectFileService.getFile(projectId, projectFilePath, optionVersion, userId).map(_ shouldBe projectFile)
+      }
+
+      "return file with no version" taggedAs Service in {
+        when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
+        when(projectVersioning.getFile(project, projectFilePath, None))
+          .thenReturn(Future.successful(Right(projectFile)))
+        projectFileService.getFile(projectId, projectFilePath, None, userId).map(_ shouldBe projectFile)
+      }
+
+      "return VersioningException when file not found" taggedAs Service in {
+        val versioningException = new VersioningException.HttpException(s"Exception. Response status: Not Found")
+        when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
+        when(projectVersioning.getFile(project, projectFilePath, None))
+          .thenReturn(Future.successful(Left(versioningException)))
+        projectFileService.getFile(projectId, projectFilePath, None, userId).failed.map(_ shouldBe versioningException)
       }
     }
   }
