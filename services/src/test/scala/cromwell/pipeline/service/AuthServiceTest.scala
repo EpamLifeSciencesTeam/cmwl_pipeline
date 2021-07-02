@@ -186,7 +186,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
   class AuthServiceTestContext {
     protected val userRepository: UserRepository = stub[UserRepository]
     protected val authUtils: AuthUtils = stub[AuthUtils]
-    protected val authService: AuthService = new AuthService(userRepository, authUtils)
+    protected val authService: AuthService = AuthService(userRepository, authUtils)
   }
 
   class RefreshTokenContext(lifetime: Long) extends AuthServiceTestContext {
