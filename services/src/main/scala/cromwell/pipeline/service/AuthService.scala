@@ -1,20 +1,10 @@
 package cromwell.pipeline.service
 
-import java.time.Instant
-
 import cats.data.OptionT
 import cats.implicits._
 import cromwell.pipeline.auth.AuthUtils
-import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dto.User
-import cromwell.pipeline.datastorage.dto.auth.{
-  AccessTokenContent,
-  AuthContent,
-  AuthResponse,
-  RefreshTokenContent,
-  SignInRequest,
-  SignUpRequest
-}
+import cromwell.pipeline.datastorage.dto.auth._
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.service.AuthorizationException.{
   DuplicateUserException,
@@ -24,6 +14,7 @@ import cromwell.pipeline.service.AuthorizationException.{
 import cromwell.pipeline.utils.StringUtils
 import play.api.libs.json.Json
 
+import java.time.Instant
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.Random
 
@@ -50,7 +41,7 @@ object AuthService {
   val authorizationFailure = "invalid email or password"
   val inactiveUserMessage = "User is not active"
 
-  def apply(userRepository: UserRepository, authUtils: AuthUtils)(
+  def apply(userService: UserService, authUtils: AuthUtils)(
     implicit executionContext: ExecutionContext
   ): AuthService =
     new AuthService {
@@ -61,7 +52,7 @@ object AuthService {
         takeUserFromRequest(request).subflatMap(responseFromUser).value
 
       def signUp(request: SignUpRequest): Future[Option[AuthResponse]] =
-        userRepository.getUserByEmail(request.email).flatMap {
+        userService.getUserByEmail(request.email).flatMap {
           case Some(_) => Future.failed(DuplicateUserException(s"${request.email} already exists"))
           case None =>
             val passwordSalt = Random.nextLong().toHexString
@@ -74,7 +65,7 @@ object AuthService {
               firstName = request.firstName,
               lastName = request.lastName
             )
-            userRepository.addUser(newUser).map { userId =>
+            userService.addUser(newUser).map { userId =>
               val accessTokenContent = AccessTokenContent(userId)
               val refreshTokenContent = RefreshTokenContent(userId, None)
               getAuthResponse(accessTokenContent, refreshTokenContent, Instant.now.getEpochSecond)
@@ -98,7 +89,7 @@ object AuthService {
       }
 
       def takeUserFromRequest(request: SignInRequest): OptionT[Future, User] =
-        OptionT(userRepository.getUserByEmail(request.email)).semiflatMap[User] { user =>
+        OptionT(userService.getUserByEmail(request.email)).semiflatMap[User] { user =>
           val checkFilters = passwordCorrect(request, user).orElse(userIsActive(user))
           checkFilters match {
             case Some(value) => Future.failed(value)

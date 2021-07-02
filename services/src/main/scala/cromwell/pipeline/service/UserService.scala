@@ -3,7 +3,7 @@ package cromwell.pipeline.service
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
 import cromwell.pipeline.datastorage.dto.{ User, UserNoCredentials }
-import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.model.wrapper.{ UserEmail, UserId }
 import cromwell.pipeline.utils.StringUtils._
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -12,6 +12,10 @@ import scala.util.Random
 trait UserService {
 
   def getUsersByEmail(emailPattern: String): Future[Seq[User]]
+
+  def getUserByEmail(email: UserEmail): Future[Option[User]]
+
+  def addUser(user: User): Future[UserId]
 
   def deactivateUserById(userId: UserId): Future[Option[UserNoCredentials]]
 
@@ -32,6 +36,11 @@ object UserService {
 
       def getUsersByEmail(emailPattern: String): Future[Seq[User]] =
         userRepository.getUsersByEmail(emailPattern)
+
+      def getUserByEmail(email: UserEmail): Future[Option[User]] =
+        userRepository.getUserByEmail(email)
+
+      def addUser(user: User): Future[UserId] = userRepository.addUser(user)
 
       def deactivateUserById(userId: UserId): Future[Option[UserNoCredentials]] =
         for {

@@ -1,10 +1,7 @@
 package cromwell.pipeline.service
 
-import java.time.Instant
-
 import cats.implicits.catsStdShowForString
 import cromwell.pipeline.auth.AuthUtils
-import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dao.utils.TestUserUtils
 import cromwell.pipeline.datastorage.dto.auth._
 import cromwell.pipeline.model.validator.Enable
@@ -22,6 +19,7 @@ import pdi.jwt.algorithms.JwtHmacAlgorithm
 import pdi.jwt.{ Jwt, JwtAlgorithm, JwtClaim }
 import play.api.libs.json.Json
 
+import java.time.Instant
 import scala.concurrent.{ ExecutionContext, Future }
 
 class AuthServiceTest extends WordSpec with Matchers with MockFactory {
@@ -86,7 +84,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
     "signUp" should {
 
       "return Failed future when user already exists" taggedAs Service in new AuthServiceTestContext {
-        (userRepository.getUserByEmail _ when userEmail).returns(Future.successful(Some(dummyUser)))
+        (userService.getUserByEmail _ when userEmail).returns(Future.successful(Some(dummyUser)))
         whenReady(
           authService
             .signUp(
@@ -105,7 +103,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
     "signIn" should {
 
       "return Failed future when user is inactive" taggedAs Service in new AuthServiceTestContext {
-        (userRepository.getUserByEmail _ when inactiveUserEmail).returns(Future.successful(Some(inactiveUser)))
+        (userService.getUserByEmail _ when inactiveUserEmail).returns(Future.successful(Some(inactiveUser)))
         whenReady(
           authService
             .signIn(
@@ -119,7 +117,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
       }
 
       "return Failed future when password is incorrect" taggedAs Service in new AuthServiceTestContext {
-        (userRepository.getUserByEmail _ when userEmail).returns(Future.successful(Some(dummyUser)))
+        (userService.getUserByEmail _ when userEmail).returns(Future.successful(Some(dummyUser)))
         whenReady(
           authService
             .signIn(
@@ -139,7 +137,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
           dummyUser.email,
           Password(userPassword, Enable.Unsafe)
         )
-        (userRepository.getUserByEmail _ when dummyUser.email).returns(Future.successful(Some(dummyUser)))
+        (userService.getUserByEmail _ when dummyUser.email).returns(Future.successful(Some(dummyUser)))
         whenReady(authService.takeUserFromRequest(request).value) { _ shouldBe Some(dummyUser) }
       }
     }
@@ -184,9 +182,9 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
   }
 
   class AuthServiceTestContext {
-    protected val userRepository: UserRepository = stub[UserRepository]
+    protected val userService: UserService = stub[UserService]
     protected val authUtils: AuthUtils = stub[AuthUtils]
-    protected val authService: AuthService = AuthService(userRepository, authUtils)
+    protected val authService: AuthService = AuthService(userService, authUtils)
   }
 
   class RefreshTokenContext(lifetime: Long) extends AuthServiceTestContext {

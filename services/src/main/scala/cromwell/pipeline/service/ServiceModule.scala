@@ -15,7 +15,7 @@ class ServiceModule(
 )(
   implicit executionContext: ExecutionContext
 ) {
-  lazy val authService: AuthService = AuthService(datastorageModule.userRepository, authModule.authUtils)
+  lazy val authService: AuthService = AuthService(userService, authModule.authUtils)
   lazy val userService: UserService = UserService(datastorageModule.userRepository)
   lazy val projectVersioning: GitLabProjectVersioning = new GitLabProjectVersioning(httpClient, config)
   lazy val projectService: ProjectService = ProjectService(datastorageModule.projectRepository, projectVersioning)
