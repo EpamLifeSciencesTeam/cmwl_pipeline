@@ -16,7 +16,7 @@ class AggregationServiceTest extends AsyncWordSpec with Matchers with MockitoSug
   private val projectConfigurationService: ProjectConfigurationService = mock[ProjectConfigurationService]
   private val projectVersioning: GitLabProjectVersioning = mock[GitLabProjectVersioning]
   private val aggregatorService: AggregationService =
-    new AggregationService(projectService, projectVersioning, projectConfigurationService)
+    AggregationService(projectService, projectVersioning, projectConfigurationService)
 
   "AggregatorService" when {
     "aggregate" should {

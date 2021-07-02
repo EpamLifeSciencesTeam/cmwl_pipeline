@@ -16,7 +16,7 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
   private val projectService = mock[ProjectService]
   private val configurationRepository = mock[ProjectConfigurationRepository]
   private val dummyProject: Project = TestProjectUtils.getDummyProject()
-  private val configurationService = new ProjectConfigurationService(configurationRepository, projectService)
+  private val configurationService = ProjectConfigurationService(configurationRepository, projectService)
   private val projectId: ProjectId = dummyProject.projectId
   private val userId: UserId = dummyProject.ownerId
   private val strangerId: UserId = TestUserUtils.getDummyUserId
