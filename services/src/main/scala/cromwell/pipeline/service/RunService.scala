@@ -8,44 +8,62 @@ import cromwell.pipeline.model.wrapper.{ RunId, UserId }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class RunService(runRepository: RunRepository)(implicit executionContext: ExecutionContext) {
+trait RunService {
 
-  def addRun(runCreateRequest: RunCreateRequest): Future[RunId] = {
+  def addRun(runCreateRequest: RunCreateRequest): Future[RunId]
 
-    val newRun = Run(
-      runId = RunId.random,
-      projectId = runCreateRequest.projectId,
-      projectVersion = runCreateRequest.projectVersion,
-      status = Created,
-      timeStart = Instant.now(),
-      userId = runCreateRequest.userId,
-      results = runCreateRequest.results
-    )
+  def getRunByIdAndUser(runId: RunId, userId: UserId): Future[Option[Run]]
 
-    runRepository.addRun(newRun)
-  }
+  def deleteRunById(runId: RunId, userId: UserId): Future[Int]
 
-  def getRunByIdAndUser(runId: RunId, userId: UserId): Future[Option[Run]] =
-    runRepository.getRunByIdAndUser(runId, userId)
+  def updateRun(request: RunUpdateRequest, userId: UserId): Future[Int]
 
-  def deleteRunById(runId: RunId, userId: UserId): Future[Int] =
-    runRepository.getRunByIdAndUser(runId, userId).flatMap {
-      case Some(_) =>
-        runRepository.deleteRunById(runId)
-      case None => Future.failed(new RuntimeException("run with this id doesn't exist"))
-    }
-  def updateRun(request: RunUpdateRequest, userId: UserId): Future[Int] =
-    runRepository.getRunByIdAndUser(request.runId, userId).flatMap {
-      case Some(run) =>
-        runRepository.updateRun(
-          run.copy(
-            status = request.status,
-            timeStart = request.timeStart,
-            timeEnd = request.timeEnd,
-            results = request.results,
-            cmwlWorkflowId = request.cmwlWorkflowId
-          )
+}
+
+object RunService {
+
+  def apply(runRepository: RunRepository)(implicit executionContext: ExecutionContext): RunService =
+    new RunService {
+
+      def addRun(runCreateRequest: RunCreateRequest): Future[RunId] = {
+
+        val newRun = Run(
+          runId = RunId.random,
+          projectId = runCreateRequest.projectId,
+          projectVersion = runCreateRequest.projectVersion,
+          status = Created,
+          timeStart = Instant.now(),
+          userId = runCreateRequest.userId,
+          results = runCreateRequest.results
         )
-      case None => Future.failed(new RuntimeException("run with this id doesn't exist"))
+
+        runRepository.addRun(newRun)
+      }
+
+      def getRunByIdAndUser(runId: RunId, userId: UserId): Future[Option[Run]] =
+        runRepository.getRunByIdAndUser(runId, userId)
+
+      def deleteRunById(runId: RunId, userId: UserId): Future[Int] =
+        runRepository.getRunByIdAndUser(runId, userId).flatMap {
+          case Some(_) =>
+            runRepository.deleteRunById(runId)
+          case None => Future.failed(new RuntimeException("run with this id doesn't exist"))
+        }
+      def updateRun(request: RunUpdateRequest, userId: UserId): Future[Int] =
+        runRepository.getRunByIdAndUser(request.runId, userId).flatMap {
+          case Some(run) =>
+            runRepository.updateRun(
+              run.copy(
+                status = request.status,
+                timeStart = request.timeStart,
+                timeEnd = request.timeEnd,
+                results = request.results,
+                cmwlWorkflowId = request.cmwlWorkflowId
+              )
+            )
+          case None => Future.failed(new RuntimeException("run with this id doesn't exist"))
+        }
+
     }
+
 }

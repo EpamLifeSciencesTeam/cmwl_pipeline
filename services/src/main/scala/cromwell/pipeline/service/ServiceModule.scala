@@ -15,14 +15,13 @@ class ServiceModule(
 )(
   implicit executionContext: ExecutionContext
 ) {
-  lazy val authService: AuthService =
-    new AuthService(datastorageModule.userRepository, authModule.authUtils)
-  lazy val userService: UserService = new UserService(datastorageModule.userRepository)
+  lazy val authService: AuthService = AuthService(datastorageModule.userRepository, authModule.authUtils)
+  lazy val userService: UserService = UserService(datastorageModule.userRepository)
   lazy val projectVersioning: GitLabProjectVersioning = new GitLabProjectVersioning(httpClient, config)
-  lazy val projectService: ProjectService = new ProjectService(datastorageModule.projectRepository, projectVersioning)
-  lazy val configurationService =
-    new ProjectConfigurationService(datastorageModule.configurationRepository, projectService)
+  lazy val projectService: ProjectService = ProjectService(datastorageModule.projectRepository, projectVersioning)
+  lazy val configurationService: ProjectConfigurationService =
+    ProjectConfigurationService(datastorageModule.configurationRepository, projectService)
   lazy val projectFileService: ProjectFileService =
-    new ProjectFileService(projectService, configurationService, womToolModule.womTool, projectVersioning)
-  lazy val runService: RunService = new RunService(datastorageModule.runRepository)
+    ProjectFileService(projectService, configurationService, womToolModule.womTool, projectVersioning)
+  lazy val runService: RunService = RunService(datastorageModule.runRepository)
 }

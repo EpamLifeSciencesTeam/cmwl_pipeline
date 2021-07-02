@@ -8,63 +8,83 @@ import cromwell.pipeline.service.ProjectService.Exceptions.{ ProjectAccessDenied
 import java.util.UUID
 import scala.concurrent.{ ExecutionContext, Future }
 
-class ProjectService(projectRepository: ProjectRepository, projectVersioning: ProjectVersioning[VersioningException])(
-  implicit executionContext: ExecutionContext
-) {
+trait ProjectService {
 
-  private[service] def getUserProjectById(projectId: ProjectId, userId: UserId): Future[Project] =
-    projectRepository.getProjectById(projectId).flatMap(project => getForUserOrFail(project.toSeq, userId))
+  private[service] def getUserProjectById(projectId: ProjectId, userId: UserId): Future[Project]
 
-  def getUserProjectByName(namePattern: String, userId: UserId): Future[Project] =
-    projectRepository.getProjectsByName(namePattern).flatMap(getForUserOrFail(_, userId))
+  def getUserProjectByName(namePattern: String, userId: UserId): Future[Project]
 
-  private def getForUserOrFail(projects: Seq[Project], userId: UserId): Future[Project] =
-    projects.find(_.ownerId == userId) match {
-      case Some(project)             => Future.successful(project)
-      case None if projects.nonEmpty => Future.failed(new ProjectAccessDeniedException)
-      case _                         => Future.failed(new ProjectNotFoundException)
-    }
+  def addProject(request: ProjectAdditionRequest, userId: UserId): Future[Either[VersioningException, Project]]
 
-  def addProject(request: ProjectAdditionRequest, userId: UserId): Future[Either[VersioningException, Project]] = {
-    val localProject =
-      LocalProject(
-        projectId = ProjectId(UUID.randomUUID().toString),
-        ownerId = userId,
-        name = request.name,
-        active = true,
-        version = projectVersioning.getDefaultProjectVersion()
-      )
-    projectVersioning.createRepository(localProject).flatMap {
-      case Left(exception) => Future.successful(Left(exception))
-      case Right(project)  => projectRepository.addProject(project).map(_ => Right(project))
-    }
-  }
+  def deactivateProjectById(projectId: ProjectId, userId: UserId): Future[Project]
 
-  def deactivateProjectById(projectId: ProjectId, userId: UserId): Future[Project] =
-    getUserProjectById(projectId, userId).flatMap { project =>
-      if (!project.active) {
-        Future.successful(project)
-      } else {
-        projectRepository.deactivateProjectById(projectId).flatMap(_ => getUserProjectById(projectId, userId))
-      }
-    }
+  def updateProjectName(request: ProjectUpdateNameRequest, userId: UserId): Future[ProjectId]
 
-  def updateProjectName(request: ProjectUpdateNameRequest, userId: UserId): Future[ProjectId] =
-    getUserProjectById(request.projectId, userId).flatMap { project =>
-      val updatedProject = project.copy(name = request.name)
-      projectRepository.updateProjectName(updatedProject).map(_ => updatedProject.projectId)
-    }
+  def updateProjectVersion(projectId: ProjectId, version: PipelineVersion, userId: UserId): Future[Int]
 
-  def updateProjectVersion(projectId: ProjectId, version: PipelineVersion, userId: UserId): Future[Int] =
-    getUserProjectById(projectId, userId).flatMap { project =>
-      projectRepository.updateProjectVersion(project.copy(version = version))
-    }
 }
 
 object ProjectService {
+
   object Exceptions {
     final case class ProjectNotFoundException(message: String = "Project not found") extends RuntimeException(message)
     final case class ProjectAccessDeniedException(message: String = "Access denied. You  not owner of the project")
         extends RuntimeException(message)
   }
+
+  def apply(projectRepository: ProjectRepository, projectVersioning: ProjectVersioning[VersioningException])(
+    implicit executionContext: ExecutionContext
+  ): ProjectService =
+    new ProjectService {
+
+      private[service] def getUserProjectById(projectId: ProjectId, userId: UserId): Future[Project] =
+        projectRepository.getProjectById(projectId).flatMap(project => getForUserOrFail(project.toSeq, userId))
+
+      def getUserProjectByName(namePattern: String, userId: UserId): Future[Project] =
+        projectRepository.getProjectsByName(namePattern).flatMap(getForUserOrFail(_, userId))
+
+      private def getForUserOrFail(projects: Seq[Project], userId: UserId): Future[Project] =
+        projects.find(_.ownerId == userId) match {
+          case Some(project)             => Future.successful(project)
+          case None if projects.nonEmpty => Future.failed(new ProjectAccessDeniedException)
+          case _                         => Future.failed(new ProjectNotFoundException)
+        }
+
+      def addProject(request: ProjectAdditionRequest, userId: UserId): Future[Either[VersioningException, Project]] = {
+        val localProject =
+          LocalProject(
+            projectId = ProjectId(UUID.randomUUID().toString),
+            ownerId = userId,
+            name = request.name,
+            active = true,
+            version = projectVersioning.getDefaultProjectVersion()
+          )
+        projectVersioning.createRepository(localProject).flatMap {
+          case Left(exception) => Future.successful(Left(exception))
+          case Right(project)  => projectRepository.addProject(project).map(_ => Right(project))
+        }
+      }
+
+      def deactivateProjectById(projectId: ProjectId, userId: UserId): Future[Project] =
+        getUserProjectById(projectId, userId).flatMap { project =>
+          if (!project.active) {
+            Future.successful(project)
+          } else {
+            projectRepository.deactivateProjectById(projectId).flatMap(_ => getUserProjectById(projectId, userId))
+          }
+        }
+
+      def updateProjectName(request: ProjectUpdateNameRequest, userId: UserId): Future[ProjectId] =
+        getUserProjectById(request.projectId, userId).flatMap { project =>
+          val updatedProject = project.copy(name = request.name)
+          projectRepository.updateProjectName(updatedProject).map(_ => updatedProject.projectId)
+        }
+
+      def updateProjectVersion(projectId: ProjectId, version: PipelineVersion, userId: UserId): Future[Int] =
+        getUserProjectById(projectId, userId).flatMap { project =>
+          projectRepository.updateProjectVersion(project.copy(version = version))
+        }
+
+    }
+
 }

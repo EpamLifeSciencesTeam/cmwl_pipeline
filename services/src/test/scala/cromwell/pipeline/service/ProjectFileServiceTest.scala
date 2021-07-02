@@ -20,7 +20,7 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
   private val projectService = mock[ProjectService]
   private val configurationService = mock[ProjectConfigurationService]
   private val projectFileService =
-    new ProjectFileService(projectService, configurationService, womTool, projectVersioning)
+    ProjectFileService(projectService, configurationService, womTool, projectVersioning)
 
   private val correctWdl = "task hello {}"
   private val incorrectWdl = "task hello {"
