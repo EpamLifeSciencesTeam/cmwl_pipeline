@@ -3,6 +3,7 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import cromwell.pipeline.datastorage.dto.User
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
 import cromwell.pipeline.service.UserService
@@ -15,7 +16,7 @@ class UserController(userService: UserService) {
   private val getUser: Route = get {
     parameter('email.as[String]) { email =>
       onComplete(userService.getUsersByEmail(email)) {
-        case Success(r) => complete(r)
+        case Success(usersWithCredentials) => complete(usersWithCredentials.map(User.fromUserWithCredentials))
         case Failure(exc) =>
           complete(StatusCodes.InternalServerError, exc.getMessage)
       }

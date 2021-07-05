@@ -26,7 +26,7 @@ trait RunEntry { this: Profile with UserEntry with ProjectEntry with CustomsWith
     def projectId: Rep[ProjectId] = column[ProjectId]("project_id")
     def userId: Rep[UserId] = column[UserId]("user_id")
     def project: ForeignKeyQuery[ProjectTable, Project] = foreignKey("fk_run_project", projectId, projects)(_.projectId)
-    def user: ForeignKeyQuery[UserTable, User] = foreignKey("fk_run_user", userId, users)(_.userId)
+    def user: ForeignKeyQuery[UserTable, UserWithCredentials] = foreignKey("fk_run_user", userId, users)(_.userId)
   }
 
   val runs = TableQuery[RunTable]

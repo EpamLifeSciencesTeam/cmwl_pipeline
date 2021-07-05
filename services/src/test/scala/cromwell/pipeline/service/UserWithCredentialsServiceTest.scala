@@ -3,7 +3,7 @@ package cromwell.pipeline.service
 import cats.implicits._
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dao.utils.TestUserUtils
-import cromwell.pipeline.datastorage.dto.UserNoCredentials
+import cromwell.pipeline.datastorage.dto.User
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
 import cromwell.pipeline.model.validator.Enable
 import cromwell.pipeline.model.wrapper.{ Name, Password, UserEmail, UserId }
@@ -14,7 +14,7 @@ import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.Future
 
-class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
+class UserWithCredentialsServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
   private val userRepository: UserRepository = mock[UserRepository]
   private val userService: UserService = UserService(userRepository)
   private val validPassword: String = "newPassword_1"
@@ -28,7 +28,7 @@ class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         when(userRepository.deactivateUserById(user.userId)).thenReturn(Future.successful(1))
         when(userRepository.getUserById(user.userId)).thenReturn(Future.successful(Some(user)))
 
-        val response = UserNoCredentials.fromUser(user)
+        val response = User.fromUserWithCredentials(user)
         userService.deactivateUserById(user.userId).map { result =>
           result shouldBe Some(response)
         }

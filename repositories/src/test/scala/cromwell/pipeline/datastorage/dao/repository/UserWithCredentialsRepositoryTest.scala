@@ -10,7 +10,7 @@ import cromwell.pipeline.model.wrapper.{ Name, UserEmail }
 import cromwell.pipeline.utils.{ ApplicationConfig, StringUtils, TestContainersUtils }
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 
-class UserRepositoryTest
+class UserWithCredentialsRepositoryTest
     extends AsyncWordSpec
     with Matchers
     with BeforeAndAfterAll

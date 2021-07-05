@@ -1,6 +1,6 @@
 package cromwell.pipeline.datastorage.dao.utils
 
-import cromwell.pipeline.datastorage.dto.User
+import cromwell.pipeline.datastorage.dto.UserWithCredentials
 import cromwell.pipeline.utils.StringUtils
 import cats.implicits._
 import cromwell.pipeline.model.validator.Enable
@@ -16,9 +16,9 @@ object TestUserUtils {
     firstName: Name = Name("FirstName", Enable.Unsafe),
     lastName: Name = Name("LastName", Enable.Unsafe),
     active: Boolean = true
-  ): User = {
+  ): UserWithCredentials = {
     val passwordHash = StringUtils.calculatePasswordHash(password, passwordSalt)
-    User(
+    UserWithCredentials(
       uuid,
       UserEmail(s"JohnDoe-$uuid@cromwell.com", Enable.Unsafe),
       passwordHash,

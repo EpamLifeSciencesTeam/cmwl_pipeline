@@ -6,7 +6,7 @@ import cats.implicits._
 import cromwell.pipeline.datastorage.dao.utils.TestUserUtils
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
-import cromwell.pipeline.datastorage.dto.{ User, UserNoCredentials }
+import cromwell.pipeline.datastorage.dto.{ User, UserWithCredentials }
 import cromwell.pipeline.model.validator.Enable
 import cromwell.pipeline.model.wrapper.{ Password, UserEmail, UserId }
 import cromwell.pipeline.service.UserService
@@ -17,7 +17,7 @@ import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.Future
 
-class UserControllerTest
+class UserWithCredentialsControllerTest
     extends AsyncWordSpec
     with Matchers
     with ScalatestRouteTest
@@ -35,16 +35,16 @@ class UserControllerTest
 
       "return the sequence of users" taggedAs Controller in {
         val usersByEmailRequest: UserEmail = UserEmail("someDomain@mail.com", Enable.Unsafe)
-        val dummyUser: User = TestUserUtils.getDummyUser()
+        val dummyUser: UserWithCredentials = TestUserUtils.getDummyUser()
         val userId = dummyUser.userId
-        val uEmailRespSeq: Seq[User] = Seq(dummyUser)
+        val uEmailRespSeq: Seq[UserWithCredentials] = Seq(dummyUser)
 
         val accessToken = AccessTokenContent(userId)
         when(userService.getUsersByEmail(usersByEmailRequest.unwrap)).thenReturn(Future.successful(uEmailRespSeq))
 
         Get("/users?email=" + usersByEmailRequest) ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
-          responseAs[Seq[User]] shouldEqual uEmailRespSeq
+          responseAs[Seq[User]] shouldEqual uEmailRespSeq.map(User.fromUserWithCredentials)
           responseAs[Seq[User]].size shouldEqual 1
         }
       }
@@ -61,20 +61,20 @@ class UserControllerTest
       }
       "return the sequence of users when pattern must contain correct number of entries" taggedAs Controller in {
         val usersByEmailRequest: UserEmail = UserEmail("someDomain@mail.com", Enable.Unsafe)
-        val dummyUser: User = TestUserUtils.getDummyUser()
+        val dummyUser: UserWithCredentials = TestUserUtils.getDummyUser()
         val userId = dummyUser.userId
 
-        val firstDummyUser: User =
+        val firstDummyUser: UserWithCredentials =
           TestUserUtils.getDummyUser()
-        val secondDummyUser: User =
+        val secondDummyUser: UserWithCredentials =
           TestUserUtils.getDummyUser()
-        val uEmailRespSeq: Seq[User] = Seq(firstDummyUser, secondDummyUser)
+        val uEmailRespSeq: Seq[UserWithCredentials] = Seq(firstDummyUser, secondDummyUser)
         val accessToken = AccessTokenContent(userId)
         when(userService.getUsersByEmail(usersByEmailRequest.unwrap)).thenReturn(Future.successful(uEmailRespSeq))
 
         Get("/users?email=" + usersByEmailRequest) ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
-          responseAs[Seq[User]] shouldEqual uEmailRespSeq
+          responseAs[Seq[User]] shouldEqual uEmailRespSeq.map(User.fromUserWithCredentials)
           responseAs[Seq[User]].size shouldEqual 2
         }
       }
@@ -82,15 +82,15 @@ class UserControllerTest
 
     "deactivateUserById" should {
       "return user's entity with false value if user was successfully deactivated" taggedAs Controller in {
-        val dummyUser: User = TestUserUtils.getDummyUser(active = false)
+        val dummyUser: UserWithCredentials = TestUserUtils.getDummyUser(active = false)
         val userId = dummyUser.userId
-        val response = UserNoCredentials.fromUser(dummyUser)
+        val response = User.fromUserWithCredentials(dummyUser)
         val accessToken = AccessTokenContent(userId)
 
         when(userService.deactivateUserById(userId)).thenReturn(Future.successful(Some(response)))
 
         Delete("/users") ~> userController.route(accessToken) ~> check {
-          responseAs[UserNoCredentials] shouldBe response
+          responseAs[User] shouldBe response
           status shouldBe StatusCodes.OK
         }
       }
@@ -116,7 +116,7 @@ class UserControllerTest
 
     "update" should {
       "return NoContent status if user was amended" in {
-        val dummyUser: User = TestUserUtils.getDummyUser()
+        val dummyUser: UserWithCredentials = TestUserUtils.getDummyUser()
         val userId = UserId.random
         val accessToken = AccessTokenContent(userId)
         val request = UserUpdateRequest(dummyUser.email, dummyUser.firstName, dummyUser.lastName)
@@ -129,7 +129,7 @@ class UserControllerTest
       }
 
       "return NoContent status if user's password was amended" in {
-        val dummyUser: User = TestUserUtils.getDummyUser()
+        val dummyUser: UserWithCredentials = TestUserUtils.getDummyUser()
         val userId = dummyUser.userId
         val accessToken = AccessTokenContent(userId)
         val request = PasswordUpdateRequest(
@@ -146,7 +146,7 @@ class UserControllerTest
       }
 
       "return InternalServerError status if user's id doesn't match" in {
-        val dummyUser: User = TestUserUtils.getDummyUser()
+        val dummyUser: UserWithCredentials = TestUserUtils.getDummyUser()
         val userId = dummyUser.userId
         val accessToken = AccessTokenContent(userId)
         val request = UserUpdateRequest(dummyUser.email, dummyUser.firstName, dummyUser.lastName)
@@ -160,7 +160,7 @@ class UserControllerTest
       }
 
       "return BadRequest status if user's passwords don't match" in {
-        val dummyUser: User = TestUserUtils.getDummyUser()
+        val dummyUser: UserWithCredentials = TestUserUtils.getDummyUser()
         val userId = dummyUser.userId
         val accessToken = AccessTokenContent(userId)
         val request =

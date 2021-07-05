@@ -22,7 +22,7 @@ trait ProjectEntry { this: Profile with UserEntry with CustomsWithEnumSupport wi
       (projectId, ownerId, name, active, repositoryId, version, visibility) <>
         ((Project.apply _).tupled, Project.unapply)
 
-    def user: ForeignKeyQuery[UserTable, User] = foreignKey("fk_project_user", ownerId, users)(_.userId)
+    def user: ForeignKeyQuery[UserTable, UserWithCredentials] = foreignKey("fk_project_user", ownerId, users)(_.userId)
   }
 
   val projects = TableQuery[ProjectTable]
