@@ -1,7 +1,8 @@
 package cromwell.pipeline.service
 
-import java.nio.file.Path
+import cats.data.EitherT
 
+import java.nio.file.Path
 import cromwell.pipeline.datastorage.dto._
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -22,9 +23,9 @@ trait ProjectVersioning[E >: VersioningException] {
     implicit ec: ExecutionContext
   ): AsyncResult[Project]
 
-  def getFiles(project: Project, path: Path)(
+  def getFiles(project: Project, version: Option[PipelineVersion] = None)(
     implicit ec: ExecutionContext
-  ): AsyncResult[List[String]]
+  ): EitherT[Future, VersioningException, List[ProjectFile]]
 
   def getProjectVersions(project: Project)(
     implicit ec: ExecutionContext
