@@ -8,6 +8,7 @@ import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.service.VersioningException.FileException
 import cromwell.pipeline.service.{ ProjectFileService, VersioningException }
+import cromwell.pipeline.utils.URLEncoderUtils
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
@@ -25,8 +26,8 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
     val version = PipelineVersion(versionString)
     val versionOption = Some(version)
     val projectId = TestProjectUtils.getDummyProjectId
-    val pathString = "folder/file.wdl"
-    val path = Paths.get(pathString)
+    val path = Paths.get("folder/file.wdl")
+    val pathString = URLEncoderUtils.encode(path.toString)
     val projectFileContent = ProjectFileContent("task hello {}")
     val projectFile = ProjectFile(path, projectFileContent)
 
@@ -51,7 +52,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
     }
 
     "upload file" should {
-      val projectFile = ProjectFile(Paths.get("folder/test.txt"), projectFileContent)
+      val projectFile = ProjectFile(path, projectFileContent)
       val request = ProjectUpdateFileRequest(projectId, projectFile, Some(version))
 
       "return OK response for valid request with a valid file" taggedAs Controller in {
@@ -101,7 +102,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       "return configuration for file" in {
         when(projectFileService.buildConfiguration(projectId, path, versionOption, accessToken.userId))
           .thenReturn(Future.successful(configuration))
-        Get(s"/files/configurations?project_id=${projectId.value}&project_file_path=$pathString&version=$versionString") ~> projectFileController
+        Get(s"/files/configurations/${projectId.value}/$pathString?version=$versionString") ~> projectFileController
           .route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
           entityAs[ProjectConfiguration] shouldBe configuration
@@ -111,7 +112,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       "return failed for Bad request" in {
         when(projectFileService.buildConfiguration(projectId, path, versionOption, accessToken.userId))
           .thenReturn(Future.failed(VersioningException.HttpException("Bad request")))
-        Get(s"/files/configurations?project_id=${projectId.value}&project_file_path=$pathString&version=$versionString") ~> projectFileController
+        Get(s"/files/configurations/${projectId.value}/$pathString?version=$versionString") ~> projectFileController
           .route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
           entityAs[String] shouldBe "Bad request"
@@ -121,10 +122,43 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       "return failed for invalid file" in {
         when(projectFileService.buildConfiguration(projectId, path, versionOption, accessToken.userId))
           .thenReturn(Future.failed(ValidationError(List("invalid some field"))))
-        Get(s"/files/configurations?project_id=${projectId.value}&project_file_path=$pathString&version=$versionString") ~> projectFileController
+        Get(s"/files/configurations/${projectId.value}/$pathString?version=$versionString") ~> projectFileController
           .route(accessToken) ~> check {
           status shouldBe StatusCodes.UnprocessableEntity
           entityAs[List[String]] shouldBe List("invalid some field")
+        }
+      }
+    }
+
+    "get files" should {
+      "return files with status code OK" in {
+        when(projectFileService.getFiles(projectId, versionOption, accessToken.userId))
+          .thenReturn(Future.successful(List(projectFile)))
+        Get(s"/files/${projectId.value}?version=$versionString") ~>
+        projectFileController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.OK
+          entityAs[List[ProjectFile]] shouldBe List(projectFile)
+        }
+      }
+
+      "return files with status code OK without version" in {
+        when(projectFileService.getFiles(projectId, None, accessToken.userId))
+          .thenReturn(Future.successful(List(projectFile)))
+        Get(s"/files/${projectId.value}") ~>
+        projectFileController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.OK
+          entityAs[List[ProjectFile]] shouldBe List(projectFile)
+        }
+      }
+
+      "return 404 if files not found" in {
+        val versioningException = FileException("Something went wrong")
+
+        when(projectFileService.getFiles(projectId, None, accessToken.userId))
+          .thenReturn(Future.failed(versioningException))
+        Get(s"/files/${projectId.value}") ~>
+        projectFileController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.NotFound
         }
       }
     }
@@ -133,7 +167,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       "return file with status code OK" in {
         when(projectFileService.getFile(projectId, path, versionOption, accessToken.userId))
           .thenReturn(Future.successful(projectFile))
-        Get(s"/files?project_id=${projectId.value}&project_file_path=$pathString&version=$versionString") ~>
+        Get(s"/files/${projectId.value}/$pathString?version=$versionString") ~>
         projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
           entityAs[ProjectFile] shouldBe projectFile
@@ -143,7 +177,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       "return file with status code OK without version" in {
         when(projectFileService.getFile(projectId, path, None, accessToken.userId))
           .thenReturn(Future.successful(projectFile))
-        Get(s"/files?project_id=${projectId.value}&project_file_path=$pathString") ~> projectFileController.route(
+        Get(s"/files/${projectId.value}/$pathString") ~> projectFileController.route(
           accessToken
         ) ~> check {
           status shouldBe StatusCodes.OK
@@ -151,13 +185,14 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
         }
       }
 
-      "return 404 if file not found " in {
+      "return 404 if file not found" in {
         val versioningException = FileException("Something went wrong")
 
         when(projectFileService.getFile(projectId, path, versionOption, accessToken.userId))
           .thenReturn(Future.failed(versioningException))
-        Get(s"/files?project_id=${projectId.value}&project_file_path=$pathString&version=$versionString") ~> projectFileController
-          .route(accessToken) ~> check {
+        Get(s"/files/${projectId.value}/$pathString?version=$versionString") ~> projectFileController.route(
+          accessToken
+        ) ~> check {
           status shouldBe StatusCodes.NotFound
         }
       }

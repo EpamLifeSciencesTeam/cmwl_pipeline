@@ -6,13 +6,12 @@ import cromwell.pipeline.datastorage.dto.File.UpdateFileRequest
 import cromwell.pipeline.datastorage.dto.PipelineVersion.PipelineVersionException
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.utils._
+import java.nio.file.{ Path, Paths }
 import org.mockito.Matchers.{ any, eq => exact }
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Reads
-
-import java.nio.file.{ Path, Paths }
 import scala.concurrent.{ ExecutionContext, Future }
 
 class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with MockitoSugar {
@@ -39,7 +38,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
 
     "createRepository" should {
 
-      def request(postProject: PostProject): Future[Response[GitLabRepositoryResponse]] =
+      def postNewProject(postProject: PostProject): Future[Response[GitLabRepositoryResponse]] =
         mockHttpClient.post[GitLabRepositoryResponse, PostProject](
           url = gitLabConfig.url + "projects",
           headers = gitLabConfig.token,
@@ -54,7 +53,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
 
       "return new active Project with 201 response" taggedAs Service in {
 
-        when(request(postProject)).thenReturn {
+        when(postNewProject(postProject)).thenReturn {
           Future.successful {
             Response[GitLabRepositoryResponse](
               HttpStatusCodes.Created,
@@ -71,7 +70,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
 
       "throw new VersioningException with 400 response" taggedAs Service in {
         val errorMsg = "The repository was not created. Response status: 400"
-        when(request(postProject)).thenReturn {
+        when(postNewProject(postProject)).thenReturn {
           Future.successful {
             Response[GitLabRepositoryResponse](
               HttpStatusCodes.BadRequest,
@@ -93,7 +92,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
     "getUpdatedProjectVersion" should {
       val userVersion = PipelineVersion("v0.0.1")
       val project = TestProjectUtils.getDummyProject()
-      def request(project: Project): Future[Response[Seq[GitLabVersion]]] =
+      def getUpdatedProject(project: Project): Future[Response[Seq[GitLabVersion]]] =
         mockHttpClient.get[Seq[GitLabVersion]](
           url = exact(gitLabConfig.url + "projects/" + project.repositoryId.value + "/repository/tags"),
           headers = any[Map[String, String]],
@@ -102,7 +101,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
 
       "return new version received from user" taggedAs Service in {
 
-        when(request(project)).thenReturn {
+        when(getUpdatedProject(project)).thenReturn {
           Future.successful {
             Response[Seq[GitLabVersion]](
               HttpStatusCodes.OK,
@@ -117,7 +116,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
 
       "fail with VersioningException.ProjectException" taggedAs Service in {
         val activeProject: Project = TestProjectUtils.getDummyProject()
-        when(request(activeProject)).thenReturn {
+        when(getUpdatedProject(activeProject)).thenReturn {
           Future.successful {
             Response[Seq[GitLabVersion]](
               HttpStatusCodes.BadRequest,
@@ -139,7 +138,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
     }
 
     "getProjectVersions" should {
-      def request(project: Project): Future[Response[Seq[GitLabVersion]]] =
+      def getProjectVersions(project: Project): Future[Response[Seq[GitLabVersion]]] =
         mockHttpClient.get[Seq[GitLabVersion]](
           url = exact(gitLabConfig.url + "projects/" + project.repositoryId.value + "/repository/tags"),
           headers = any[Map[String, String]],
@@ -147,7 +146,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
         )(any[ExecutionContext], any[Reads[Seq[GitLabVersion]]])
 
       "return list of Project versions with 200 response" taggedAs Service in {
-        when(request(projectWithRepo)).thenReturn {
+        when(getProjectVersions(projectWithRepo)).thenReturn {
           Future.successful {
             Response[Seq[GitLabVersion]](
               HttpStatusCodes.OK,
@@ -163,7 +162,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
 
       "throw new VersioningException with 400 response" taggedAs Service in {
         val activeProject: Project = TestProjectUtils.getDummyProject()
-        when(request(activeProject)).thenReturn {
+        when(getProjectVersions(activeProject)).thenReturn {
           Future.successful {
             Response[Seq[GitLabVersion]](
               HttpStatusCodes.BadRequest,
@@ -361,11 +360,77 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
       }
     }
 
+    "getFiles" should {
+      val dummyFilesTree: List[FileTree] = List(dummyFileTree)
+      val path = Paths.get(dummyFileTree.path)
+      val encodedPathStr = URLEncoderUtils.encode(path.toString)
+      val version = dummyPipelineVersion
+
+      def getFileTrees(project: Project, version: Option[PipelineVersion]): Future[Response[List[FileTree]]] = {
+        val versionId: Map[String, String] = version match {
+          case Some(version) => Map("ref" -> version.name, "recursive" -> "true")
+          case None          => Map()
+        }
+        mockHttpClient.get[List[FileTree]](
+          url = exact(s"${gitLabConfig.url}projects/${project.repositoryId.value}/repository/tree"),
+          params = exact(versionId),
+          headers = exact(gitLabConfig.token)
+        )(ec = any[ExecutionContext], f = any[Reads[List[FileTree]]])
+      }
+
+      "return files with 200 response" taggedAs Service in {
+        when(getFileTrees(activeProject, Some(version))).thenReturn {
+          Future.successful(Response[List[FileTree]](HttpStatusCodes.OK, SuccessResponseBody(dummyFilesTree), Map()))
+        }
+
+        when {
+          mockHttpClient.get[GitLabFileContent](
+            s"${gitLabConfig.url}/projects/${activeProject.repositoryId.value}/repository/files/$encodedPathStr",
+            Map("ref" -> version.name),
+            gitLabConfig.token
+          )
+        }.thenReturn {
+          Future.successful {
+            Response[GitLabFileContent](
+              HttpStatusCodes.OK,
+              SuccessResponseBody(GitLabFileContent("VGVzdCBGaWxl")),
+              EmptyHeaders
+            )
+          }
+        }
+
+        gitLabProjectVersioning
+          .getFiles(activeProject, Some(version))
+          .map(_ shouldBe Right(List(ProjectFile(path, ProjectFileContent("Test File")))))
+      }
+
+      "throw new VersioningException with not 200 response" taggedAs Service in {
+        when(getFileTrees(activeProject, Some(version))).thenReturn {
+          Future.successful(Response[List[FileTree]](HttpStatusCodes.OK, SuccessResponseBody(dummyFilesTree), Map()))
+        }
+        when {
+          mockHttpClient.get[GitLabFileContent](
+            s"${gitLabConfig.url}/projects/${activeProject.repositoryId.value}/repository/files/$encodedPathStr",
+            Map("ref" -> dummyPipelineVersion.name),
+            gitLabConfig.token
+          )
+        }.thenReturn {
+          Future.successful {
+            Response[GitLabFileContent](HttpStatusCodes.NotFound, FailureResponseBody("Not Found"), EmptyHeaders)
+          }
+        }
+
+        gitLabProjectVersioning
+          .getFiles(activeProject, Some(version))
+          .map(_ shouldBe Left(VersioningException.HttpException("Exception. Response status: 404")))
+      }
+    }
+
     "getFileCommits" should {
       val dummyCommitList = List(dummyFileCommit)
       val path: Path = Paths.get("tmp/foo.txt")
       val urlEncoder = URLEncoderUtils.encode(path.toString)
-      def request(project: Project): Future[Response[List[FileCommit]]] =
+      def getFileCommits(project: Project): Future[Response[List[FileCommit]]] =
         mockHttpClient.get[List[FileCommit]](
           url = exact(s"${gitLabConfig.url}projects/${project.repositoryId.value}/repository/files/$urlEncoder"),
           params = any[Map[String, String]],
@@ -373,7 +438,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
         )(ec = any[ExecutionContext], f = any[Reads[List[FileCommit]]])
 
       "return list of Project versions with 200 response" taggedAs Service in {
-        when(request(projectWithRepo)).thenReturn {
+        when(getFileCommits(projectWithRepo)).thenReturn {
           Future.successful(Response[List[FileCommit]](HttpStatusCodes.OK, SuccessResponseBody(dummyCommitList), Map()))
         }
         gitLabProjectVersioning.getFileCommits(projectWithRepo, path).map {
@@ -382,7 +447,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
       }
 
       "throw new VersioningException with 400 response" taggedAs Service in {
-        when(request(projectWithRepo)).thenReturn {
+        when(getFileCommits(projectWithRepo)).thenReturn {
           Future.successful {
             Response[List[FileCommit]](HttpStatusCodes.BadRequest, FailureResponseBody("Response status: 400"), Map())
           }
@@ -452,7 +517,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
       val dummyFilesTree: List[FileTree] = List(dummyFileTree)
       val emptyListValidateResponse = "List((,List(JsonValidationError(List(error.expected.jsarray),WrappedArray())))"
       val version = dummyPipelineVersion
-      def request(project: Project, version: Option[PipelineVersion]): Future[Response[List[FileTree]]] = {
+      def getFileTree(project: Project, version: Option[PipelineVersion]): Future[Response[List[FileTree]]] = {
         val versionId: Map[String, String] = version match {
           case Some(version) => Map("ref" -> version.name, "recursive" -> "true")
           case None          => Map()
@@ -465,21 +530,21 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
       }
 
       "return files tree without version with 200 response" taggedAs Service in {
-        when(request(projectWithRepo, None)).thenReturn {
+        when(getFileTree(projectWithRepo, None)).thenReturn {
           Future.successful(Response[List[FileTree]](HttpStatusCodes.OK, SuccessResponseBody(dummyFilesTree), Map()))
         }
         gitLabProjectVersioning.getFilesTree(projectWithRepo, None).map(_ shouldBe Right(Seq(dummyFileTree)))
       }
 
       "return files tree with version with 200 response" taggedAs Service in {
-        when(request(projectWithRepo, Some(version))).thenReturn {
+        when(getFileTree(projectWithRepo, Some(version))).thenReturn {
           Future.successful(Response[List[FileTree]](HttpStatusCodes.OK, SuccessResponseBody(dummyFilesTree), Map()))
         }
         gitLabProjectVersioning.getFilesTree(projectWithRepo, Some(version)).map(_ shouldBe Right(Seq(dummyFileTree)))
       }
 
       "return files tree when there is not version" taggedAs Service in {
-        when(request(projectWithRepo, Some(version))).thenReturn {
+        when(getFileTree(projectWithRepo, Some(version))).thenReturn {
           Future.successful {
             Response[List[FileTree]](HttpStatusCodes.OK, FailureResponseBody(emptyListValidateResponse), Map())
           }
@@ -494,7 +559,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
       }
 
       "throw new VersioningException with 400 response" taggedAs Service in {
-        when(request(projectWithRepo, Some(version))).thenReturn {
+        when(getFileTree(projectWithRepo, Some(version))).thenReturn {
           Future.successful {
             Response[List[FileTree]](
               HttpStatusCodes.BadRequest,

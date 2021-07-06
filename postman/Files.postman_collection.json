@@ -6,6 +6,74 @@
 	},
 	"item": [
 		{
+			"name": "Get project files by projectId",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/files/{{project_id}}?version=v0.0.1",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"files",
+						"{{project_id}}"
+					],
+					"query": [
+						{
+							"key": "version",
+							"value": "v0.0.1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get project file by projectId and Path",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/files/{{project_id}}/{{project_file_path}}?version=v0.0.1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"files",
+						"{{project_id}}",
+						"{{project_file_path}}"
+					],
+					"query": [
+						{
+							"key": "version",
+							"value": "v0.0.1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Validate WDL file",
 			"request": {
 				"method": "POST",
@@ -82,26 +150,20 @@
 					}
 				],
 				"url": {
-					"raw": "{{base_url}}/files/configurations?project_id=project_id&project_file_path=path&version=version",
+					"raw": "{{base_url}}/files/configurations/{{project_id}}/{{project_file_path}}?version=v0.0.1",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"files",
-						"configurations"
+						"configurations",
+						"{{project_id}}",
+						"{{project_file_path}}"
 					],
 					"query": [
 						{
-							"key": "project_id",
-							"value": "project_id"
-						},
-						{
-							"key": "project_file_path",
-							"value": "path"
-						},
-						{
 							"key": "version",
-							"value": "version"
+							"value": "v0.0.1"
 						}
 					]
 				}
