@@ -3,15 +3,20 @@ package cromwell.pipeline.datastorage.dao.repository
 import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
 import cromwell.pipeline.datastorage.DatastorageModule
-import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestRunUtils, TestUserUtils }
+import cromwell.pipeline.datastorage.dao.utils.{ PostgreTablesCleaner, TestProjectUtils, TestRunUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto.{ Done, Project, Run, User }
 import cromwell.pipeline.utils.{ ApplicationConfig, TestContainersUtils }
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 
-class RunRepositoryTest extends AsyncWordSpec with Matchers with BeforeAndAfterAll with ForAllTestContainer {
+class RunRepositoryTest
+    extends AsyncWordSpec
+    with Matchers
+    with BeforeAndAfterAll
+    with ForAllTestContainer
+    with PostgreTablesCleaner {
 
-  private lazy val config: Config = TestContainersUtils.getConfigForPgContainer(container)
-  private lazy val datastorageModule: DatastorageModule = new DatastorageModule(ApplicationConfig.load(config))
+  protected lazy val config: Config = TestContainersUtils.getConfigForPgContainer(container)
+  protected lazy val datastorageModule: DatastorageModule = new DatastorageModule(ApplicationConfig.load(config))
   override val container: PostgreSQLContainer = TestContainersUtils.getPostgreSQLContainer()
 
   override protected def beforeAll(): Unit = {
