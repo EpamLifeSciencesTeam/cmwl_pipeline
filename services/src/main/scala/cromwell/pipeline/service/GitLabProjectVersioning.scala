@@ -1,11 +1,11 @@
 package cromwell.pipeline.service
 
-import java.nio.file.Path
-
+import cats.data.EitherT
+import cats.implicits.toTraverseOps
 import cromwell.pipeline.datastorage.dto.File.UpdateFileRequest
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.utils.{ GitLabConfig, HttpStatusCodes, URLEncoderUtils }
-
+import java.nio.file.{ Path, Paths }
 import scala.concurrent.{ ExecutionContext, Future }
 
 class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
@@ -126,7 +126,25 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
         .recover { case e: Throwable => Left(VersioningException.HttpException(e.getMessage)) }
     }
 
-  override def getFiles(project: Project, path: Path)(implicit ec: ExecutionContext): AsyncResult[List[String]] = ???
+  override def getFiles(
+    project: Project,
+    version: Option[PipelineVersion]
+  )(implicit ec: ExecutionContext): AsyncResult[List[ProjectFile]] = {
+    type EitherF[T] = EitherT[Future, VersioningException, T]
+
+    def getProjectFile(
+      project: Project,
+      path: Path,
+      version: Option[PipelineVersion]
+    ): EitherF[ProjectFile] = EitherT(getFile(project, path, version))
+
+    val files = for {
+      trees <- EitherT(getFilesTree(project, version))
+      files <- trees.toList.traverse(tree => getProjectFile(project, Paths.get(tree.path), version))
+    } yield files
+
+    files.value
+  }
 
   override def getProjectVersions(project: Project)(implicit ec: ExecutionContext): AsyncResult[Seq[GitLabVersion]] = {
     val versionsListUrl: String = s"${config.url}projects/${project.repositoryId.value}/repository/tags"

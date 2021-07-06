@@ -6,17 +6,15 @@ import akka.http.scaladsl.server.Route
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.{
   PipelineVersion,
-  ProjectId,
   ProjectUpdateFileRequest,
   UpdateFiledResponse,
   ValidateFileContentRequest,
   ValidationError
 }
 import cromwell.pipeline.service.{ ProjectFileService, VersioningException }
-import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import cromwell.pipeline.controller.utils.FromStringUnmarshallers._
-
-import java.nio.file.Path
+import cromwell.pipeline.controller.utils.PathMatchers.{ Path, ProjectId }
+import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import scala.concurrent.ExecutionContext
 import scala.util.{ Failure, Success }
 
@@ -34,17 +32,29 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
     }
   }
 
-  private def getFile(implicit accessToken: AccessTokenContent): Route = get {
-    parameter('project_id.as[ProjectId], 'project_file_path.as[Path], 'version.as[PipelineVersion].optional) {
-      (projectId, projectFilePath, version) =>
-        onComplete(
-          wdlService.getFile(projectId, projectFilePath, version, accessToken.userId)
-        ) {
-          case Success(projectFile) => complete(projectFile)
-          case Failure(e)           => complete(StatusCodes.NotFound, e.getMessage)
+  private def getFile(implicit accessToken: AccessTokenContent): Route =
+    path(ProjectId / Path) { (projectId, projectFilePath) =>
+      get {
+        parameter('version.as[PipelineVersion].optional) { version =>
+          onComplete(wdlService.getFile(projectId, projectFilePath, version, accessToken.userId)) {
+            case Success(projectFile) => complete(projectFile)
+            case Failure(e)           => complete(StatusCodes.NotFound, e.getMessage)
+          }
         }
+      }
     }
-  }
+
+  private def getFiles(implicit accessToken: AccessTokenContent): Route =
+    path(ProjectId) { projectId =>
+      get {
+        parameter('version.as[PipelineVersion].optional) { version =>
+          onComplete(wdlService.getFiles(projectId, version, accessToken.userId)) {
+            case Success(projectFile) => complete(projectFile)
+            case Failure(e)           => complete(StatusCodes.NotFound, e.getMessage)
+          }
+        }
+      }
+    }
 
   private def uploadFile(implicit accessToken: AccessTokenContent): Route = post {
     entity(as[ProjectUpdateFileRequest]) { request =>
@@ -71,22 +81,21 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
   }
 
   private def buildConfiguration(implicit accessToken: AccessTokenContent): Route =
-    path("configurations") {
+    path("configurations" / ProjectId / Path) { (projectId, projectFilePath) =>
       get {
-        parameters('project_id.as[ProjectId], 'project_file_path.as[Path], 'version.as[PipelineVersion].optional) {
-          (projectId, projectFilePath, version) =>
-            onComplete(
-              wdlService.buildConfiguration(
-                projectId,
-                projectFilePath,
-                version,
-                accessToken.userId
-              )
-            ) {
-              case Success(configuration)        => complete(configuration)
-              case Failure(ValidationError(msg)) => complete(StatusCodes.UnprocessableEntity, msg)
-              case Failure(e)                    => complete(StatusCodes.InternalServerError, e.getMessage)
-            }
+        parameters('version.as[PipelineVersion].optional) { version =>
+          onComplete(
+            wdlService.buildConfiguration(
+              projectId,
+              projectFilePath,
+              version,
+              accessToken.userId
+            )
+          ) {
+            case Success(configuration)        => complete(configuration)
+            case Failure(ValidationError(msg)) => complete(StatusCodes.UnprocessableEntity, msg)
+            case Failure(e)                    => complete(StatusCodes.InternalServerError, e.getMessage)
+          }
         }
       }
     }
@@ -95,6 +104,7 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
     pathPrefix("files") {
       validateFile ~
       buildConfiguration ~
+      getFiles ~
       getFile ~
       uploadFile
     }

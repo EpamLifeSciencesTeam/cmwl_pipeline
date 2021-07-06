@@ -5,13 +5,12 @@ import cromwell.pipeline.datastorage.dao.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.womtool.WomTool
+import java.nio.file.Paths
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
-import wom.executable.WomBundle
-
-import java.nio.file.Paths
 import scala.concurrent.Future
+import wom.executable.WomBundle
 
 class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
 
@@ -148,11 +147,32 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
       }
 
       "return VersioningException when file not found" taggedAs Service in {
-        val versioningException = new VersioningException.HttpException(s"Exception. Response status: Not Found")
+        val versioningException = VersioningException.HttpException(s"Exception. Response status: Not Found")
         when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
         when(projectVersioning.getFile(project, projectFilePath, None))
           .thenReturn(Future.successful(Left(versioningException)))
         projectFileService.getFile(projectId, projectFilePath, None, userId).failed.map(_ shouldBe versioningException)
+      }
+    }
+
+    "get files" should {
+      "return files with full request" taggedAs Service in {
+        when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
+        when(projectVersioning.getFiles(project, optionVersion)).thenReturn(Future.successful(Right(List(projectFile))))
+        projectFileService.getFiles(projectId, optionVersion, userId).map(_ shouldBe List(projectFile))
+      }
+
+      "return files with no version" taggedAs Service in {
+        when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
+        when(projectVersioning.getFiles(project, None)).thenReturn(Future.successful(Right(List(projectFile))))
+        projectFileService.getFiles(projectId, None, userId).map(_ shouldBe List(projectFile))
+      }
+
+      "return VersioningException when file not found" taggedAs Service in {
+        val versioningException = VersioningException.HttpException(s"Exception. Response status: Not Found")
+        when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
+        when(projectVersioning.getFiles(project, None)).thenReturn(Future.failed(versioningException))
+        projectFileService.getFiles(projectId, None, userId).failed.map(_ shouldBe versioningException)
       }
     }
   }
