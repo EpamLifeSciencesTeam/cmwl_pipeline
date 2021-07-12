@@ -16,7 +16,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
 
   private val projectRepository = mock[ProjectRepository]
   private val projectVersioning = mock[ProjectVersioning[VersioningException]]
-  private val projectService = new ProjectService(projectRepository, projectVersioning)
+  private val projectService = ProjectService(projectRepository, projectVersioning)
   private val dummyProject: Project = TestProjectUtils.getDummyProject()
 
   "ProjectServiceTest" when {
