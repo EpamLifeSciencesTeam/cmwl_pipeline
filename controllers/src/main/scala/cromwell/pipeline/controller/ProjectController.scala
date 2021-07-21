@@ -4,11 +4,11 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
-import cromwell.pipeline.datastorage.dto.{ ProjectAdditionRequest, ProjectDeleteRequest, ProjectUpdateNameRequest }
+import cromwell.pipeline.datastorage.dto.{ ProjectAdditionRequest, ProjectUpdateNameRequest }
 import cromwell.pipeline.service.ProjectService.Exceptions.{ ProjectAccessDeniedException, ProjectNotFoundException }
 import cromwell.pipeline.service.{ ProjectService, VersioningException }
+import cromwell.pipeline.controller.utils.PathMatchers.ProjectId
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
-
 import scala.util.{ Failure, Success }
 
 class ProjectController(projectService: ProjectService) {
@@ -37,9 +37,9 @@ class ProjectController(projectService: ProjectService) {
     }
   }
 
-  private def deactivateProject(implicit accessToken: AccessTokenContent): Route = delete {
-    entity(as[ProjectDeleteRequest]) { request =>
-      onComplete(projectService.deactivateProjectById(request.projectId, accessToken.userId)) {
+  private def deactivateProject(implicit accessToken: AccessTokenContent): Route = path(ProjectId) { projectId =>
+    delete {
+      onComplete(projectService.deactivateProjectById(projectId, accessToken.userId)) {
         case Success(project)                         => complete(project)
         case Failure(e: ProjectNotFoundException)     => complete(StatusCodes.NotFound, e.getMessage)
         case Failure(e: ProjectAccessDeniedException) => complete(StatusCodes.Forbidden, e.getMessage)
@@ -48,11 +48,13 @@ class ProjectController(projectService: ProjectService) {
     }
   }
 
-  private def updateProject(implicit accessToken: AccessTokenContent): Route = put {
-    entity(as[ProjectUpdateNameRequest]) { request =>
-      onComplete(projectService.updateProjectName(request, accessToken.userId)) {
-        case Success(_) => complete(StatusCodes.OK)
-        case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
+  private def updateProject(implicit accessToken: AccessTokenContent): Route = path(ProjectId) { projectId =>
+    put {
+      entity(as[ProjectUpdateNameRequest]) { request =>
+        onComplete(projectService.updateProjectName(projectId, request, accessToken.userId)) {
+          case Success(_) => complete(StatusCodes.OK)
+          case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
+        }
       }
     }
   }

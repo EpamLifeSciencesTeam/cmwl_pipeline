@@ -77,17 +77,8 @@
 						"type": "text"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"projectId\": \"\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
 				"url": {
-					"raw": "{{base_url}}/projects",
+					"raw": "{{base_url}}/projects/{{project_id}}",
 					"host": [
 						"{{base_url}}"
 					],
@@ -111,7 +102,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"projectId\": \"\",\r\n    \"name\": \"\",\r\n}",
+					"raw": "{\r\n    \"name\": \"\",\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -119,7 +110,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{base_url}}/projects",
+					"raw": "{{base_url}}/projects/{{project_id}}",
 					"host": [
 						"{{base_url}}"
 					],

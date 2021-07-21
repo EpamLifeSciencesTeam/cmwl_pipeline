@@ -7,11 +7,10 @@ import com.typesafe.config.Config
 import cromwell.pipeline.ApplicationComponents
 import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectDeleteRequest, ProjectUpdateNameRequest }
+import cromwell.pipeline.datastorage.dto.{ Project, ProjectUpdateNameRequest }
 import cromwell.pipeline.utils.{ TestContainersUtils, TestTimeout }
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import org.scalatest.{ AsyncWordSpec, Matchers }
-
 import scala.concurrent.Await
 
 class ProjectControllerItTest
@@ -84,19 +83,19 @@ class ProjectControllerItTest
        * Ignored because we have no gitlab test environment and test is falling
        */
       "return status code OK if project was successfully updated" ignore {
-        val request = ProjectUpdateNameRequest(dummyProject.projectId, dummyProject.name)
+        val request = ProjectUpdateNameRequest(dummyProject.name)
         val accessToken = AccessTokenContent(dummyUser.userId)
 
-        Put("/projects", request) ~> projectController.route(accessToken) ~> check {
+        Put(s"/projects/${dummyProject.projectId.value}", request) ~> projectController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
         }
       }
 
       "return status code 500 if user doesn't have access to project" in {
-        val request = ProjectUpdateNameRequest(dummyProject.projectId, dummyProject.name)
+        val request = ProjectUpdateNameRequest(dummyProject.name)
         val accessToken = AccessTokenContent(stranger.userId)
 
-        Put("/projects", request) ~> projectController.route(accessToken) ~> check {
+        Put(s"/projects/${dummyProject.projectId.value}", request) ~> projectController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
         }
       }
@@ -104,11 +103,10 @@ class ProjectControllerItTest
 
     "deleteProjectById" should {
       "return project's entity with false value if project was successfully deactivated" in {
-        val request = ProjectDeleteRequest(dummyProject.projectId)
         val deactivatedProjectResponse = dummyProject.copy(active = false)
         val accessToken = AccessTokenContent(dummyUser.userId)
 
-        Delete("/projects", request) ~> projectController.route(accessToken) ~> check {
+        Delete(s"/projects/${dummyProject.projectId.value}") ~> projectController.route(accessToken) ~> check {
           responseAs[Project] shouldBe deactivatedProjectResponse
         }
       }

@@ -1,12 +1,12 @@
 package cromwell.pipeline.datastorage.dto
 
-import java.nio.file.{ Path, Paths }
 import cats.data.Validated
 import cats.implicits._
 import cromwell.pipeline.model.wrapper.{ UserId, VersionValue }
 import play.api.libs.functional.syntax._
 import play.api.libs.json.JsonNaming.SnakeCase
 import play.api.libs.json._
+import java.nio.file.{ Path, Paths }
 import slick.lifted.MappedTo
 
 final case class Project(
@@ -67,13 +67,7 @@ object ProjectAdditionRequest {
   implicit lazy val projectAdditionFormat: OFormat[ProjectAdditionRequest] = Json.format[ProjectAdditionRequest]
 }
 
-final case class ProjectDeleteRequest(projectId: ProjectId)
-
-object ProjectDeleteRequest {
-  implicit lazy val projectDeleteFormat: OFormat[ProjectDeleteRequest] = Json.format[ProjectDeleteRequest]
-}
-
-final case class ProjectUpdateNameRequest(projectId: ProjectId, name: String)
+final case class ProjectUpdateNameRequest(name: String)
 
 object ProjectUpdateNameRequest {
   implicit val updateRequestFormat: OFormat[ProjectUpdateNameRequest] = Json.format[ProjectUpdateNameRequest]

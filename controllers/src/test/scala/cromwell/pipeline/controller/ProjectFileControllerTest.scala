@@ -1,6 +1,5 @@
 package cromwell.pipeline.controller
 
-import java.nio.file.Paths
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestUserUtils }
@@ -10,6 +9,7 @@ import cromwell.pipeline.service.VersioningException.FileException
 import cromwell.pipeline.service.{ ProjectFileService, VersioningException }
 import cromwell.pipeline.utils.URLEncoderUtils
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+import java.nio.file.Paths
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
