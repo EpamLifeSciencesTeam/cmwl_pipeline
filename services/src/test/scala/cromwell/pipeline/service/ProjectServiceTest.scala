@@ -9,7 +9,6 @@ import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
-
 import scala.concurrent.{ ExecutionContext, Future }
 
 class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
@@ -50,13 +49,13 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         val newProjectName = s"new${dummyProject.name}"
         val projectId = dummyProject.projectId
         val ownerId = dummyProject.ownerId
-        val request = ProjectUpdateNameRequest(projectId, name = newProjectName)
+        val request = ProjectUpdateNameRequest(newProjectName)
 
         when(projectRepository.getProjectById(projectId)).thenReturn(Future.successful(Some(dummyProject)))
         when(projectRepository.updateProjectName(dummyProject.copy(name = newProjectName)))
           .thenReturn(Future.successful(1))
 
-        projectService.updateProjectName(request, ownerId).map { _ shouldBe projectId }
+        projectService.updateProjectName(projectId, request, ownerId).map { _ shouldBe projectId }
       }
     }
 
