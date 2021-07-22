@@ -1,9 +1,7 @@
 package cromwell.pipeline.utils
 
-import com.dimafeng.testcontainers.PostgreSQLContainer
+import com.dimafeng.testcontainers.{ PostgreSQLContainer, MongoDBContainer }
 import com.typesafe.config.{ Config, ConfigFactory }
-import org.testcontainers.containers.GenericContainer
-import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.utility.DockerImageName
 
 object TestContainersUtils {
@@ -27,16 +25,11 @@ object TestContainersUtils {
   private lazy val mongoConfig = ConfigFactory.load().getConfig("database.mongo")
   private def mongoPort: Int = mongoConfig.getInt("port")
 
-  class MongoContainer(dockerImageName: String) extends GenericContainer[MongoContainer](dockerImageName)
+  def getMongoContainer(mongoImageName: String = "mongo"): MongoDBContainer =
+    MongoDBContainer(Option(DockerImageName.parse(mongoImageName)))
 
-  def getMongoContainer(mongoImageName: String = "mongo"): MongoContainer =
-    new MongoContainer(mongoImageName)
-      .withExposedPorts(mongoPort)
-      .withCommand("--replSet", "docker-rs")
-      .waitingFor(Wait.forLogMessage(".*Waiting for connections.*", 1))
-
-  def getConfigForMongoContainer(container: GenericContainer[_]): Config =
-    config("database.mongo.port" -> container.getMappedPort(mongoPort))
+  def getConfigForMongoContainer(container: MongoDBContainer): Config =
+    config("database.mongo.port" -> container.mappedPort(mongoPort))
 
   import scala.collection.JavaConverters._
 
