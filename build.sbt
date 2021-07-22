@@ -102,7 +102,7 @@ lazy val repositories =
       libraryDependencies ++= allTestDependencies ++ jsonDependencies ++ mongoDependencies :+ cats :+ slick :+ slickPg :+ slickPgCore :+ configHokon :+ playJson :+ catsKernel :+ playFunctional
     )
     .configs(IntegrationTest)
-    .dependsOn(datasource, model, utils % "compile->compile;test->test")
+    .dependsOn(datasource % "compile->compile;test->test", model, utils % "compile->compile;test->test")
 
 lazy val services =
   (project in file("services"))
