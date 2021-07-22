@@ -18,6 +18,7 @@ object Dependencies {
     val scalaTest = "3.0.8"
     val scalaMock = "5.1.0"
     val tcCore = "0.39.3"
+    val tcMongodb = "0.39.3"
     val tcPostgres = "1.15.2"
     val yaml = "1.27"
     val liquibase = "4.3.5"
@@ -53,6 +54,7 @@ object Dependencies {
   val scalaTest = "org.scalatest" %% "scalatest" % Version.scalaTest % "test, it"
   val mockito = "org.mockito" % "mockito-all" % Version.mockito % Test
   val tcCore = "com.dimafeng" %% "testcontainers-scala" % Version.tcCore % Test
+  val tcMongoDB = "com.dimafeng" %% "testcontainers-scala-mongodb" % Version.tcMongodb % Test
   val tcPostgres = "org.testcontainers" % "postgresql" % Version.tcPostgres % Test
   val yaml = "org.yaml" % "snakeyaml" % Version.yaml
   val liquibase = "org.liquibase" % "liquibase-core" % Version.liquibase
@@ -75,6 +77,6 @@ object Dependencies {
     Seq(mockito, scalaCheck, scalaTest, scalaMock)
   lazy val allTestDependencies =
     coreTestDependencies ++ Seq(akkaTestKit, akkaHttpTestKit, logback, wireMock)
-  lazy val testContainers = Seq(tcCore, tcPostgres)
+  lazy val testContainers = Seq(tcCore, tcPostgres, tcMongoDB)
   lazy val logDependencies = Seq(logback, sl4j)
 }

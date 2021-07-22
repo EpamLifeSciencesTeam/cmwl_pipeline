@@ -1,9 +1,7 @@
 package cromwell.pipeline.utils
 
-import com.dimafeng.testcontainers.PostgreSQLContainer
+import com.dimafeng.testcontainers.{ MongoDBContainer, PostgreSQLContainer }
 import com.typesafe.config.{ Config, ConfigFactory }
-import org.testcontainers.containers.GenericContainer
-import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.utility.DockerImageName
 
 object TestContainersUtils {
@@ -27,16 +25,19 @@ object TestContainersUtils {
   private lazy val mongoConfig = ConfigFactory.load().getConfig("database.mongo")
   private def mongoPort: Int = mongoConfig.getInt("port")
 
-  class MongoContainer(dockerImageName: String) extends GenericContainer[MongoContainer](dockerImageName)
+  def getMongoContainer(mongoImageName: String = "mongo"): MongoDBContainer =
+    MongoDBContainer(DockerImageName.parse(mongoImageName))
 
-  def getMongoContainer(mongoImageName: String = "mongo"): MongoContainer =
-    new MongoContainer(mongoImageName)
-      .withExposedPorts(mongoPort)
-      .withCommand("--replSet", "docker-rs")
-      .waitingFor(Wait.forLogMessage(".*Waiting for connections.*", 1))
-
-  def getConfigForMongoContainer(container: GenericContainer[_]): Config =
-    config("database.mongo.port" -> container.getMappedPort(mongoPort))
+  def getConfigForMongoContainer(container: MongoDBContainer): MongoConfig =
+    MongoConfig(
+      user = mongoConfig.getString("user"),
+      password = mongoConfig.getString("password").toCharArray,
+      host = mongoConfig.getString("host"),
+      port = container.mappedPort(mongoPort),
+      authenticationDatabase = mongoConfig.getString("authenticationDatabase"),
+      database = mongoConfig.getString("database"),
+      collection = mongoConfig.getString("collection")
+    )
 
   import scala.collection.JavaConverters._
 
