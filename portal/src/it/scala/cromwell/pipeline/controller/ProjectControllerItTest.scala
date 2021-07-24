@@ -41,8 +41,8 @@ class ProjectControllerItTest
     )
   }
 
-  private val dummyUser = TestUserUtils.getDummyUser()
-  private val stranger = TestUserUtils.getDummyUser()
+  private val dummyUser = TestUserUtils.getDummyUserWithCredentials()
+  private val stranger = TestUserUtils.getDummyUserWithCredentials()
   private val dummyProject = TestProjectUtils.getDummyProject(ownerId = dummyUser.userId)
 
   "ProjectController" when {

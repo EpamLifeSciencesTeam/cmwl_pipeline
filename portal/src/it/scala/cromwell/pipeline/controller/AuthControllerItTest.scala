@@ -9,12 +9,12 @@ import cromwell.pipeline.ApplicationComponents
 import cromwell.pipeline.controller.AuthController._
 import cromwell.pipeline.datastorage.dao.utils.TestUserUtils
 import cromwell.pipeline.datastorage.dao.utils.TestUserUtils._
-import cromwell.pipeline.datastorage.dto.User
+import cromwell.pipeline.datastorage.dto.UserWithCredentials
 import cromwell.pipeline.service.AuthService
 import cromwell.pipeline.utils.TestContainersUtils
 import org.scalatest.compatible.Assertion
 import org.scalatest.concurrent.ScalaFutures._
-import org.scalatest.{ WordSpec, Matchers }
+import org.scalatest.{ Matchers, WordSpec }
 
 class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTest with ForAllTestContainer {
 
@@ -35,7 +35,7 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
     "signIn" should {
 
       "return token headers if user exists" in {
-        val dummyUser: User = TestUserUtils.getDummyUser()
+        val dummyUser: UserWithCredentials = TestUserUtils.getDummyUserWithCredentials()
         whenReady(userRepository.addUser(dummyUser)) { _ =>
           val signInRequestStr =
             s"""{"email":"${dummyUser.email}","password":"${userPassword}"}"""
@@ -48,7 +48,7 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
       }
 
       "return status Forbidden if user is inactive" in {
-        val dummyUser: User = TestUserUtils.getDummyUser(active = false)
+        val dummyUser: UserWithCredentials = TestUserUtils.getDummyUserWithCredentials(active = false)
         whenReady(userRepository.addUser(dummyUser)) { _ =>
           val signInRequestStr =
             s"""{"email":"${dummyUser.email}","password":"${userPassword}"}"""
@@ -61,7 +61,7 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
       }
 
       "return status Unauthorized if password is incorrect" in {
-        val dummyUser: User = TestUserUtils.getDummyUser(active = false)
+        val dummyUser: UserWithCredentials = TestUserUtils.getDummyUserWithCredentials(active = false)
         val incorrectPassword = dummyUser.email + "x"
         whenReady(userRepository.addUser(dummyUser)) { _ =>
           val signInRequestStr =
@@ -78,7 +78,7 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
     "signUp" should {
 
       "return token headers if user was successfully registered" in {
-        val dummyUser: User = TestUserUtils.getDummyUser()
+        val dummyUser: UserWithCredentials = TestUserUtils.getDummyUserWithCredentials()
         val signUpRequestStr =
           s"""{"email":"${dummyUser.email}","password":"${userPassword}","firstName":"${dummyUser.firstName}","lastName":"${dummyUser.lastName}"}"""
         val httpEntity = HttpEntity(`application/json`, signUpRequestStr)
@@ -92,7 +92,7 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
     "refresh" should {
 
       "return updated token headers if refresh token was valid and active" in {
-        val dummyUser: User = TestUserUtils.getDummyUser()
+        val dummyUser: UserWithCredentials = TestUserUtils.getDummyUserWithCredentials()
         whenReady(userRepository.addUser(dummyUser)) { _ =>
           val signInRequestStr =
             s"""{"email":"${dummyUser.email}","password":"${userPassword}"}"""

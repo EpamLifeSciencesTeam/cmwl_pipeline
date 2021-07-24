@@ -2,7 +2,7 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
-import cromwell.pipeline.datastorage.dto.{ User, UserNoCredentials }
+import cromwell.pipeline.datastorage.dto.{ User, UserWithCredentials }
 import cromwell.pipeline.model.wrapper.{ Password, UserEmail, UserId }
 import cromwell.pipeline.utils.StringUtils._
 
@@ -13,11 +13,11 @@ trait UserService {
 
   def getUsersByEmail(emailPattern: String): Future[Seq[User]]
 
-  def getUserByEmail(email: UserEmail): Future[Option[User]]
+  def getUserWithCredentialsByEmail(email: UserEmail): Future[Option[UserWithCredentials]]
 
-  def addUser(user: User): Future[UserId]
+  def addUser(user: UserWithCredentials): Future[UserId]
 
-  def deactivateUserById(userId: UserId): Future[Option[UserNoCredentials]]
+  def deactivateUserById(userId: UserId): Future[Option[User]]
 
   def updateUser(userId: UserId, request: UserUpdateRequest): Future[Int]
 
@@ -35,18 +35,18 @@ object UserService {
     new UserService {
 
       def getUsersByEmail(emailPattern: String): Future[Seq[User]] =
-        userRepository.getUsersByEmail(emailPattern)
+        userRepository.getUsersByEmail(emailPattern).map(seq => seq.map(User.fromUserWithCredentials))
 
-      def getUserByEmail(email: UserEmail): Future[Option[User]] =
+      def getUserWithCredentialsByEmail(email: UserEmail): Future[Option[UserWithCredentials]] =
         userRepository.getUserByEmail(email)
 
-      def addUser(user: User): Future[UserId] = userRepository.addUser(user)
+      def addUser(user: UserWithCredentials): Future[UserId] = userRepository.addUser(user)
 
-      def deactivateUserById(userId: UserId): Future[Option[UserNoCredentials]] =
+      def deactivateUserById(userId: UserId): Future[Option[User]] =
         for {
           _ <- userRepository.deactivateUserById(userId)
           user <- userRepository.getUserById(userId)
-        } yield user.map(UserNoCredentials.fromUser)
+        } yield user.map(User.fromUserWithCredentials)
 
       def updateUser(userId: UserId, request: UserUpdateRequest): Future[Int] =
         userRepository.getUserById(userId).flatMap {
@@ -70,7 +70,7 @@ object UserService {
             Future.failed(new RuntimeException("new password incorrectly duplicated"))
           }
 
-        def checkUserPassword(user: User): Future[Unit] =
+        def checkUserPassword(user: UserWithCredentials): Future[Unit] =
           if (user.passwordHash == calculatePasswordHash(request.currentPassword, user.passwordSalt)) {
             Future.unit
           } else {
@@ -85,7 +85,7 @@ object UserService {
         } yield res
       }
 
-      private def getUserById(userId: UserId): Future[User] =
+      private def getUserById(userId: UserId): Future[UserWithCredentials] =
         userRepository.getUserById(userId).flatMap {
           case Some(user) => Future.successful(user)
           case None       => Future.failed(new RuntimeException("user with this id doesn't exist"))

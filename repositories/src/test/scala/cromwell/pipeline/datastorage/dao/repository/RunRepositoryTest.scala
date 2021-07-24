@@ -4,7 +4,7 @@ import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
 import cromwell.pipeline.datastorage.DatastorageModule
 import cromwell.pipeline.datastorage.dao.utils.{ PostgreTablesCleaner, TestProjectUtils, TestRunUtils, TestUserUtils }
-import cromwell.pipeline.datastorage.dto.{ Done, Project, Run, User }
+import cromwell.pipeline.datastorage.dto.{ Done, Project, Run, UserWithCredentials }
 import cromwell.pipeline.utils.{ ApplicationConfig, TestContainersUtils }
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 
@@ -30,7 +30,7 @@ class RunRepositoryTest
     "getRunByIdAndUser" should {
 
       "find newly added run by id and user id" taggedAs Dao in {
-        val dummyUser: User = TestUserUtils.getDummyUser()
+        val dummyUser: UserWithCredentials = TestUserUtils.getDummyUserWithCredentials()
         val dummyProject: Project = TestProjectUtils.getDummyProject(ownerId = dummyUser.userId)
         val dummyRun: Run = TestRunUtils.getDummyRun(userId = dummyUser.userId, projectId = dummyProject.projectId)
         val addUserFuture = userRepository.addUser(dummyUser)
@@ -47,7 +47,7 @@ class RunRepositoryTest
     "update run by id" should {
 
       "update status, time start, time end, result and cmwlWorkflowId" taggedAs Dao in {
-        val dummyUser: User = TestUserUtils.getDummyUser()
+        val dummyUser: UserWithCredentials = TestUserUtils.getDummyUserWithCredentials()
         val dummyProject: Project = TestProjectUtils.getDummyProject(ownerId = dummyUser.userId)
         val dummyRun: Run = TestRunUtils.getDummyRun(userId = dummyUser.userId, projectId = dummyProject.projectId)
         val addUserFuture = userRepository.addUser(dummyUser)
@@ -75,7 +75,7 @@ class RunRepositoryTest
     "delete run" should {
 
       "delete run by id" taggedAs Dao in {
-        val dummyUser: User = TestUserUtils.getDummyUser()
+        val dummyUser: UserWithCredentials = TestUserUtils.getDummyUserWithCredentials()
         val dummyProject: Project = TestProjectUtils.getDummyProject(ownerId = dummyUser.userId)
         val dummyRun: Run = TestRunUtils.getDummyRun(userId = dummyUser.userId, projectId = dummyProject.projectId)
         val addUserFuture = userRepository.addUser(dummyUser)

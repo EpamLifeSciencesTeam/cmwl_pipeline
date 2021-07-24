@@ -35,7 +35,7 @@ class UserRepositoryTest
     "getUserById" should {
 
       "find newly added user by id" taggedAs Dao in {
-        val dummyUser = TestUserUtils.getDummyUser()
+        val dummyUser = TestUserUtils.getDummyUserWithCredentials()
         val result = for {
           _ <- userRepository.addUser(dummyUser)
           getById <- userRepository.getUserById(dummyUser.userId)
@@ -48,7 +48,7 @@ class UserRepositoryTest
     "getUserByEmail" should {
 
       "find newly added user by email" taggedAs Dao in {
-        val dummyUser = TestUserUtils.getDummyUser()
+        val dummyUser = TestUserUtils.getDummyUserWithCredentials()
         val result = for {
           _ <- userRepository.addUser(dummyUser)
           getByEmail <- userRepository.getUserByEmail(dummyUser.email)
@@ -61,7 +61,7 @@ class UserRepositoryTest
     "getUsersByEmail" should {
 
       "should find newly added user by email pattern" taggedAs Dao in {
-        val dummyUser = TestUserUtils.getDummyUser()
+        val dummyUser = TestUserUtils.getDummyUserWithCredentials()
         userRepository.addUser(dummyUser).flatMap { _ =>
           userRepository.getUsersByEmail(dummyUser.email.unwrap).map(_ should contain theSameElementsAs Seq(dummyUser))
         }
@@ -71,7 +71,7 @@ class UserRepositoryTest
     "updateUser" should {
 
       "update email, firstName and lastName" taggedAs Dao in {
-        val dummyUser = TestUserUtils.getDummyUser()
+        val dummyUser = TestUserUtils.getDummyUserWithCredentials()
         val updatedUser =
           dummyUser.copy(
             email = UserEmail("updated@email.com", Enable.Unsafe),
@@ -90,7 +90,7 @@ class UserRepositoryTest
     "updatePassword" should {
 
       "update password" taggedAs Dao in {
-        val dummyUser = TestUserUtils.getDummyUser()
+        val dummyUser = TestUserUtils.getDummyUserWithCredentials()
         val updatedUser = dummyUser.copy(passwordHash = newPasswordHash)
         val result = for {
           _ <- userRepository.addUser(dummyUser)

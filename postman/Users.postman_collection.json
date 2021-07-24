@@ -79,7 +79,7 @@
 						}
 					],
 					"cookie": [],
-					"body": "[\n    {\n        \"userId\": \"26774154-8946-4764-b8ab-37dfeccd3453\",\n        \"email\": \"example@mail.ru\",\n        \"passwordHash\": \"cf782b422149fa27479539d019b4481b8675063f4c2c8d0b5adc73e94f4a8128\",\n        \"passwordSalt\": \"43b2f99730d7ed9c\",\n        \"firstName\": \"Ivan\",\n        \"lastName\": \"Ivanov\",\n        \"active\": true\n    }\n]"
+					"body": "[\n    {\n        \"userId\": \"26774154-8946-4764-b8ab-37dfeccd3453\",\n        \"email\": \"example@mail.ru\",\n        \"firstName\": \"Ivan\",\n        \"lastName\": \"Ivanov\",\n        \"active\": true\n    }\n]"
 				}
 			]
 		},

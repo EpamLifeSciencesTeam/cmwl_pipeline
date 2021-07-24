@@ -37,10 +37,10 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
   private val userId = UserId.random
   private val userPassword = Password("Password_213", Enable.Unsafe)
   private val incorrectUserPassword = Password("Password_2134", Enable.Unsafe)
-  private val dummyUser = TestUserUtils.getDummyUser(password = userPassword)
+  private val dummyUser = TestUserUtils.getDummyUserWithCredentials(password = userPassword)
   private val userEmail = dummyUser.email
   private val inactiveUserPassword = Password("Password_213", Enable.Unsafe)
-  private val inactiveUser = TestUserUtils.getDummyUser(active = false, password = inactiveUserPassword)
+  private val inactiveUser = TestUserUtils.getDummyUserWithCredentials(active = false, password = inactiveUserPassword)
   private val inactiveUserEmail = inactiveUser.email
 
   "AuthServiceTest" when {
@@ -84,7 +84,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
     "signUp" should {
 
       "return Failed future when user already exists" taggedAs Service in new AuthServiceTestContext {
-        (userService.getUserByEmail _ when userEmail).returns(Future.successful(Some(dummyUser)))
+        (userService.getUserWithCredentialsByEmail _ when userEmail).returns(Future.successful(Some(dummyUser)))
         whenReady(
           authService
             .signUp(
@@ -103,7 +103,8 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
     "signIn" should {
 
       "return Failed future when user is inactive" taggedAs Service in new AuthServiceTestContext {
-        (userService.getUserByEmail _ when inactiveUserEmail).returns(Future.successful(Some(inactiveUser)))
+        (userService.getUserWithCredentialsByEmail _ when inactiveUserEmail)
+          .returns(Future.successful(Some(inactiveUser)))
         whenReady(
           authService
             .signIn(
@@ -117,7 +118,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
       }
 
       "return Failed future when password is incorrect" taggedAs Service in new AuthServiceTestContext {
-        (userService.getUserByEmail _ when userEmail).returns(Future.successful(Some(dummyUser)))
+        (userService.getUserWithCredentialsByEmail _ when userEmail).returns(Future.successful(Some(dummyUser)))
         whenReady(
           authService
             .signIn(
@@ -137,7 +138,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
           dummyUser.email,
           userPassword
         )
-        (userService.getUserByEmail _ when dummyUser.email).returns(Future.successful(Some(dummyUser)))
+        (userService.getUserWithCredentialsByEmail _ when dummyUser.email).returns(Future.successful(Some(dummyUser)))
         whenReady(authService.takeUserFromRequest(request).value) { _ shouldBe Some(dummyUser) }
       }
     }
