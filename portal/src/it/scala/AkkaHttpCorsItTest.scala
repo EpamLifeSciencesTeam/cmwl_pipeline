@@ -9,7 +9,7 @@ import com.typesafe.config.Config
 import cromwell.pipeline.controller.AuthController._
 import cromwell.pipeline.datastorage.dao.utils.TestUserUtils
 import cromwell.pipeline.datastorage.dao.utils.TestUserUtils.userPassword
-import cromwell.pipeline.datastorage.dto.User
+import cromwell.pipeline.datastorage.dto.UserWithCredentials
 import cromwell.pipeline.utils.TestContainersUtils
 import cromwell.pipeline.{ ApplicationComponents, CromwellPipelineRoute }
 import org.scalatest.{ Matchers, WordSpec }
@@ -21,7 +21,7 @@ class AkkaHttpCorsItTest extends WordSpec with Matchers with ScalatestRouteTest 
   private lazy val components: ApplicationComponents = new ApplicationComponents()
   private lazy val route = new CromwellPipelineRoute(components.applicationConfig, components.controllerModule).route
 
-  private val dummyUser: User = TestUserUtils.getDummyUser()
+  private val dummyUser: UserWithCredentials = TestUserUtils.getDummyUserWithCredentials()
   private val signUpRequestStr =
     s"""{"email":"${dummyUser.email}","password":"$userPassword","firstName":"${dummyUser.firstName}","lastName":"${dummyUser.lastName}"}"""
   private val httpEntity: HttpEntity.Strict = HttpEntity(`application/json`, signUpRequestStr)

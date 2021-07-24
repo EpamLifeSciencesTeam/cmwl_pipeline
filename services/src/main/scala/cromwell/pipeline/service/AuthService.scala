@@ -3,7 +3,7 @@ package cromwell.pipeline.service
 import cats.data.OptionT
 import cats.implicits._
 import cromwell.pipeline.auth.AuthUtils
-import cromwell.pipeline.datastorage.dto.User
+import cromwell.pipeline.datastorage.dto.UserWithCredentials
 import cromwell.pipeline.datastorage.dto.auth._
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.service.AuthorizationException.{
@@ -26,13 +26,13 @@ trait AuthService {
 
   def refreshTokens(refreshToken: String): Option[AuthResponse]
 
-  def takeUserFromRequest(request: SignInRequest): OptionT[Future, User]
+  def takeUserFromRequest(request: SignInRequest): OptionT[Future, UserWithCredentials]
 
-  def responseFromUser(user: User): Option[AuthResponse]
+  def responseFromUser(user: UserWithCredentials): Option[AuthResponse]
 
-  def passwordCorrect(request: SignInRequest, user: User): Option[Throwable]
+  def passwordCorrect(request: SignInRequest, user: UserWithCredentials): Option[Throwable]
 
-  def userIsActive(user: User): Option[Throwable]
+  def userIsActive(user: UserWithCredentials): Option[Throwable]
 
 }
 
@@ -52,12 +52,12 @@ object AuthService {
         takeUserFromRequest(request).subflatMap(responseFromUser).value
 
       def signUp(request: SignUpRequest): Future[Option[AuthResponse]] =
-        userService.getUserByEmail(request.email).flatMap {
+        userService.getUserWithCredentialsByEmail(request.email).flatMap {
           case Some(_) => Future.failed(DuplicateUserException(s"${request.email} already exists"))
           case None =>
             val passwordSalt = Random.nextLong().toHexString
             val passwordHash = StringUtils.calculatePasswordHash(request.password, passwordSalt)
-            val newUser = User(
+            val newUser = UserWithCredentials(
               userId = UserId.random,
               email = request.email,
               passwordSalt = passwordSalt,
@@ -88,8 +88,8 @@ object AuthService {
           .flatten
       }
 
-      def takeUserFromRequest(request: SignInRequest): OptionT[Future, User] =
-        OptionT(userService.getUserByEmail(request.email)).semiflatMap[User] { user =>
+      def takeUserFromRequest(request: SignInRequest): OptionT[Future, UserWithCredentials] =
+        OptionT(userService.getUserWithCredentialsByEmail(request.email)).semiflatMap[UserWithCredentials] { user =>
           val checkFilters = passwordCorrect(request, user).orElse(userIsActive(user))
           checkFilters match {
             case Some(value) => Future.failed(value)
@@ -97,17 +97,17 @@ object AuthService {
           }
         }
 
-      def responseFromUser(user: User): Option[AuthResponse] = {
+      def responseFromUser(user: UserWithCredentials): Option[AuthResponse] = {
         val accessTokenContent = AccessTokenContent(user.userId)
         val refreshTokenContent = RefreshTokenContent(user.userId, None)
         getAuthResponse(accessTokenContent, refreshTokenContent, Instant.now.getEpochSecond)
       }
 
-      def passwordCorrect(request: SignInRequest, user: User): Option[Throwable] =
+      def passwordCorrect(request: SignInRequest, user: UserWithCredentials): Option[Throwable] =
         if (user.passwordHash == StringUtils.calculatePasswordHash(request.password, user.passwordSalt)) None
         else Some(IncorrectPasswordException(authorizationFailure))
 
-      def userIsActive(user: User): Option[Throwable] =
+      def userIsActive(user: UserWithCredentials): Option[Throwable] =
         if (user.active) None else Some(InactiveUserException(inactiveUserMessage))
 
     }

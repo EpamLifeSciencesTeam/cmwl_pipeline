@@ -11,7 +11,7 @@ trait UserEntry {
   import Implicits._
   import profile.api._
 
-  class UserTable(tag: Tag) extends Table[User](tag, "user") {
+  class UserTable(tag: Tag) extends Table[UserWithCredentials](tag, "user") {
     def userId: Rep[UserId] = column[UserId]("user_id", O.PrimaryKey)
     def email: Rep[UserEmail] = column[UserEmail]("email")
     def passwordHash: Rep[String] = column[String]("password_hash")
@@ -20,9 +20,9 @@ trait UserEntry {
     def lastName: Rep[Name] = column[Name]("last_name")
     def profilePicture: Rep[ProfilePicture] = column[ProfilePicture]("profile_picture")
     def active: Rep[Boolean] = column[Boolean]("active")
-    def * : ProvenShape[User] =
+    def * : ProvenShape[UserWithCredentials] =
       (userId, email, passwordHash, passwordSalt, firstName, lastName, profilePicture.?, active) <>
-        ((User.apply _).tupled, User.unapply)
+        ((UserWithCredentials.apply _).tupled, UserWithCredentials.unapply)
   }
 
   val users = TableQuery[UserTable]
@@ -38,7 +38,7 @@ trait UserEntry {
   def getUsersByEmailAction(emailPattern: String) =
     users.filter(_.email.like(emailPattern)).result
 
-  def addUserAction(user: User): ActionResult[UserId] = users.returning(users.map(_.userId)) += user
+  def addUserAction(user: UserWithCredentials): ActionResult[UserId] = users.returning(users.map(_.userId)) += user
 
   def deactivateUserByEmail(email: UserEmail): ActionResult[Int] =
     users.filter(_.email === email).map(_.active).update(false)
@@ -46,7 +46,7 @@ trait UserEntry {
   def deactivateUserById(userId: UserId): ActionResult[Int] =
     users.filter(_.userId === userId).map(_.active).update(false)
 
-  def updateUser(updatedUser: User): ActionResult[Int] =
+  def updateUser(updatedUser: UserWithCredentials): ActionResult[Int] =
     users
       .filter(_.userId === updatedUser.userId)
       .map(user => (user.email, user.firstName, user.lastName))

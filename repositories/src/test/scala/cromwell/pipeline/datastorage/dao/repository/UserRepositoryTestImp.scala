@@ -1,24 +1,24 @@
 package cromwell.pipeline.datastorage.dao.repository
 
-import cromwell.pipeline.datastorage.dto.User
+import cromwell.pipeline.datastorage.dto.UserWithCredentials
 import cromwell.pipeline.model.wrapper.{ UserEmail, UserId }
 import scala.collection.mutable
 import scala.concurrent.Future
 
 class UserRepositoryTestImp extends UserRepository {
 
-  private val users: mutable.Map[UserId, User] = mutable.Map.empty
+  private val users: mutable.Map[UserId, UserWithCredentials] = mutable.Map.empty
 
-  def getUserById(userId: UserId): Future[Option[User]] =
+  def getUserById(userId: UserId): Future[Option[UserWithCredentials]] =
     Future.successful(users.get(userId))
 
-  def getUserByEmail(email: UserEmail): Future[Option[User]] =
+  def getUserByEmail(email: UserEmail): Future[Option[UserWithCredentials]] =
     Future.successful(users.values.find(_.email == email))
 
-  def getUsersByEmail(emailPattern: String): Future[Seq[User]] =
+  def getUsersByEmail(emailPattern: String): Future[Seq[UserWithCredentials]] =
     Future.successful(users.values.filter(_.email.unwrap.contains(emailPattern)).toSeq)
 
-  def addUser(user: User): Future[UserId] = {
+  def addUser(user: UserWithCredentials): Future[UserId] = {
     users += (user.userId -> user)
     Future.successful(user.userId)
   }
@@ -29,7 +29,7 @@ class UserRepositoryTestImp extends UserRepository {
   def deactivateUserById(userId: UserId): Future[Int] =
     deactivateUser[UserId](userId, user => user.userId)
 
-  private def deactivateUser[A](userParam: A, toUserField: User => A): Future[Int] = {
+  private def deactivateUser[A](userParam: A, toUserField: UserWithCredentials => A): Future[Int] = {
     for {
       (_, user) <- users if userParam == toUserField(user)
       deactivatedUser = user.copy(active = false)
@@ -37,12 +37,12 @@ class UserRepositoryTestImp extends UserRepository {
     Future.successful(0)
   }
 
-  def updateUser(updatedUser: User): Future[Int] = update(updatedUser)
+  def updateUser(updatedUser: UserWithCredentials): Future[Int] = update(updatedUser)
 
   def updatePassword(userId: UserId, hash: String, salt: String): Future[Int] =
     users.get(userId).fold(Future.successful(0))(u => update(u.copy(passwordHash = hash, passwordSalt = salt)))
 
-  private def update(updatedUser: User): Future[Int] = {
+  private def update(updatedUser: UserWithCredentials): Future[Int] = {
     if (users.contains(updatedUser.userId)) users += (updatedUser.userId -> updatedUser)
     Future.successful(0)
   }
@@ -51,7 +51,7 @@ class UserRepositoryTestImp extends UserRepository {
 
 object UserRepositoryTestImp {
 
-  def apply(users: User*): UserRepositoryTestImp = {
+  def apply(users: UserWithCredentials*): UserRepositoryTestImp = {
     val userRepositoryTestImp = new UserRepositoryTestImp
     users.foreach(userRepositoryTestImp.addUser)
     userRepositoryTestImp
