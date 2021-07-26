@@ -1,5 +1,7 @@
 package cromwell.pipeline.utils
 
+import cromwell.pipeline.model.validator.Enable
+import cromwell.pipeline.model.wrapper.Password
 import org.scalacheck.Gen
 import org.scalacheck.Gen.alphaNumChar
 import org.scalatest.{ Matchers, WordSpec }
@@ -7,9 +9,10 @@ import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.util.Random
 
 class StringUtilsTest extends WordSpec with ScalaCheckDrivenPropertyChecks with Matchers with TestTimeout {
-  private case class SinglePasswordData(pass: String, salt: String, repeat: Int)
+  private case class SinglePasswordData(pass: Password, salt: String, repeat: Int)
   private case class MultiplePasswordsData(data: Seq[SinglePasswordData])
 
   private implicit val multiThreadedEc: ExecutionContext =
@@ -21,10 +24,23 @@ class StringUtilsTest extends WordSpec with ScalaCheckDrivenPropertyChecks with 
   private val maxPasswordAmount = 64
 
   private val stringGen = Gen.listOfN(maxStringSize, alphaNumChar).map(_.mkString)
+  // fixme temporarily copied from cromwell.pipeline.datastorage.dao.utils.GeneratorUtils
+  //  remove once GeneratorUtils moved to utils (duh)
+  private val passwordGen: Gen[Password] = for {
+    upperCase <- Gen.alphaUpperStr.suchThat(s => s.nonEmpty)
+    lowerLetters <- stringGen
+    digits <- Gen.posNum[Int]
+    symbol <- Gen.oneOf(Seq("$", "%", "&"))
+    _ <- Gen.posNum[Long]
+  } yield {
+    val password = Random.shuffle(List(upperCase, lowerLetters, digits.toString, symbol).flatten).mkString
+    Password(password, Enable.Unsafe)
+  }
+
   private val pwdRepeatNumGen = Gen.chooseNum(minPasswordRepeats, maxPasswordRepeats)
   private val singlePasswordDataGen =
     for {
-      pass <- stringGen
+      pass <- passwordGen
       salt <- stringGen
       repeat <- pwdRepeatNumGen
     } yield SinglePasswordData(pass, salt, repeat)
@@ -32,8 +48,8 @@ class StringUtilsTest extends WordSpec with ScalaCheckDrivenPropertyChecks with 
 
   private def await[A](f: Future[A]): A = Await.result(f, timeoutAsDuration)
 
-  private val hashFunction: (String, String) => String = StringUtils.calculatePasswordHash
-  private val hashFunctionF: (String, String) => Future[String] = (p, s) => Future(hashFunction(p, s))
+  private val hashFunction: (Password, String) => String = StringUtils.calculatePasswordHash
+  private val hashFunctionF: (Password, String) => Future[String] = (p, s) => Future(hashFunction(p, s))
 
   "StringUtils" should {
     "not suffer from race conditions" when {
