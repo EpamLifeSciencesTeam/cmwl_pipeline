@@ -1,5 +1,7 @@
 package cromwell.pipeline.utils
 
+import cromwell.pipeline.model.validator.Enable
+import cromwell.pipeline.model.wrapper.Password
 import org.scalacheck.Gen
 import org.scalacheck.Gen.alphaNumChar
 import org.scalatest.{ Matchers, WordSpec }
@@ -9,7 +11,7 @@ import java.util.concurrent.Executors
 import scala.concurrent.{ Await, ExecutionContext, Future }
 
 class StringUtilsTest extends WordSpec with ScalaCheckDrivenPropertyChecks with Matchers with TestTimeout {
-  private case class SinglePasswordData(pass: String, salt: String, repeat: Int)
+  private case class SinglePasswordData(pass: Password, salt: String, repeat: Int)
   private case class MultiplePasswordsData(data: Seq[SinglePasswordData])
 
   private implicit val multiThreadedEc: ExecutionContext =
@@ -21,10 +23,11 @@ class StringUtilsTest extends WordSpec with ScalaCheckDrivenPropertyChecks with 
   private val maxPasswordAmount = 64
 
   private val stringGen = Gen.listOfN(maxStringSize, alphaNumChar).map(_.mkString)
+  private val pwdGen = stringGen.map(Password(_, Enable.Unsafe))
   private val pwdRepeatNumGen = Gen.chooseNum(minPasswordRepeats, maxPasswordRepeats)
   private val singlePasswordDataGen =
     for {
-      pass <- stringGen
+      pass <- pwdGen
       salt <- stringGen
       repeat <- pwdRepeatNumGen
     } yield SinglePasswordData(pass, salt, repeat)
@@ -32,8 +35,8 @@ class StringUtilsTest extends WordSpec with ScalaCheckDrivenPropertyChecks with 
 
   private def await[A](f: Future[A]): A = Await.result(f, timeoutAsDuration)
 
-  private val hashFunction: (String, String) => String = StringUtils.calculatePasswordHash
-  private val hashFunctionF: (String, String) => Future[String] = (p, s) => Future(hashFunction(p, s))
+  private val hashFunction: (Password, String) => String = StringUtils.calculatePasswordHash
+  private val hashFunctionF: (Password, String) => Future[String] = (p, s) => Future(hashFunction(p, s))
 
   "StringUtils" should {
     "not suffer from race conditions" when {

@@ -6,7 +6,7 @@ import com.typesafe.config.Config
 import cromwell.pipeline.datastorage.DatastorageModule
 import cromwell.pipeline.datastorage.dao.utils.{ PostgreTablesCleaner, TestUserUtils }
 import cromwell.pipeline.model.validator.Enable
-import cromwell.pipeline.model.wrapper.{ Name, UserEmail }
+import cromwell.pipeline.model.wrapper.{ Name, Password, UserEmail }
 import cromwell.pipeline.utils.{ ApplicationConfig, StringUtils, TestContainersUtils }
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 
@@ -27,7 +27,8 @@ class UserRepositoryTest
     datastorageModule.pipelineDatabaseEngine.updateSchema()
   }
 
-  private val newPasswordHash: String = StringUtils.calculatePasswordHash("newPassword_1", "salt")
+  private val newPassword: Password = Password("newPassword_1", Enable.Unsafe)
+  private val newPasswordHash: String = StringUtils.calculatePasswordHash(newPassword, "salt")
 
   "UserRepository" when {
 
