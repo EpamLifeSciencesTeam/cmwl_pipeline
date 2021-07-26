@@ -8,10 +8,10 @@ import cromwell.pipeline.model.wrapper.{ Name, Password, UserEmail, UserId }
 
 object TestUserUtils {
   val userPassword: Password = Password("-Pa$$w0rd1-", Enable.Unsafe)
-  def getDummyUserId = UserId.random
+  def getDummyUserId: UserId = UserId.random
   def getDummyUser(
     uuid: UserId = UserId.random,
-    password: String = userPassword.unwrap,
+    password: Password = userPassword,
     passwordSalt: String = "salt",
     firstName: Name = Name("FirstName", Enable.Unsafe),
     lastName: Name = Name("LastName", Enable.Unsafe),

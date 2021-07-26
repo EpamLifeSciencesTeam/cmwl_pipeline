@@ -17,7 +17,7 @@ import scala.concurrent.Future
 class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
   private val userRepository: UserRepository = mock[UserRepository]
   private val userService: UserService = UserService(userRepository)
-  private val validPassword: String = "newPassword_1"
+  private val validPassword: Password = Password("newPassword_1", Enable.Unsafe)
 
   "UserService" when {
     "deactivateUserById" should {
@@ -79,13 +79,13 @@ class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         val request =
           PasswordUpdateRequest(
             TestUserUtils.userPassword,
-            Password(validPassword, Enable.Unsafe),
-            Password(validPassword, Enable.Unsafe)
+            validPassword,
+            validPassword
           )
-        val updatedUser = user.copy(passwordHash = calculatePasswordHash(validPassword, salt), passwordSalt = salt)
+        val updatedPasswordHash = calculatePasswordHash(validPassword, salt)
 
         when(userRepository.getUserById(user.userId)).thenReturn(Future.successful(Some(user)))
-        when(userRepository.updatePassword(updatedUser)).thenReturn(Future.successful(1))
+        when(userRepository.updatePassword(user.userId, updatedPasswordHash, salt)).thenReturn(Future.successful(1))
 
         userService.updatePassword(user.userId, request, salt).map { result =>
           result shouldBe 1

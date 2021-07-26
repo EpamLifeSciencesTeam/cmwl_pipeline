@@ -52,9 +52,9 @@ trait UserEntry {
       .map(user => (user.email, user.firstName, user.lastName))
       .update((updatedUser.email, updatedUser.firstName, updatedUser.lastName))
 
-  def updatePassword(updatedUser: User): ActionResult[Int] =
+  def updatePassword(userId: UserId, passwordHash: String, passwordSalt: String): ActionResult[Int] =
     users
-      .filter(_.userId === updatedUser.userId)
+      .filter(_.userId === userId)
       .map(user => (user.passwordHash, user.passwordSalt))
-      .update((updatedUser.passwordHash, updatedUser.passwordSalt))
+      .update((passwordHash, passwordSalt))
 }

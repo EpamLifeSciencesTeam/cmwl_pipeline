@@ -35,11 +35,11 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
   import authConfig._
 
   private val userId = UserId.random
-  private val userPassword = "Password_213"
-  private val incorrectUserPassword = "Password_2134"
+  private val userPassword = Password("Password_213", Enable.Unsafe)
+  private val incorrectUserPassword = Password("Password_2134", Enable.Unsafe)
   private val dummyUser = TestUserUtils.getDummyUser(password = userPassword)
   private val userEmail = dummyUser.email
-  private val inactiveUserPassword = "Password_213"
+  private val inactiveUserPassword = Password("Password_213", Enable.Unsafe)
   private val inactiveUser = TestUserUtils.getDummyUser(active = false, password = inactiveUserPassword)
   private val inactiveUserEmail = inactiveUser.email
 
@@ -90,7 +90,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
             .signUp(
               SignUpRequest(
                 dummyUser.email,
-                Password(userPassword, Enable.Unsafe),
+                userPassword,
                 dummyUser.firstName,
                 dummyUser.lastName
               )
@@ -109,7 +109,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
             .signIn(
               SignInRequest(
                 UserEmail(inactiveUserEmail.unwrap, Enable.Unsafe),
-                Password(inactiveUserPassword, Enable.Unsafe)
+                inactiveUserPassword
               )
             )
             .failed
@@ -123,7 +123,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
             .signIn(
               SignInRequest(
                 UserEmail(userEmail.unwrap, Enable.Unsafe),
-                Password(incorrectUserPassword, Enable.Unsafe)
+                incorrectUserPassword
               )
             )
             .failed
@@ -135,7 +135,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
       "return some User" taggedAs Service in new AuthServiceTestContext {
         val request: SignInRequest = SignInRequest(
           dummyUser.email,
-          Password(userPassword, Enable.Unsafe)
+          userPassword
         )
         (userService.getUserByEmail _ when dummyUser.email).returns(Future.successful(Some(dummyUser)))
         whenReady(authService.takeUserFromRequest(request).value) { _ shouldBe Some(dummyUser) }
@@ -154,7 +154,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
       "return None if a password is correct" taggedAs Service in new AuthServiceTestContext {
         val request: SignInRequest = SignInRequest(
           dummyUser.email,
-          Password(userPassword, Enable.Unsafe)
+          userPassword
         )
         authService.passwordCorrect(request, dummyUser) shouldBe None
       }
@@ -162,7 +162,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
       "throw the exception if the password is incorrect" taggedAs Service in new AuthServiceTestContext {
         val request: SignInRequest = SignInRequest(
           dummyUser.email,
-          Password(incorrectUserPassword, Enable.Unsafe)
+          incorrectUserPassword
         )
         authService.passwordCorrect(request, dummyUser) shouldBe
           Some(IncorrectPasswordException(AuthService.authorizationFailure))

@@ -97,7 +97,7 @@ class UserControllerItTest
             Password("new$Password1", Enable.Unsafe)
           )
         userRepository.addUser(dummyUser).flatMap { _ =>
-          userRepository.updatePassword(dummyUser).map { _ =>
+          userRepository.updatePassword(dummyUser.userId, dummyUser.passwordHash, dummyUser.passwordSalt).map { _ =>
             val accessToken = AccessTokenContent(dummyUser.userId)
             Put("/users/password", request) ~> userController.route(accessToken) ~> check {
               status shouldBe StatusCodes.NoContent

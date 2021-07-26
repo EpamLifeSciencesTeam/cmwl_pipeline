@@ -3,7 +3,7 @@ package cromwell.pipeline.service
 import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
 import cromwell.pipeline.datastorage.dto.{ User, UserNoCredentials }
-import cromwell.pipeline.model.wrapper.{ UserEmail, UserId }
+import cromwell.pipeline.model.wrapper.{ Password, UserEmail, UserId }
 import cromwell.pipeline.utils.StringUtils._
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -61,23 +61,40 @@ object UserService {
         userId: UserId,
         request: PasswordUpdateRequest,
         salt: String = Random.nextLong().toHexString
-      ): Future[Int] =
-        if (request.newPassword == request.repeatPassword) {
-          userRepository.getUserById(userId).flatMap {
-            case Some(user) =>
-              user match {
-                case user
-                    if user.passwordHash == calculatePasswordHash(request.currentPassword.unwrap, user.passwordSalt) => {
-                  val passwordSalt = salt
-                  val passwordHash = calculatePasswordHash(request.newPassword.unwrap, passwordSalt)
-                  userRepository.updatePassword(user.copy(passwordSalt = passwordSalt, passwordHash = passwordHash))
-                }
-                case _ => Future.failed(new RuntimeException("user password differs from entered"))
-              }
-            case None => Future.failed(new RuntimeException("user with this id doesn't exist"))
-          }
-        } else Future.failed(new RuntimeException("new password incorrectly duplicated"))
+      ): Future[Int] = {
 
+        def checkRequestPassword: Future[Unit] =
+          if (request.newPassword == request.repeatPassword) {
+            Future.unit
+          } else {
+            Future.failed(new RuntimeException("new password incorrectly duplicated"))
+          }
+
+        def checkUserPassword(user: User): Future[Unit] =
+          if (user.passwordHash == calculatePasswordHash(request.currentPassword, user.passwordSalt)) {
+            Future.unit
+          } else {
+            Future.failed(new RuntimeException("user password differs from entered"))
+          }
+
+        for {
+          _ <- checkRequestPassword
+          user <- getUserById(userId)
+          _ <- checkUserPassword(user)
+          res <- updatePasswordUnsafe(userId, request.newPassword, salt)
+        } yield res
+      }
+
+      private def getUserById(userId: UserId): Future[User] =
+        userRepository.getUserById(userId).flatMap {
+          case Some(user) => Future.successful(user)
+          case None       => Future.failed(new RuntimeException("user with this id doesn't exist"))
+        }
+
+      private def updatePasswordUnsafe(userId: UserId, newPassword: Password, salt: String): Future[Int] = {
+        val passwordHash = calculatePasswordHash(newPassword, salt)
+        userRepository.updatePassword(userId = userId, passwordHash = passwordHash, passwordSalt = salt)
+      }
     }
 
 }

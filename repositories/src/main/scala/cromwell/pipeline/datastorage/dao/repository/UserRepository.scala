@@ -23,7 +23,7 @@ trait UserRepository {
 
   def updateUser(updatedUser: User): Future[Int]
 
-  def updatePassword(updatedUser: User): Future[Int]
+  def updatePassword(userId: UserId, passwordHash: String, passwordSalt: String): Future[Int]
 
 }
 
@@ -51,7 +51,8 @@ object UserRepository {
 
       def updateUser(updatedUser: User): Future[Int] = database.run(userEntry.updateUser(updatedUser))
 
-      def updatePassword(updatedUser: User): Future[Int] = database.run(userEntry.updatePassword(updatedUser))
+      def updatePassword(userId: UserId, passwordHash: String, passwordSalt: String): Future[Int] =
+        database.run(userEntry.updatePassword(userId, passwordHash, passwordSalt))
 
     }
 
