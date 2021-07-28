@@ -17,14 +17,16 @@ import scala.concurrent.Future
 class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
   private val userRepository: UserRepository = mock[UserRepository]
   private val userService: UserService = UserService(userRepository)
-  private val validPassword: Password = Password("newPassword_1", Enable.Unsafe)
+
+  private val salt = "salt"
+  private val password: Password = Password("Password_1", Enable.Unsafe)
+  private val newPassword: Password = Password("newPassword_1", Enable.Unsafe)
+  private val user = TestUserUtils.getDummyUser(password = password, passwordSalt = salt)
 
   "UserService" when {
     "deactivateUserById" should {
 
       "returns user's entity with false value" taggedAs Service in {
-        val user = TestUserUtils.getDummyUser()
-
         when(userRepository.deactivateUserById(user.userId)).thenReturn(Future.successful(1))
         when(userRepository.getUserById(user.userId)).thenReturn(Future.successful(Some(user)))
 
@@ -49,7 +51,6 @@ class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
     "updateUser" should {
 
       "returns success if database handles query" in {
-        val user = TestUserUtils.getDummyUser()
         val user2 = user.copy(
           email = UserEmail("updatedEmail@mail.com", Enable.Unsafe),
           firstName = Name("updatedFirstName", Enable.Unsafe),
@@ -73,22 +74,44 @@ class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
     "updatePassword" should {
 
       "returns success if database handles query" in {
-        val user = TestUserUtils.getDummyUser()
-        val salt = "salt"
-
-        val request =
-          PasswordUpdateRequest(
-            TestUserUtils.userPassword,
-            validPassword,
-            validPassword
-          )
-        val updatedPasswordHash = calculatePasswordHash(validPassword, salt)
+        val request = PasswordUpdateRequest(password, newPassword, newPassword)
+        val newPasswordHash = calculatePasswordHash(newPassword, salt)
 
         when(userRepository.getUserById(user.userId)).thenReturn(Future.successful(Some(user)))
-        when(userRepository.updatePassword(user.userId, updatedPasswordHash, salt)).thenReturn(Future.successful(1))
+        when(userRepository.updatePassword(user.userId, newPasswordHash, salt)).thenReturn(Future.successful(1))
 
         userService.updatePassword(user.userId, request, salt).map { result =>
           result shouldBe 1
+        }
+      }
+
+      "fail if user doesn't exist" in {
+        val request = PasswordUpdateRequest(password, newPassword, newPassword)
+
+        when(userRepository.getUserById(user.userId)).thenReturn(Future.successful(None))
+
+        userService.updatePassword(user.userId, request, salt).failed.map { error =>
+          error should have.message("user with this id doesn't exist")
+        }
+      }
+
+      "fail if new password repeated incorrectly" in {
+        val repeatedNewPassword = Password(newPassword.unwrap + "blah", Enable.Unsafe)
+        val request = PasswordUpdateRequest(password, newPassword, repeatedNewPassword)
+
+        userService.updatePassword(user.userId, request, salt).failed.map { error =>
+          error should have.message("new password incorrectly duplicated")
+        }
+      }
+
+      "fail if user current password doesn't match with request current password" in {
+        val wrongPwd = Password(password.unwrap + "blah", Enable.Unsafe)
+        val request = PasswordUpdateRequest(wrongPwd, newPassword, newPassword)
+
+        when(userRepository.getUserById(user.userId)).thenReturn(Future.successful(Some(user)))
+
+        userService.updatePassword(user.userId, request, salt).failed.map { error =>
+          error should have.message("user password differs from entered")
         }
       }
     }
