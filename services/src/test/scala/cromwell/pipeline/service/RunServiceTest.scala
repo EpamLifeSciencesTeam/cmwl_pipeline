@@ -1,7 +1,7 @@
 package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.RunRepository
-import cromwell.pipeline.datastorage.dao.utils.{ TestRunUtils, TestUserUtils }
+import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestRunUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto.{ Done, Run, RunCreateRequest, RunUpdateRequest }
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
@@ -20,18 +20,18 @@ class RunServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
 
       "returns run id" taggedAs Service in {
         val runId = TestRunUtils.getDummyRunId
-        val projectId = TestRunUtils.getDummyProjectId
+        val project = TestProjectUtils.getDummyProject()
+        val projectId = project.projectId
         val userId = TestUserUtils.getDummyUserId
         val run = TestRunUtils.getDummyRun(runId = runId, projectId = projectId, userId = userId)
         val runCreateRequest = RunCreateRequest(
           projectId = projectId,
           projectVersion = run.projectVersion,
-          results = run.results,
-          userId = userId
+          results = run.results
         )
 
         when(runRepository.addRun(any[Run])).thenReturn(Future.successful(runId))
-        runService.addRun(runCreateRequest).map {
+        runService.addRun(runCreateRequest, userId).map {
           _ shouldBe runId
         }
       }
@@ -82,7 +82,6 @@ class RunServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         )
 
         val request = RunUpdateRequest(
-          runId,
           runUpdated.status,
           runUpdated.timeStart,
           runUpdated.timeEnd,
@@ -92,7 +91,7 @@ class RunServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
 
         when(runRepository.getRunByIdAndUser(runId, run.userId)).thenReturn(Future.successful(Some(run)))
         when(runRepository.updateRun(runUpdated)).thenReturn(Future.successful(1))
-        runService.updateRun(request, run.userId).map { _ shouldBe 1 }
+        runService.updateRun(runId, request, run.userId).map { _ shouldBe 1 }
       }
     }
   }
