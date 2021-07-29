@@ -1,10 +1,10 @@
 package cromwell.pipeline.datastorage.dto
 
-import java.time.Instant
-
 import cromwell.pipeline.model.wrapper.{ RunId, UserId }
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+
+import java.time.Instant
 
 final case class Run(
   runId: RunId,
@@ -50,7 +50,6 @@ final case class RunCreateRequest(
   projectId: ProjectId,
   projectVersion: String,
   results: String,
-  userId: UserId,
   cmwlWorkflowId: Option[String] = None
 )
 
@@ -58,14 +57,7 @@ object RunCreateRequest {
   implicit val updateRequestFormat: OFormat[RunCreateRequest] = Json.format[RunCreateRequest]
 }
 
-final case class RunDeleteRequest(runId: RunId)
-
-object RunDeleteRequest {
-  implicit lazy val projectDeleteFormat: OFormat[RunDeleteRequest] = Json.format[RunDeleteRequest]
-}
-
 final case class RunUpdateRequest(
-  runId: RunId,
   status: Status,
   timeStart: Instant,
   timeEnd: Option[Instant],
