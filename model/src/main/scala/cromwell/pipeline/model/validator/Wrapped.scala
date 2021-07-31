@@ -8,6 +8,11 @@ import play.api.libs.json.{ Format, JsError, JsResult, JsSuccess, JsValue, Json 
 
 import scala.util.control.NoStackTrace
 
+/**
+ * Creates a type wrapper to narrow too vague common types like `String`
+ * Go to docs/what-is-wrapped.md for more details
+ * @tparam T - underlying wrapped type
+ */
 trait Wrapped[T] extends Any {
   def unwrap: T
   def canEqual(that: Any): Boolean = this.getClass.isInstance(that)
