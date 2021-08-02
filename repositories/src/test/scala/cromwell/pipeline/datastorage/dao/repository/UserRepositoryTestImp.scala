@@ -39,7 +39,8 @@ class UserRepositoryTestImp extends UserRepository {
 
   def updateUser(updatedUser: User): Future[Int] = update(updatedUser)
 
-  def updatePassword(updatedUser: User): Future[Int] = update(updatedUser)
+  def updatePassword(userId: UserId, hash: String, salt: String): Future[Int] =
+    users.get(userId).fold(Future.successful(0))(u => update(u.copy(passwordHash = hash, passwordSalt = salt)))
 
   private def update(updatedUser: User): Future[Int] = {
     if (users.contains(updatedUser.userId)) users += (updatedUser.userId -> updatedUser)

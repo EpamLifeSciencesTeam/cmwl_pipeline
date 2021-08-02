@@ -4,8 +4,6 @@ import cats.data.EitherT
 import cats.implicits._
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
-
-import java.nio.file.{ Path, Paths }
 import scala.concurrent.{ ExecutionContext, Future }
 
 trait AggregationService {
@@ -43,24 +41,11 @@ object AggregationService {
         projectId: ProjectId,
         userId: UserId,
         version: Option[PipelineVersion]
-      ): EitherT[Future, VersioningException, List[ProjectFile]] = {
-
-        type EitherF[T] = EitherT[Future, VersioningException, T]
-
-        def getProjectFile(
-          project: Project,
-          path: Path,
-          version: Option[PipelineVersion]
-        ): EitherF[ProjectFile] =
-          EitherT(projectVersioning.getFile(project, path, version))
-
+      ): EitherT[Future, VersioningException, List[ProjectFile]] =
         for {
           project <- EitherT.right(projectService.getUserProjectById(projectId, userId))
-          trees <- EitherT(projectVersioning.getFilesTree(project, version))
-          files <- trees.toList.traverse(tree => getProjectFile(project, Paths.get(tree.path), version))
+          files <- EitherT(projectVersioning.getFiles(project, version))
         } yield files
-      }
-
     }
 
 }

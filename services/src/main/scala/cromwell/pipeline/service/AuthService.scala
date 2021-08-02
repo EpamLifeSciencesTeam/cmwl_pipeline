@@ -56,7 +56,7 @@ object AuthService {
           case Some(_) => Future.failed(DuplicateUserException(s"${request.email} already exists"))
           case None =>
             val passwordSalt = Random.nextLong().toHexString
-            val passwordHash = StringUtils.calculatePasswordHash(request.password.value, passwordSalt)
+            val passwordHash = StringUtils.calculatePasswordHash(request.password, passwordSalt)
             val newUser = User(
               userId = UserId.random,
               email = request.email,
@@ -104,7 +104,7 @@ object AuthService {
       }
 
       def passwordCorrect(request: SignInRequest, user: User): Option[Throwable] =
-        if (user.passwordHash == StringUtils.calculatePasswordHash(request.password.value, user.passwordSalt)) None
+        if (user.passwordHash == StringUtils.calculatePasswordHash(request.password, user.passwordSalt)) None
         else Some(IncorrectPasswordException(authorizationFailure))
 
       def userIsActive(user: User): Option[Throwable] =
