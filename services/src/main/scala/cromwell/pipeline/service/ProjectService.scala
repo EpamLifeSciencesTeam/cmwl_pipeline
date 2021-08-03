@@ -4,7 +4,6 @@ import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.service.ProjectService.Exceptions.{ ProjectAccessDeniedException, ProjectNotFoundException }
-
 import java.util.UUID
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -18,7 +17,7 @@ trait ProjectService {
 
   def deactivateProjectById(projectId: ProjectId, userId: UserId): Future[Project]
 
-  def updateProjectName(request: ProjectUpdateNameRequest, userId: UserId): Future[ProjectId]
+  def updateProjectName(projectId: ProjectId, request: ProjectUpdateNameRequest, userId: UserId): Future[ProjectId]
 
   def updateProjectVersion(projectId: ProjectId, version: PipelineVersion, userId: UserId): Future[Int]
 
@@ -74,8 +73,12 @@ object ProjectService {
           }
         }
 
-      def updateProjectName(request: ProjectUpdateNameRequest, userId: UserId): Future[ProjectId] =
-        getUserProjectById(request.projectId, userId).flatMap { project =>
+      def updateProjectName(
+        projectId: ProjectId,
+        request: ProjectUpdateNameRequest,
+        userId: UserId
+      ): Future[ProjectId] =
+        getUserProjectById(projectId, userId).flatMap { project =>
           val updatedProject = project.copy(name = request.name)
           projectRepository.updateProjectName(updatedProject).map(_ => updatedProject.projectId)
         }
@@ -84,7 +87,5 @@ object ProjectService {
         getUserProjectById(projectId, userId).flatMap { project =>
           projectRepository.updateProjectVersion(project.copy(version = version))
         }
-
     }
-
 }

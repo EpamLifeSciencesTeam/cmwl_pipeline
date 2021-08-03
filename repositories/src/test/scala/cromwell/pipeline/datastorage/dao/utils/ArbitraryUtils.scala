@@ -13,7 +13,6 @@ object ArbitraryUtils {
   implicit val arbitrarySignUpRequest: Arbitrary[SignUpRequest] = Arbitrary(signUpRequestGen)
   implicit val arbitrarySignInRequest: Arbitrary[SignInRequest] = Arbitrary(signInRequestGen)
   implicit val arbitraryProjectAdditionRequest: Arbitrary[ProjectAdditionRequest] = Arbitrary(projectAdditionRequestGen)
-  implicit val arbitraryProjectDeleteRequest: Arbitrary[ProjectDeleteRequest] = Arbitrary(projectDeleteRequestGen)
   implicit val arbitraryProjectUpdateNameRequest: Arbitrary[ProjectUpdateNameRequest] =
     Arbitrary(projectUpdateNameRequestGen)
   implicit val arbitraryProjectFileContent: Arbitrary[ProjectFileContent] = Arbitrary(projectFileContentGen)

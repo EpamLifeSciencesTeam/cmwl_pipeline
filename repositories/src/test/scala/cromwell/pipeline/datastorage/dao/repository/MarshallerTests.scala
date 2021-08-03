@@ -59,16 +59,6 @@ class MarshallerTests extends AsyncWordSpec with Matchers with ScalaCheckDrivenP
         parseResult should equal(a)
       }
     }
-    "format ProjectDeleteRequest" in {
-      forAll { (a: ProjectDeleteRequest) =>
-        val parseResult: ProjectDeleteRequest =
-          projectDeleteRequestFormat.reads(projectDeleteRequestFormat.writes(a)) match {
-            case JsSuccess(value, _) => value
-            case JsError(_)          => fail("Could not parse request")
-          }
-        parseResult should equal(a)
-      }
-    }
     "format ProjectUpdateRequest" in {
       forAll { (a: ProjectUpdateNameRequest) =>
         val parseResult: ProjectUpdateNameRequest =

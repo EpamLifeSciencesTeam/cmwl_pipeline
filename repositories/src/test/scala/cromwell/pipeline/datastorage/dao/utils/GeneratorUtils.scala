@@ -7,7 +7,6 @@ import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdat
 import cromwell.pipeline.model.validator.Enable
 import cromwell.pipeline.model.wrapper._
 import org.scalacheck.Gen
-
 import java.nio.file.{ Path, Paths }
 import scala.util.Random
 
@@ -92,12 +91,9 @@ object GeneratorUtils {
 
   lazy val projectAdditionRequestGen: Gen[ProjectAdditionRequest] = stringGen().map(ProjectAdditionRequest(_))
 
-  lazy val projectDeleteRequestGen: Gen[ProjectDeleteRequest] = projectIdGen.map(ProjectDeleteRequest(_))
-
   lazy val projectUpdateNameRequestGen: Gen[ProjectUpdateNameRequest] = for {
-    id <- projectIdGen
     name <- stringGen()
-  } yield ProjectUpdateNameRequest(id, name)
+  } yield ProjectUpdateNameRequest(name)
 
   lazy val projectFileContentGen: Gen[ProjectFileContent] = stringGen().map(ProjectFileContent(_))
 
