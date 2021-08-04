@@ -23,5 +23,5 @@ class ServiceModule(
     ProjectConfigurationService(datastorageModule.configurationRepository, projectService)
   lazy val projectFileService: ProjectFileService =
     ProjectFileService(projectService, configurationService, womToolModule.womTool, projectVersioning)
-  lazy val runService: RunService = RunService(datastorageModule.runRepository)
+  lazy val runService: RunService = RunService(datastorageModule.runRepository, projectService)
 }

@@ -21,13 +21,12 @@ trait RunService {
 
 object RunService {
 
-  def apply(runRepository: RunRepository)(
+  def apply(runRepository: RunRepository, projectService: ProjectService)(
     implicit executionContext: ExecutionContext
   ): RunService =
     new RunService {
 
       def addRun(runCreateRequest: RunCreateRequest, userId: UserId): Future[RunId] = {
-
         val newRun = Run(
           runId = RunId.random,
           projectId = runCreateRequest.projectId,
@@ -37,7 +36,7 @@ object RunService {
           userId = userId,
           results = runCreateRequest.results
         )
-        runRepository.addRun(newRun)
+        projectService.getUserProjectById(runCreateRequest.projectId, userId).flatMap(_ => runRepository.addRun(newRun))
       }
 
       def getRunByIdAndUser(runId: RunId, userId: UserId): Future[Option[Run]] =
