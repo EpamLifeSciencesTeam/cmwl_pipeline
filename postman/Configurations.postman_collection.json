@@ -18,7 +18,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"projectId\": \"\",\r\n    \"projectFileConfigurations\": [\r\n        {\"path\": \"\", \"inputs\": [\r\n            {\"name\": \"\", \"typedValue\": {\"_type\": \"\", \"value\": \"\"}},\r\n            {\"name\": \"\", \"typedValue\": {\"_type\": \"\", \"value\": \"\"}}\r\n            ]}\r\n    ]\r\n}",
+					"raw": "{\n    \"id\": \"\",  \r\n    \"projectFileConfigurations\": [\r\n        {\"path\": \"\", \"inputs\": [\r\n            {\"name\": \"\", \"typedValue\": {\"_type\": \"\", \"value\": \"\"}},\r\n            {\"name\": \"\", \"typedValue\": {\"_type\": \"\", \"value\": \"\"}}\r\n            ]}\r\n    ]\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -26,11 +26,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{base_url}}/configurations",
+					"raw": "{{base_url}}/projects/{{project_id}}/configurations",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
+						"projects",
+						"{{project_id}}",
 						"configurations"
 					]
 				}
@@ -49,18 +51,14 @@
 					}
 				],
 				"url": {
-					"raw": "{{base_url}}/configurations?project_id=project_id",
+					"raw": "{{base_url}}/projects/{{project_id}}/configurations",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
+						"projects",
+						"{{project_id}}",
 						"configurations"
-					],
-					"query": [
-						{
-							"key": "project_id",
-							"value": "project_id"
-						}
 					]
 				}
 			},
@@ -78,18 +76,14 @@
 					}
 				],
 				"url": {
-					"raw": "{{base_url}}/configurations?project_id=project_id",
+					"raw": "{{base_url}}/projects/{{project_id}}/configurations",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
+						"projects",
+						"{{project_id}}",
 						"configurations"
-					],
-					"query": [
-						{
-							"key": "project_id",
-							"value": "project_id"
-						}
 					]
 				}
 			},
