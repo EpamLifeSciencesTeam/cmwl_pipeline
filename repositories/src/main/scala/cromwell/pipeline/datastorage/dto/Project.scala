@@ -202,15 +202,13 @@ object ValidateFileContentRequest {
 }
 
 final case class ProjectUpdateFileRequest(
-  projectId: ProjectId,
   projectFile: ProjectFile,
   version: Option[PipelineVersion]
 )
 
 object ProjectUpdateFileRequest {
   implicit lazy val projectUpdateFileRequestFormat: OFormat[ProjectUpdateFileRequest] =
-    ((JsPath \ "projectId").format[ProjectId] ~
-      (JsPath \ "projectFile").format[ProjectFile] ~
+    ((JsPath \ "projectFile").format[ProjectFile] ~
       (JsPath \ "version").formatNullable[PipelineVersion])(
       ProjectUpdateFileRequest.apply,
       unlift(ProjectUpdateFileRequest.unapply)

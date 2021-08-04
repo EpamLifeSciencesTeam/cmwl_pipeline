@@ -20,14 +20,15 @@
 					}
 				],
 				"url": {
-					"raw": "{{base_url}}/files/{{project_id}}?version=v0.0.1",
+					"raw": "{{base_url}}/projects/{{project_id}}/files?version=v0.0.1",
 					"host": [
 						"localhost"
 					],
 					"port": "8080",
 					"path": [
-						"files",
-						"{{project_id}}"
+						"projects",
+						"{{project_id}}",
+						"files"
 					],
 					"query": [
 						{
@@ -54,13 +55,14 @@
 					}
 				],
 				"url": {
-					"raw": "{{base_url}}/files/{{project_id}}/{{project_file_path}}?version=v0.0.1",
+					"raw": "{{base_url}}/projects/{{project_id}}/files/{{project_file_path}}?version=v0.0.1",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"files",
+						"projects",
 						"{{project_id}}",
+						"files",
 						"{{project_file_path}}"
 					],
 					"query": [
@@ -119,7 +121,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"projectId\": \"\",\r\n    \"projectFile\": {\r\n        \"path\": \"\",\r\n        \"content\": \"{{valid_wdl_file}}\"\r\n    },\r\n    \"version\": \"v0.0.1\"\n}",
+					"raw": "{\r\n    \"projectFile\": {\r\n        \"path\": \"\",\r\n        \"content\": \"{{valid_wdl_file}}\"\r\n    },\r\n    \"version\": \"v0.0.1\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -127,11 +129,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{base_url}}/files",
+					"raw": "{{base_url}}/projects/{{project_id}}/files",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
+						"projects",
+						"{{project_id}}",
 						"files"
 					]
 				}
@@ -150,14 +154,15 @@
 					}
 				],
 				"url": {
-					"raw": "{{base_url}}/files/configurations/{{project_id}}/{{project_file_path}}?version=v0.0.1",
+					"raw": "{{base_url}}/projects/{{project_id}}/files/configurations/{{project_file_path}}?version=v0.0.1",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
+						"projects",
+						"{{project_id}}",
 						"files",
 						"configurations",
-						"{{project_id}}",
 						"{{project_file_path}}"
 					],
 					"query": [
