@@ -30,8 +30,8 @@ class UserController(userService: UserService) {
     }
   }
 
-  private def updateUser(implicit accessToken: AccessTokenContent): Route = path("info") {
-    put {
+  private def updateUser(implicit accessToken: AccessTokenContent): Route = put {
+    path("info") {
       entity(as[UserUpdateRequest]) { userUpdateRequest =>
         onComplete(userService.updateUser(accessToken.userId, userUpdateRequest)) {
           case Success(_)   => complete(StatusCodes.NoContent)
@@ -41,8 +41,8 @@ class UserController(userService: UserService) {
     }
   }
 
-  private def updatePassword(implicit accessToken: AccessTokenContent): Route = path("password") {
-    put {
+  private def updatePassword(implicit accessToken: AccessTokenContent): Route = put {
+    path("password") {
       entity(as[PasswordUpdateRequest]) { passwordUpdateRequest =>
         onComplete(userService.updatePassword(accessToken.userId, passwordUpdateRequest)) {
           case Success(_)   => complete(StatusCodes.NoContent)
