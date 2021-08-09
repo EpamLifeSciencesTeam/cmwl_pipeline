@@ -25,13 +25,13 @@ class ProjectRepositoryTest
   }
 
   private val dummyUser: UserWithCredentials = TestUserUtils.getDummyUserWithCredentials()
+  private val stranger: UserWithCredentials = TestUserUtils.getDummyUserWithCredentials()
   private val dummyProject: Project = TestProjectUtils.getDummyProject(ownerId = dummyUser.userId)
 
   import datastorageModule.{ projectRepository, userRepository }
+
   "ProjectRepository" when {
-
-    "getUserById" should {
-
+    "getProjectById" should {
       "find newly added project by id" taggedAs Dao in {
         val addUserFuture = userRepository.addUser(dummyUser)
         val result = for {
@@ -39,12 +39,38 @@ class ProjectRepositoryTest
           _ <- projectRepository.addProject(dummyProject)
           getById <- projectRepository.getProjectById(dummyProject.projectId)
         } yield getById
+
         result.map(optProject => optProject shouldEqual Some(dummyProject))
       }
     }
 
-    "updateProjectVersion" should {
+    "getProjectsByOwnerId" should {
+      "find all user projects" taggedAs Dao in {
+        val addUserFuture = userRepository.addUser(dummyUser)
+        val result = for {
+          _ <- addUserFuture
+          _ <- projectRepository.addProject(dummyProject)
+          getByUserId <- projectRepository.getProjectsByOwnerId(dummyUser.userId)
+        } yield getByUserId
 
+        result.map(optProjects => optProjects shouldEqual List(dummyProject))
+      }
+
+      "returns an empty list when the user has no projects" taggedAs Dao in {
+        val addUserFuture = userRepository.addUser(dummyUser)
+        val addStrangerFuture = userRepository.addUser(stranger)
+        val result = for {
+          _ <- addUserFuture
+          _ <- addStrangerFuture
+          _ <- projectRepository.addProject(dummyProject)
+          getByUserId <- projectRepository.getProjectsByOwnerId(stranger.userId)
+        } yield getByUserId
+
+        result.map(optProjects => optProjects shouldEqual List())
+      }
+    }
+
+    "updateProjectVersion" should {
       "return project with correct version" taggedAs Dao in {
         val newVersion = PipelineVersion("v0.0.2")
         val result = for {

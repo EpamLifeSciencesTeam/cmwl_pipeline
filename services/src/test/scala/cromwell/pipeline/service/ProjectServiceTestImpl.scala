@@ -46,6 +46,11 @@ class ProjectServiceTestImpl(projects: Seq[Project], testMode: TestMode) extends
       case _                  => Future.successful(1)
     }
 
+  override def getUserProjects(userId: UserId): Future[Seq[Project]] =
+    testMode match {
+      case WithException(exc) => Future.failed(exc)
+      case _                  => Future.successful(projects)
+    }
 }
 
 object ProjectServiceTestImpl {

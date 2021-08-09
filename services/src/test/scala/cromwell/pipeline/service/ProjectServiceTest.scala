@@ -20,6 +20,26 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
 
   "ProjectServiceTest" when {
 
+    "getUserProjects" should {
+      val ownerId = dummyProject.ownerId
+
+      "return list projects" taggedAs Service in {
+        when(projectRepository.getProjectsByOwnerId(ownerId)).thenReturn(Future.successful(Seq(dummyProject)))
+
+        projectService.getUserProjects(ownerId).map {
+          _ shouldBe Seq(dummyProject)
+        }
+      }
+
+      "return empty list projects" taggedAs Service in {
+        when(projectRepository.getProjectsByOwnerId(ownerId)).thenReturn(Future.successful(Seq()))
+
+        projectService.getUserProjects(ownerId).map {
+          _ shouldBe Seq.empty
+        }
+      }
+    }
+
     "addProject" should {
       val request = ProjectAdditionRequest(name = dummyProject.name)
       val ownerId = dummyProject.ownerId

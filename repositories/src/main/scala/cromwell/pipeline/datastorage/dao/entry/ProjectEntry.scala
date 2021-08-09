@@ -27,6 +27,10 @@ trait ProjectEntry { this: Profile with UserEntry with CustomsWithEnumSupport wi
 
   val projects = TableQuery[ProjectTable]
 
+  def getProjectsByOwnerIdAction = Compiled { userId: Rep[UserId] =>
+    projects.filter(_.ownerId === userId)
+  }
+
   def getProjectByIdAction = Compiled { projectId: Rep[ProjectId] =>
     projects.filter(_.projectId === projectId).take(1)
   }

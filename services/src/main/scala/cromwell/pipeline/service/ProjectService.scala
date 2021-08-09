@@ -12,6 +12,8 @@ trait ProjectService {
 
   def getUserProjectById(projectId: ProjectId, userId: UserId): Future[Project]
 
+  def getUserProjects(userId: UserId): Future[Seq[Project]]
+
   def getUserProjectByName(namePattern: String, userId: UserId): Future[Project]
 
   def addProject(request: ProjectAdditionRequest, userId: UserId): Future[Either[VersioningException, Project]]
@@ -39,6 +41,9 @@ object ProjectService {
 
       def getUserProjectById(projectId: ProjectId, userId: UserId): Future[Project] =
         projectRepository.getProjectById(projectId).flatMap(project => getForUserOrFail(project.toSeq, userId))
+
+      def getUserProjects(userId: UserId): Future[Seq[Project]] =
+        projectRepository.getProjectsByOwnerId(userId)
 
       def getUserProjectByName(namePattern: String, userId: UserId): Future[Project] =
         projectRepository.getProjectsByName(namePattern).flatMap(getForUserOrFail(_, userId))

@@ -3,10 +3,13 @@ package cromwell.pipeline.datastorage.dao.repository
 import cromwell.pipeline.database.PipelineDatabaseEngine
 import cromwell.pipeline.datastorage.dao.entry.ProjectEntry
 import cromwell.pipeline.datastorage.dto.{ Project, ProjectId }
+import cromwell.pipeline.model.wrapper.UserId
 
 import scala.concurrent.Future
 
 trait ProjectRepository {
+
+  def getProjectsByOwnerId(userId: UserId): Future[Seq[Project]]
 
   def getProjectById(projectId: ProjectId): Future[Option[Project]]
 
@@ -30,6 +33,9 @@ object ProjectRepository {
       import pipelineDatabaseEngine._
 
       import pipelineDatabaseEngine.profile.api._
+
+      def getProjectsByOwnerId(userId: UserId): Future[Seq[Project]] =
+        database.run(projectEntry.getProjectsByOwnerIdAction(userId).result)
 
       def getProjectById(projectId: ProjectId): Future[Option[Project]] =
         database.run(projectEntry.getProjectByIdAction(projectId).result.headOption)

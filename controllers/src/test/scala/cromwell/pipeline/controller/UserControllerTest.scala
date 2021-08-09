@@ -41,7 +41,6 @@ class UserControllerTest
 
         val accessToken = AccessTokenContent(userId)
         when(userService.getUsersByEmail(usersByEmailRequest.unwrap)).thenReturn(Future.successful(uEmailRespSeq))
-
         Get("/users?email=" + usersByEmailRequest) ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
           responseAs[Seq[User]] shouldEqual uEmailRespSeq

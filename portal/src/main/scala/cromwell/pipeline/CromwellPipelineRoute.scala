@@ -36,10 +36,10 @@ final class CromwellPipelineRoute(applicationConfig: ApplicationConfig, controll
     authController.route ~ securityDirective.authenticated {
       routeCombiner(
         userController.route,
-        projectController.route,
         projectFileController.route,
         runController.route,
-        configurationController.route
+        configurationController.route,
+        projectController.route
       )
     }
   }
