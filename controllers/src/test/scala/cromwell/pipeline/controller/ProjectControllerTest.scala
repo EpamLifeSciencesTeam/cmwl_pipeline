@@ -24,6 +24,35 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
     val accessToken = AccessTokenContent(dummyProject.ownerId)
     val strangerAccessToken = AccessTokenContent(stranger.userId)
 
+    "get all user projects" should {
+      "return list of user projects" taggedAs Controller in {
+        when(projectService.getUserProjects(accessToken.userId)).thenReturn(Future.successful(List(dummyProject)))
+
+        Get("/projects") ~> projectController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.OK
+          responseAs[List[Project]] shouldEqual List(dummyProject)
+        }
+      }
+
+      "return empty list if user projects not found" taggedAs Controller in {
+        when(projectService.getUserProjects(accessToken.userId)).thenReturn(Future.successful(Seq()))
+
+        Get("/projects") ~> projectController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.OK
+          responseAs[List[Project]] shouldEqual List()
+        }
+      }
+
+      "return 500 if service return exception" taggedAs Controller in {
+        val error = new RuntimeException("Something went wrong")
+        when(projectService.getUserProjects(accessToken.userId)).thenReturn(Future.failed(error))
+
+        Get("/projects") ~> projectController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.InternalServerError
+        }
+      }
+    }
+
     "get project by id" should {
       "return project" taggedAs Controller in {
         val accessToken = AccessTokenContent(dummyProject.ownerId)
@@ -50,7 +79,6 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
 
     "get project by name" should {
       "return a object of project type" taggedAs Controller in {
-        val accessToken = AccessTokenContent(dummyProject.ownerId)
         when(projectService.getUserProjectByName(dummyProject.name, accessToken.userId))
           .thenReturn(Future.successful(dummyProject))
 

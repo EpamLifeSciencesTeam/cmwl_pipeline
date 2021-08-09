@@ -36,6 +36,13 @@ class ProjectController(projectService: ProjectService) {
     }
   }
 
+  private def getProjects(implicit accessToken: AccessTokenContent): Route = get {
+    onComplete(projectService.getUserProjects(accessToken.userId)) {
+      case Success(projects) => complete(projects)
+      case Failure(e)        => complete(StatusCodes.InternalServerError, e.getMessage)
+    }
+  }
+
   private def addProject(implicit accessToken: AccessTokenContent): Route = post {
     entity(as[ProjectAdditionRequest]) { request =>
       onComplete(projectService.addProject(request, accessToken.userId)) {
@@ -75,6 +82,7 @@ class ProjectController(projectService: ProjectService) {
     pathPrefix("projects") {
       getProjectById ~
       getProjectByName ~
+      getProjects ~
       addProject ~
       deactivateProject ~
       updateProject

@@ -1,6 +1,8 @@
 package cromwell.pipeline.datastorage.dao.repository
 
 import cromwell.pipeline.datastorage.dto.{ Project, ProjectId }
+import cromwell.pipeline.model.wrapper.UserId
+
 import scala.collection.mutable
 import scala.concurrent.Future
 
@@ -37,6 +39,8 @@ class ProjectRepositoryTestImpl extends ProjectRepository {
     Future.successful(0)
   }
 
+  override def getProjectsByOwnerId(userId: UserId): Future[Seq[Project]] =
+    Future.successful(projects.values.filter(_.ownerId == userId).toSeq)
 }
 
 object ProjectRepositoryTestImpl {

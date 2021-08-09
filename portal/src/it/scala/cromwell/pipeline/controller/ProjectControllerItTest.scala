@@ -46,6 +46,26 @@ class ProjectControllerItTest
   private val dummyProject = TestProjectUtils.getDummyProject(ownerId = dummyUser.userId)
 
   "ProjectController" when {
+    "getProjects" should {
+      "return list projects" in {
+        val accessToken = AccessTokenContent(dummyProject.ownerId)
+
+        Get("/projects") ~> projectController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.OK
+          responseAs[List[Project]] shouldEqual List(dummyProject)
+        }
+      }
+
+      "return empty list if user has no projects" in {
+        val accessToken = AccessTokenContent(stranger.userId)
+
+        Get("/projects") ~> projectController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.OK
+          responseAs[List[Project]] shouldEqual List()
+        }
+      }
+    }
+
     "getProjectByName" should {
       "return a project with the same name and current userId" in {
         val projectByNameRequest = dummyProject.name
