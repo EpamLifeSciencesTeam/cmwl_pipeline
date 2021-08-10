@@ -1,5 +1,6 @@
 package cromwell.pipeline
 
+import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.headers.HttpOrigin
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
@@ -22,10 +23,14 @@ final class CromwellPipelineRoute(applicationConfig: ApplicationConfig, controll
   import cromwell.pipeline.controller.AuthController._
 
   private val allowedOrigins = appConfigCors.allowedOrigins.map(HttpOrigin(_))
+  private val allowedMethods = List(GET, POST, PUT, DELETE, HEAD, OPTIONS)
   private val httpOriginMatcher = HttpOriginMatcher.create(allowedOrigins: _*)
   private val authHeaders = List(AccessTokenHeader, RefreshTokenHeader, AccessTokenExpirationHeader)
   private val corsSettings =
-    CorsSettings.defaultSettings.withAllowedOrigins(httpOriginMatcher).withExposedHeaders(authHeaders)
+    CorsSettings.defaultSettings
+      .withAllowedOrigins(httpOriginMatcher)
+      .withExposedHeaders(authHeaders)
+      .withAllowedMethods(allowedMethods)
 
   val route: Route = cors(corsSettings) {
     authController.route ~ securityDirective.authenticated {
