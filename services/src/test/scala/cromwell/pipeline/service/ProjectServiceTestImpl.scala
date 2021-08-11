@@ -7,7 +7,7 @@ import scala.concurrent.Future
 
 class ProjectServiceTestImpl(projects: Seq[Project], testMode: TestMode) extends ProjectService {
 
-  private[service] def getUserProjectById(projectId: ProjectId, userId: UserId): Future[Project] =
+  def getUserProjectById(projectId: ProjectId, userId: UserId): Future[Project] =
     testMode match {
       case WithException(exc) => Future.failed(exc)
       case _                  => Future.successful(projects.head)

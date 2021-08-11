@@ -4,12 +4,13 @@ import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.service.ProjectService.Exceptions.{ ProjectAccessDeniedException, ProjectNotFoundException }
+
 import java.util.UUID
 import scala.concurrent.{ ExecutionContext, Future }
 
 trait ProjectService {
 
-  private[service] def getUserProjectById(projectId: ProjectId, userId: UserId): Future[Project]
+  def getUserProjectById(projectId: ProjectId, userId: UserId): Future[Project]
 
   def getUserProjectByName(namePattern: String, userId: UserId): Future[Project]
 
@@ -36,7 +37,7 @@ object ProjectService {
   ): ProjectService =
     new ProjectService {
 
-      private[service] def getUserProjectById(projectId: ProjectId, userId: UserId): Future[Project] =
+      def getUserProjectById(projectId: ProjectId, userId: UserId): Future[Project] =
         projectRepository.getProjectById(projectId).flatMap(project => getForUserOrFail(project.toSeq, userId))
 
       def getUserProjectByName(namePattern: String, userId: UserId): Future[Project] =
