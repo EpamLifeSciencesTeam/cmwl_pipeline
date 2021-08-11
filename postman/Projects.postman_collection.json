@@ -6,6 +6,29 @@
 	},
 	"item": [
 		{
+			"name": "Get project by id",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/projects/{{project_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"projects"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Get project by name",
 			"request": {
 				"method": "GET",

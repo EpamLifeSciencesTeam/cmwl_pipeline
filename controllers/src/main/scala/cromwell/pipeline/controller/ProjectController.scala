@@ -3,17 +3,29 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import cromwell.pipeline.controller.utils.PathMatchers.ProjectId
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.{ ProjectAdditionRequest, ProjectUpdateNameRequest }
 import cromwell.pipeline.service.ProjectService.Exceptions.{ ProjectAccessDeniedException, ProjectNotFoundException }
 import cromwell.pipeline.service.{ ProjectService, VersioningException }
-import cromwell.pipeline.controller.utils.PathMatchers.ProjectId
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+
 import scala.util.{ Failure, Success }
 
 class ProjectController(projectService: ProjectService) {
 
-  private def getProject(implicit accessToken: AccessTokenContent): Route = get {
+  private def getProjectById(implicit accessToken: AccessTokenContent): Route = get {
+    path(ProjectId) { projectId =>
+      onComplete(projectService.getUserProjectById(projectId, accessToken.userId)) {
+        case Success(project)                         => complete(project)
+        case Failure(e: ProjectNotFoundException)     => complete(StatusCodes.NotFound, e.getMessage)
+        case Failure(e: ProjectAccessDeniedException) => complete(StatusCodes.Forbidden, e.getMessage)
+        case Failure(e)                               => complete(StatusCodes.InternalServerError, e.getMessage)
+      }
+    }
+  }
+
+  private def getProjectByName(implicit accessToken: AccessTokenContent): Route = get {
     parameter('name.as[String]) { name =>
       onComplete(projectService.getUserProjectByName(name, accessToken.userId)) {
         case Success(project)                         => complete(project)
@@ -61,7 +73,8 @@ class ProjectController(projectService: ProjectService) {
 
   val route: AccessTokenContent => Route = implicit accessToken =>
     pathPrefix("projects") {
-      getProject ~
+      getProjectById ~
+      getProjectByName ~
       addProject ~
       deactivateProject ~
       updateProject

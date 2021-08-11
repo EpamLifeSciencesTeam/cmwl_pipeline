@@ -10,6 +10,7 @@ import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
+
 import scala.concurrent.Future
 
 class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRouteTest with MockitoSugar {
@@ -22,6 +23,31 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
     val dummyProject: Project = TestProjectUtils.getDummyProject()
     val accessToken = AccessTokenContent(dummyProject.ownerId)
     val strangerAccessToken = AccessTokenContent(stranger.userId)
+
+    "get project by id" should {
+      "return project" taggedAs Controller in {
+        val accessToken = AccessTokenContent(dummyProject.ownerId)
+        when(projectService.getUserProjectById(dummyProject.projectId, accessToken.userId))
+          .thenReturn(Future.successful(dummyProject))
+
+        Get(s"/projects/${dummyProject.projectId.value}") ~> projectController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.OK
+          responseAs[Project] shouldEqual dummyProject
+        }
+      }
+
+      "return status code InternalServerError if service returned failure" taggedAs Controller in {
+        val accessToken = AccessTokenContent(stranger.userId)
+        val error = new RuntimeException("Something went wrong")
+        when(projectService.getUserProjectById(dummyProject.projectId, accessToken.userId))
+          .thenReturn(Future.failed(error))
+
+        Get(s"/projects/${dummyProject.projectId.value}") ~> projectController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.InternalServerError
+        }
+      }
+    }
+
     "get project by name" should {
       "return a object of project type" taggedAs Controller in {
         val accessToken = AccessTokenContent(dummyProject.ownerId)
