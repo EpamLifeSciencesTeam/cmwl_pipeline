@@ -51,34 +51,17 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
     }
 
     "upload file" should {
-      val updateFiledResponse = UpdateFiledResponse(projectFilePath.toString, "master")
-
-      "return success message for request" taggedAs Service in {
+      "return success for request" taggedAs Service in {
         when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
-        when(projectVersioning.getUpdatedProjectVersion(project, optionVersion))
+        when(projectVersioning.updateFile(project, projectFile, Some(version)))
           .thenReturn(Future.successful(Right(version)))
-        when(projectVersioning.updateFile(project, projectFile, version))
-          .thenReturn(Future.successful(Right(updateFiledResponse)))
         when(projectService.updateProjectVersion(projectId, version, userId)).thenReturn(Future.successful(0))
-        projectFileService
-          .uploadFile(projectId, projectFile, optionVersion, userId)
-          .map(_ shouldBe Right(updateFiledResponse))
-      }
-
-      "return error message for error request if it couldn't get updated version" taggedAs Service in {
-        when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
-        when(projectVersioning.getUpdatedProjectVersion(project, Some(version)))
-          .thenReturn(Future.successful(Left(VersioningException.HttpException("Something wrong"))))
-        projectFileService
-          .uploadFile(projectId, projectFile, Some(version), userId)
-          .map(_ shouldBe Left(VersioningException.HttpException("Something wrong")))
+        projectFileService.uploadFile(projectId, projectFile, optionVersion, userId).map(_ shouldBe Right(()))
       }
 
       "return error message for error request if it couldn't update file" taggedAs Service in {
         when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
-        when(projectVersioning.getUpdatedProjectVersion(project, Some(version)))
-          .thenReturn(Future.successful(Right(version)))
-        when(projectVersioning.updateFile(project, projectFile, version))
+        when(projectVersioning.updateFile(project, projectFile, Some(version)))
           .thenReturn(Future.successful(Left(VersioningException.HttpException("Something wrong"))))
         projectFileService
           .uploadFile(projectId, projectFile, Some(version), userId)

@@ -61,8 +61,7 @@ object ProjectService {
             projectId = ProjectId(UUID.randomUUID().toString),
             ownerId = userId,
             name = request.name,
-            active = true,
-            version = projectVersioning.getDefaultProjectVersion()
+            active = true
           )
         projectVersioning.createRepository(localProject).flatMap {
           case Left(exception) => Future.successful(Left(exception))

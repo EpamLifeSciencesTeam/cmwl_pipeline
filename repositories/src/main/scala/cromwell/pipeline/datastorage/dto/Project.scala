@@ -27,10 +27,9 @@ final case class LocalProject(
   ownerId: UserId,
   name: String,
   active: Boolean,
-  version: PipelineVersion,
   visibility: Visibility = Private
 ) {
-  def toProject(repositoryId: RepositoryId): Project =
+  def toProject(repositoryId: RepositoryId, version: PipelineVersion): Project =
     Project(
       projectId = projectId,
       ownerId = ownerId,
@@ -79,7 +78,7 @@ object GitLabRepositoryResponse {
   implicit val gitLabRepositoryResponseFormat: OFormat[GitLabRepositoryResponse] = Json.format[GitLabRepositoryResponse]
 }
 
-final case class GitLabVersion(name: PipelineVersion, message: String, target: String, commit: Commit)
+final case class GitLabVersion(commit: Commit, name: PipelineVersion)
 
 object GitLabVersion {
   implicit val gitlabVersionFormat: OFormat[GitLabVersion] = Json.format[GitLabVersion]

@@ -3,6 +3,7 @@ package cromwell.pipeline.service
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
 import cromwell.pipeline.womtool.WomToolAPI
+
 import java.nio.file.Path
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -15,7 +16,7 @@ trait ProjectFileService {
     projectFile: ProjectFile,
     version: Option[PipelineVersion],
     userId: UserId
-  ): Future[Either[VersioningException, UpdateFiledResponse]]
+  ): Future[Either[VersioningException, Unit]]
 
   def getFile(
     projectId: ProjectId,
@@ -54,16 +55,12 @@ object ProjectFileService {
       projectFile: ProjectFile,
       version: Option[PipelineVersion],
       userId: UserId
-    ): Future[Either[VersioningException, UpdateFiledResponse]] =
+    ): Future[Either[VersioningException, Unit]] =
       projectService.getUserProjectById(projectId, userId).flatMap { project =>
-        projectVersioning.getUpdatedProjectVersion(project, version).flatMap {
+        projectVersioning.updateFile(project, projectFile, version).flatMap {
           case Left(versioningException) => Future.successful(Left(versioningException))
           case Right(newVersion) =>
-            projectVersioning.updateFile(project, projectFile, newVersion).flatMap {
-              case Left(versioningException) => Future.successful(Left(versioningException))
-              case Right(response) =>
-                projectService.updateProjectVersion(projectId, newVersion, userId).map(_ => Right(response))
-            }
+            projectService.updateProjectVersion(projectId, newVersion, userId).map(_ => Right(()))
         }
       }
 
