@@ -89,54 +89,6 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
       }
     }
 
-    "getUpdatedProjectVersion" should {
-      val userVersion = PipelineVersion("v0.0.1")
-      val project = TestProjectUtils.getDummyProject()
-      def getUpdatedProject(project: Project): Future[Response[Seq[GitLabVersion]]] =
-        mockHttpClient.get[Seq[GitLabVersion]](
-          url = exact(gitLabConfig.url + "projects/" + project.repositoryId.value + "/repository/tags"),
-          headers = any[Map[String, String]],
-          params = any[Map[String, String]]
-        )(any[ExecutionContext], any[Reads[Seq[GitLabVersion]]])
-
-      "return new version received from user" taggedAs Service in {
-
-        when(getUpdatedProject(project)).thenReturn {
-          Future.successful {
-            Response[Seq[GitLabVersion]](
-              HttpStatusCodes.OK,
-              SuccessResponseBody[Seq[GitLabVersion]](dummyVersions),
-              EmptyHeaders
-            )
-          }
-        }
-
-        gitLabProjectVersioning.getUpdatedProjectVersion(project, Some(userVersion)).map(_ shouldBe Right(userVersion))
-      }
-
-      "fail with VersioningException.ProjectException" taggedAs Service in {
-        val activeProject: Project = TestProjectUtils.getDummyProject()
-        when(getUpdatedProject(activeProject)).thenReturn {
-          Future.successful {
-            Response[Seq[GitLabVersion]](
-              HttpStatusCodes.BadRequest,
-              FailureResponseBody("Response status: 400"),
-              EmptyHeaders
-            )
-          }
-        }
-        gitLabProjectVersioning
-          .getUpdatedProjectVersion(project, None)
-          .map(
-            _ shouldBe Left(
-              VersioningException.ProjectException(
-                "Can't take decision what version should it be: no version from user and no version in project yet"
-              )
-            )
-          )
-      }
-    }
-
     "getProjectVersions" should {
       def getProjectVersions(project: Project): Future[Response[Seq[GitLabVersion]]] =
         mockHttpClient.get[Seq[GitLabVersion]](
@@ -156,7 +108,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
           }
         }
         gitLabProjectVersioning.getProjectVersions(projectWithRepo).map {
-          _ shouldBe Right(dummyVersions)
+          _ shouldBe Right(Seq(dummyPipelineVersion))
         }
       }
 
@@ -200,7 +152,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
         }
       }
 
-      "return create file response when file is new" taggedAs Service in {
+      "succeed when file is new" taggedAs Service in {
         val path = URLEncoderUtils.encode(newFile.path.toString)
         val url = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId.value}/repository/files/$path"
         val payload =
@@ -267,8 +219,8 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
           }
         }
 
-        gitLabProjectVersioning.updateFile(projectWithRepo, newFile, dummyPipelineVersionHigher).map {
-          _ shouldBe Right(UpdateFiledResponse(newFile.path.toString, "master"))
+        gitLabProjectVersioning.updateFile(projectWithRepo, newFile, Some(dummyPipelineVersionHigher)).map {
+          _ shouldBe Right(dummyPipelineVersionHigher)
         }
       }
 
@@ -302,14 +254,14 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
             )
           }
         }
-        gitLabProjectVersioning.updateFile(projectWithRepo, existFile, dummyPipelineVersionHigher).map {
-          _ shouldBe Right(UpdateFiledResponse(newFile.path.toString, "master"))
+        gitLabProjectVersioning.updateFile(projectWithRepo, existFile, Some(dummyPipelineVersionHigher)).map {
+          _ shouldBe Right(dummyPipelineVersionHigher)
         }
       }
 
       "return exception if version is invalid" taggedAs Service in {
         val thrown = the[PipelineVersionException] thrownBy
-          gitLabProjectVersioning.updateFile(projectWithRepo, existFile, PipelineVersion("1"))
+          gitLabProjectVersioning.updateFile(projectWithRepo, existFile, Some(PipelineVersion("1")))
         thrown.message should equal("Format of version name: 'v(int).(int).(int)', but got: 1")
       }
     }
@@ -437,12 +389,12 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
           headers = exact(gitLabConfig.token)
         )(ec = any[ExecutionContext], f = any[Reads[List[FileCommit]]])
 
-      "return list of Project versions with 200 response" taggedAs Service in {
+      "return list of file commits with 200 response" taggedAs Service in {
         when(getFileCommits(projectWithRepo)).thenReturn {
-          Future.successful(Response[List[FileCommit]](HttpStatusCodes.OK, SuccessResponseBody(dummyCommitList), Map()))
+          Future.successful(Response(HttpStatusCodes.OK, SuccessResponseBody(dummyCommitList), Map()))
         }
         gitLabProjectVersioning.getFileCommits(projectWithRepo, path).map {
-          _ shouldBe Right(Seq(dummyFileCommit))
+          _ shouldBe Right(Seq(dummyCommit))
         }
       }
 
@@ -489,7 +441,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
           Future.successful(Response[List[FileCommit]](HttpStatusCodes.OK, SuccessResponseBody(dummyCommitJson), Map()))
         }
         gitLabProjectVersioning.getFileVersions(projectWithRepo, path).map {
-          _ shouldBe Right(Seq(dummyGitLabVersion))
+          _ shouldBe Right(Seq(dummyGitLabVersion.name))
         }
       }
 
@@ -513,89 +465,28 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
       }
     }
 
-    "getFilesTree" should {
-      val dummyFilesTree: List[FileTree] = List(dummyFileTree)
-      val emptyListValidateResponse = "List((,List(JsonValidationError(List(error.expected.jsarray),WrappedArray())))"
-      val version = dummyPipelineVersion
-      def getFileTree(project: Project, version: Option[PipelineVersion]): Future[Response[List[FileTree]]] = {
-        val versionId: Map[String, String] = version match {
-          case Some(version) => Map("ref" -> version.name, "recursive" -> "true")
-          case None          => Map()
-        }
-        mockHttpClient.get[List[FileTree]](
-          url = exact(s"${gitLabConfig.url}projects/${project.repositoryId.value}/repository/tree"),
-          params = exact(versionId),
-          headers = exact(gitLabConfig.token)
-        )(ec = any[ExecutionContext], f = any[Reads[List[FileTree]]])
-      }
-
-      "return files tree without version with 200 response" taggedAs Service in {
-        when(getFileTree(projectWithRepo, None)).thenReturn {
-          Future.successful(Response[List[FileTree]](HttpStatusCodes.OK, SuccessResponseBody(dummyFilesTree), Map()))
-        }
-        gitLabProjectVersioning.getFilesTree(projectWithRepo, None).map(_ shouldBe Right(Seq(dummyFileTree)))
-      }
-
-      "return files tree with version with 200 response" taggedAs Service in {
-        when(getFileTree(projectWithRepo, Some(version))).thenReturn {
-          Future.successful(Response[List[FileTree]](HttpStatusCodes.OK, SuccessResponseBody(dummyFilesTree), Map()))
-        }
-        gitLabProjectVersioning.getFilesTree(projectWithRepo, Some(version)).map(_ shouldBe Right(Seq(dummyFileTree)))
-      }
-
-      "return files tree when there is not version" taggedAs Service in {
-        when(getFileTree(projectWithRepo, Some(version))).thenReturn {
-          Future.successful {
-            Response[List[FileTree]](HttpStatusCodes.OK, FailureResponseBody(emptyListValidateResponse), Map())
-          }
-        }
-        gitLabProjectVersioning.getFilesTree(projectWithRepo, Some(version)).map {
-          _ shouldBe Left {
-            VersioningException.FileException {
-              s"Could not take the files tree or parse json. Response status: 200. ResponseBody: $emptyListValidateResponse"
-            }
-          }
-        }
-      }
-
-      "throw new VersioningException with 400 response" taggedAs Service in {
-        when(getFileTree(projectWithRepo, Some(version))).thenReturn {
-          Future.successful {
-            Response[List[FileTree]](
-              HttpStatusCodes.BadRequest,
-              FailureResponseBody(""),
-              Map()
-            )
-          }
-        }
-        gitLabProjectVersioning.getFilesTree(projectWithRepo, Some(version)).map {
-          _ shouldBe Left {
-            VersioningException
-              .FileException("Could not take the files tree or parse json. Response status: 400. ResponseBody: ")
-          }
-        }
-      }
-    }
   }
 
   object ProjectContext {
     val EmptyHeaders: Map[String, Seq[String]] = Map()
     lazy val gitLabRepositoryResponse: GitLabRepositoryResponse = TestProjectUtils.getDummyGitLabRepositoryResponse()
+    lazy val defaultVersion: PipelineVersion = PipelineVersion(gitLabConfig.defaultFileVersion)
 
     lazy val activeLocalProject: LocalProject = TestProjectUtils.getDummyLocalProject().copy(active = true)
     lazy val inactiveLocalProject: LocalProject = TestProjectUtils.getDummyLocalProject(active = false)
-    lazy val activeProject: Project = activeLocalProject.toProject(gitLabRepositoryResponse.id)
+    lazy val activeProject: Project = activeLocalProject.toProject(gitLabRepositoryResponse.id, defaultVersion)
     lazy val inactiveProject: Project = activeProject.copy(active = false)
-    lazy val projectWithRepo: Project = activeLocalProject.toProject(gitLabRepositoryResponse.id)
+    lazy val projectWithRepo: Project = activeLocalProject.toProject(gitLabRepositoryResponse.id, defaultVersion)
 
     lazy val postProject: PostProject = PostProject(name = activeProject.projectId.value)
 
     lazy val dummyPipelineVersion: PipelineVersion = TestProjectUtils.getDummyPipeLineVersion()
     lazy val dummyPipelineVersionHigher: PipelineVersion = dummyPipelineVersion.increaseMinor
     lazy val dummyGitLabVersion: GitLabVersion = TestProjectUtils.getDummyGitLabVersion()
-    lazy val dummyVersion: GitLabVersion = TestProjectUtils.getDummyGitLabVersion()
+    lazy val dummyVersion: GitLabVersion = TestProjectUtils.getDummyGitLabVersion(dummyPipelineVersion)
     lazy val dummyVersions: Seq[GitLabVersion] = Seq(dummyVersion)
     lazy val dummyFileCommit: FileCommit = TestProjectUtils.getDummyFileCommit()
+    lazy val dummyCommit: Commit = Commit(dummyFileCommit.commitId)
     lazy val dummyExistingFileCommit: FileCommit = FileCommit(dummyGitLabVersion.commit.id)
     lazy val dummyFileTree: FileTree = TestProjectUtils.getDummyFileTree()
   }

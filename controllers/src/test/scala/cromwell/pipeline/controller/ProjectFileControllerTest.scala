@@ -58,7 +58,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       "return OK response for valid request with a valid file" taggedAs Controller in {
         when(projectFileService.validateFile(projectFileContent)).thenReturn(Future.successful(Right(())))
         when(projectFileService.uploadFile(projectId, projectFile, Some(version), accessToken.userId))
-          .thenReturn(Future.successful(Right(UpdateFiledResponse("test.wdl", "master"))))
+          .thenReturn(Future.successful(Right(())))
         Post(s"/projects/${projectId.value}/files", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
         }
@@ -68,7 +68,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
         when(projectFileService.validateFile(projectFileContent))
           .thenReturn(Future.successful(Left(ValidationError(List("Miss close bracket")))))
         when(projectFileService.uploadFile(projectId, projectFile, Some(version), accessToken.userId))
-          .thenReturn(Future.successful(Right(UpdateFiledResponse("test.wdl", "master"))))
+          .thenReturn(Future.successful(Right(())))
         Post(s"/projects/${projectId.value}/files", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.Created
         }

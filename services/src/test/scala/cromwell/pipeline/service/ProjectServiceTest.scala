@@ -9,7 +9,8 @@ import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
-import scala.concurrent.{ ExecutionContext, Future }
+
+import scala.concurrent.Future
 
 class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
 
@@ -45,8 +46,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
       val ownerId = dummyProject.ownerId
 
       "return a new project" taggedAs Service in {
-        when(projectVersioning.createRepository(any[LocalProject])(any[ExecutionContext]))
-          .thenReturn(Future.successful(Right(dummyProject)))
+        when(projectVersioning.createRepository(any[LocalProject])).thenReturn(Future.successful(Right(dummyProject)))
         when(projectRepository.addProject(dummyProject)).thenReturn(Future.successful(dummyProject.projectId))
 
         projectService.addProject(request, ownerId).map {
@@ -56,7 +56,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
 
       "fail with VersioningException.RepositoryException" taggedAs Service in {
         val repositoryException = VersioningException.RepositoryException("VersioningException")
-        when(projectVersioning.createRepository(any[LocalProject])(any[ExecutionContext]))
+        when(projectVersioning.createRepository(any[LocalProject]))
           .thenReturn(Future.successful(Left(repositoryException)))
         projectService.addProject(request, ownerId).map {
           _ shouldBe Left(repositoryException)
