@@ -100,10 +100,9 @@ object GeneratorUtils {
   lazy val gitLabFileContentGen: Gen[GitLabFileContent] = stringGen().map(GitLabFileContent(_))
 
   lazy val projectUpdateFileRequestGen: Gen[ProjectUpdateFileRequest] = for {
-    projectId <- projectIdGen
     projectFile <- projectFileGen
     pipelineVersion <- Gen.option(pipelineVersionGen)
-  } yield ProjectUpdateFileRequest(projectId, projectFile, pipelineVersion)
+  } yield ProjectUpdateFileRequest(projectFile, pipelineVersion)
 
   lazy val typedValueGen: Gen[TypedValue] = {
     val range = 1024

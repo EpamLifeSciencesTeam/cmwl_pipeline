@@ -9,7 +9,7 @@ import cromwell.pipeline.ApplicationComponents
 import cromwell.pipeline.datastorage.dao.utils.TestUserUtils
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
-import cromwell.pipeline.datastorage.dto.{ User, UserNoCredentials }
+import cromwell.pipeline.datastorage.dto.{ User, UserWithCredentials }
 import cromwell.pipeline.model.validator.Enable
 import cromwell.pipeline.model.wrapper.Password
 import cromwell.pipeline.utils.TestContainersUtils
@@ -42,9 +42,9 @@ class UserControllerItTest
     "getUsersByEmail" should {
 
       "should find newly added user by email pattern" in {
-        val dummyUser: User = TestUserUtils.getDummyUser()
+        val dummyUser: UserWithCredentials = TestUserUtils.getDummyUserWithCredentials()
         val userByEmailRequest: String = dummyUser.email.unwrap
-        val seqUser: Seq[User] = Seq(dummyUser)
+        val seqUser: Seq[User] = Seq(User.fromUserWithCredentials(dummyUser))
         userRepository.addUser(dummyUser).map { _ =>
           val accessToken = AccessTokenContent(dummyUser.userId)
           Get("/users?email=" + userByEmailRequest) ~> userController.route(accessToken) ~> check {
@@ -58,12 +58,12 @@ class UserControllerItTest
     "deactivateUserById" should {
 
       "return user's entity with false value if user was successfully deactivated" in {
-        val dummyUser: User = TestUserUtils.getDummyUser()
-        val deactivatedUserResponse = UserNoCredentials.fromUser(dummyUser.copy(active = false))
+        val dummyUser: UserWithCredentials = TestUserUtils.getDummyUserWithCredentials()
+        val deactivatedUserResponse = User.fromUserWithCredentials(dummyUser.copy(active = false))
         userRepository.addUser(dummyUser).map { _ =>
           val accessToken = AccessTokenContent(dummyUser.userId)
           Delete("/users") ~> userController.route(accessToken) ~> check {
-            responseAs[UserNoCredentials] shouldBe deactivatedUserResponse
+            responseAs[User] shouldBe deactivatedUserResponse
             status shouldBe StatusCodes.OK
           }
         }
@@ -73,7 +73,7 @@ class UserControllerItTest
     "updateUser" should {
 
       "return status code NoContent if user was successfully updated" in {
-        val dummyUser: User = TestUserUtils.getDummyUser()
+        val dummyUser: UserWithCredentials = TestUserUtils.getDummyUserWithCredentials()
         val request = UserUpdateRequest(dummyUser.email, dummyUser.firstName, dummyUser.lastName)
         userRepository.addUser(dummyUser).flatMap { _ =>
           userRepository.updateUser(dummyUser).map { _ =>
@@ -89,7 +89,7 @@ class UserControllerItTest
     "updatePassword" should {
 
       "return status code NoContent if user's password was successfully updated" in {
-        val dummyUser: User = TestUserUtils.getDummyUser()
+        val dummyUser: UserWithCredentials = TestUserUtils.getDummyUserWithCredentials()
         val request =
           PasswordUpdateRequest(
             Password(password, Enable.Unsafe),

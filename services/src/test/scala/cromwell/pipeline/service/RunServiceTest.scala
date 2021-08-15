@@ -13,7 +13,8 @@ import scala.concurrent.Future
 class RunServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
 
   private val runRepository: RunRepository = mock[RunRepository]
-  private val runService: RunService = RunService(runRepository)
+  private val projectService: ProjectService = mock[ProjectService]
+  private val runService: RunService = RunService(runRepository, projectService)
 
   "RunService" when {
     "addRun" should {
@@ -30,6 +31,7 @@ class RunServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
           results = run.results
         )
 
+        when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
         when(runRepository.addRun(any[Run])).thenReturn(Future.successful(runId))
         runService.addRun(runCreateRequest, userId).map {
           _ shouldBe runId

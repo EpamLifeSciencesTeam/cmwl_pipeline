@@ -4,7 +4,7 @@ import com.dimafeng.testcontainers.{ ForAllTestContainer, PostgreSQLContainer }
 import com.typesafe.config.Config
 import cromwell.pipeline.datastorage.DatastorageModule
 import cromwell.pipeline.datastorage.dao.utils.{ PostgreTablesCleaner, TestProjectUtils, TestUserUtils }
-import cromwell.pipeline.datastorage.dto.{ PipelineVersion, Project, User }
+import cromwell.pipeline.datastorage.dto.{ PipelineVersion, Project, UserWithCredentials }
 import cromwell.pipeline.utils.{ ApplicationConfig, TestContainersUtils }
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 
@@ -24,7 +24,7 @@ class ProjectRepositoryTest
     datastorageModule.pipelineDatabaseEngine.updateSchema()
   }
 
-  private val dummyUser: User = TestUserUtils.getDummyUser()
+  private val dummyUser: UserWithCredentials = TestUserUtils.getDummyUserWithCredentials()
   private val dummyProject: Project = TestProjectUtils.getDummyProject(ownerId = dummyUser.userId)
 
   import datastorageModule.{ projectRepository, userRepository }

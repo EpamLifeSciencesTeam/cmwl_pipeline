@@ -1,12 +1,12 @@
 package cromwell.pipeline.datastorage.dto
 
-import java.nio.file.Path
-import ProjectFile.pathFormat
 import cats.data.Validated
 import cromwell.pipeline.model.wrapper.VersionValue
+import ProjectFile.pathFormat
 import play.api.libs.functional.syntax.toInvariantFunctorOps
 import play.api.libs.json.{ Format, Json, OFormat }
 
+import java.nio.file.Path
 import java.util.UUID
 
 case class ProjectFileConfiguration(path: Path, inputs: List[FileParameter])
@@ -60,6 +60,18 @@ object ProjectConfigurationId {
   def randomId: ProjectConfigurationId = ProjectConfigurationId(UUID.randomUUID().toString)
   implicit lazy val configurationIdFormat: Format[ProjectConfigurationId] =
     implicitly[Format[String]].inmap(ProjectConfigurationId.apply, _.value)
+}
+
+final case class ProjectConfigurationAdditionRequest(
+  id: ProjectConfigurationId,
+  active: Boolean,
+  projectFileConfigurations: List[ProjectFileConfiguration],
+  version: ProjectConfigurationVersion
+)
+
+object ProjectConfigurationAdditionRequest {
+  implicit lazy val projectAdditionFormat: OFormat[ProjectConfigurationAdditionRequest] =
+    Json.format[ProjectConfigurationAdditionRequest]
 }
 
 case class ProjectConfiguration(

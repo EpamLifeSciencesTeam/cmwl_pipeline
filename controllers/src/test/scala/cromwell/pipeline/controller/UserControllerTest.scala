@@ -4,9 +4,9 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cats.implicits._
 import cromwell.pipeline.datastorage.dao.utils.TestUserUtils
+import cromwell.pipeline.datastorage.dto.User
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
-import cromwell.pipeline.datastorage.dto.{ User, UserNoCredentials }
 import cromwell.pipeline.model.validator.Enable
 import cromwell.pipeline.model.wrapper.{ Password, UserEmail, UserId }
 import cromwell.pipeline.service.UserService
@@ -35,7 +35,7 @@ class UserControllerTest
 
       "return the sequence of users" taggedAs Controller in {
         val usersByEmailRequest: UserEmail = UserEmail("someDomain@mail.com", Enable.Unsafe)
-        val dummyUser: User = TestUserUtils.getDummyUser()
+        val dummyUser = TestUserUtils.getDummyUser()
         val userId = dummyUser.userId
         val uEmailRespSeq: Seq[User] = Seq(dummyUser)
 
@@ -63,15 +63,12 @@ class UserControllerTest
         val usersByEmailRequest: UserEmail = UserEmail("someDomain@mail.com", Enable.Unsafe)
         val dummyUser: User = TestUserUtils.getDummyUser()
         val userId = dummyUser.userId
-
-        val firstDummyUser: User =
-          TestUserUtils.getDummyUser()
-        val secondDummyUser: User =
-          TestUserUtils.getDummyUser()
+        val firstDummyUser: User = TestUserUtils.getDummyUser()
+        val secondDummyUser: User = TestUserUtils.getDummyUser()
         val uEmailRespSeq: Seq[User] = Seq(firstDummyUser, secondDummyUser)
         val accessToken = AccessTokenContent(userId)
-        when(userService.getUsersByEmail(usersByEmailRequest.unwrap)).thenReturn(Future.successful(uEmailRespSeq))
 
+        when(userService.getUsersByEmail(usersByEmailRequest.unwrap)).thenReturn(Future.successful(uEmailRespSeq))
         Get("/users?email=" + usersByEmailRequest) ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
           responseAs[Seq[User]] shouldEqual uEmailRespSeq
@@ -82,15 +79,14 @@ class UserControllerTest
 
     "deactivateUserById" should {
       "return user's entity with false value if user was successfully deactivated" taggedAs Controller in {
-        val dummyUser: User = TestUserUtils.getDummyUser(active = false)
-        val userId = dummyUser.userId
-        val response = UserNoCredentials.fromUser(dummyUser)
+        val response = TestUserUtils.getDummyUser(active = false)
+        val userId = response.userId
         val accessToken = AccessTokenContent(userId)
 
         when(userService.deactivateUserById(userId)).thenReturn(Future.successful(Some(response)))
 
         Delete("/users") ~> userController.route(accessToken) ~> check {
-          responseAs[UserNoCredentials] shouldBe response
+          responseAs[User] shouldBe response
           status shouldBe StatusCodes.OK
         }
       }
