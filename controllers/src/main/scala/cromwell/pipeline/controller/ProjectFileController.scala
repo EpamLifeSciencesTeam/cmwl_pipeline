@@ -70,29 +70,9 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
     }
   }
 
-  private def buildConfiguration(projectId: ProjectId)(implicit accessToken: AccessTokenContent): Route = get {
-    path("configurations" / Path) { projectFilePath =>
-      parameters('version.as[PipelineVersion].optional) { version =>
-        onComplete(
-          wdlService.buildConfiguration(
-            projectId,
-            projectFilePath,
-            version,
-            accessToken.userId
-          )
-        ) {
-          case Success(configuration)        => complete(configuration)
-          case Failure(ValidationError(msg)) => complete(StatusCodes.UnprocessableEntity, msg)
-          case Failure(e)                    => complete(StatusCodes.InternalServerError, e.getMessage)
-        }
-      }
-    }
-  }
-
   val route: AccessTokenContent => Route = implicit accessToken =>
     validateFile ~
       pathPrefix("projects" / ProjectId / "files") { projectId =>
-        buildConfiguration(projectId) ~
         getFile(projectId) ~
         getFiles(projectId) ~
         uploadFile(projectId)

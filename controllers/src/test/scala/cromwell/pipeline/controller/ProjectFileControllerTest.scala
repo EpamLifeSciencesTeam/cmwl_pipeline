@@ -84,52 +84,6 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       }
     }
 
-    "build configuration" should {
-      val projectConfigurationId = ProjectConfigurationId.randomId
-      val configuration = ProjectConfiguration(
-        projectConfigurationId,
-        projectId,
-        active = true,
-        List(
-          ProjectFileConfiguration(
-            path,
-            List(FileParameter("nodeName", StringTyped(Some("hello"))))
-          )
-        ),
-        ProjectConfigurationVersion.defaultVersion
-      )
-
-      "return configuration for file" in {
-        when(projectFileService.buildConfiguration(projectId, path, versionOption, accessToken.userId))
-          .thenReturn(Future.successful(configuration))
-        Get(s"/projects/${projectId.value}/files/configurations/$pathString?version=$versionString") ~> projectFileController
-          .route(accessToken) ~> check {
-          status shouldBe StatusCodes.OK
-          entityAs[ProjectConfiguration] shouldBe configuration
-        }
-      }
-
-      "return failed for Bad request" in {
-        when(projectFileService.buildConfiguration(projectId, path, versionOption, accessToken.userId))
-          .thenReturn(Future.failed(VersioningException.HttpException("Bad request")))
-        Get(s"/projects/${projectId.value}/files/configurations/$pathString?version=$versionString") ~> projectFileController
-          .route(accessToken) ~> check {
-          status shouldBe StatusCodes.InternalServerError
-          entityAs[String] shouldBe "Bad request"
-        }
-      }
-
-      "return failed for invalid file" in {
-        when(projectFileService.buildConfiguration(projectId, path, versionOption, accessToken.userId))
-          .thenReturn(Future.failed(ValidationError(List("invalid some field"))))
-        Get(s"/projects/${projectId.value}/files/configurations/$pathString?version=$versionString") ~> projectFileController
-          .route(accessToken) ~> check {
-          status shouldBe StatusCodes.UnprocessableEntity
-          entityAs[List[String]] shouldBe List("invalid some field")
-        }
-      }
-    }
-
     "get files" should {
       "return files with status code OK" in {
         when(projectFileService.getFiles(projectId, versionOption, accessToken.userId))

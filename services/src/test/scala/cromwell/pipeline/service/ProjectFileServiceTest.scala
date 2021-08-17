@@ -86,51 +86,6 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers with MockitoSug
       }
     }
 
-    "build configuration" should {
-      "return success message for request" taggedAs Service in {
-        when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
-        when(projectVersioning.getFile(project, projectFile.path, optionVersion))
-          .thenReturn(Future.successful(Right(projectFile)))
-        when(womTool.inputsToList(projectFileContent.content)).thenReturn(Right(Nil))
-        when(configurationService.getLastByProjectId(projectId, userId)).thenReturn(Future.successful(None))
-        projectFileService
-          .buildConfiguration(projectId, projectFile.path, optionVersion, userId)
-          .map(
-            builtConfiguration =>
-              builtConfiguration shouldBe ProjectConfiguration(
-                id = builtConfiguration.id,
-                projectId = projectId,
-                active = true,
-                projectFileConfigurations = List(ProjectFileConfiguration(projectFile.path, Nil)),
-                version = ProjectConfigurationVersion.defaultVersion
-              )
-          )
-      }
-
-      "return error message for invalid file request" taggedAs Service in {
-        when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
-        when(projectVersioning.getFile(project, projectFile.path, optionVersion))
-          .thenReturn(Future.successful(Right(projectFile)))
-        when(womTool.inputsToList(projectFileContent.content)).thenReturn(Left(NonEmptyList(errorMessage, Nil)))
-        when(configurationService.getLastByProjectId(projectId, userId)).thenReturn(Future.successful(None))
-        projectFileService
-          .buildConfiguration(projectId, projectFile.path, optionVersion, userId)
-          .failed
-          .map(_ shouldBe ValidationError(List(errorMessage)))
-      }
-
-      "return error message for error request" taggedAs Service in {
-        when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
-        when(projectVersioning.getFile(project, projectFile.path, optionVersion))
-          .thenReturn(Future.successful(Left(VersioningException.FileException("404"))))
-        when(configurationService.getLastByProjectId(projectId, userId)).thenReturn(Future.successful(None))
-        projectFileService
-          .buildConfiguration(projectId, projectFile.path, optionVersion, userId)
-          .failed
-          .map(_ shouldBe VersioningException.FileException("404"))
-      }
-    }
-
     "get file" should {
       "return file with full request" taggedAs Service in {
         when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))

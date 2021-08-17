@@ -1,14 +1,9 @@
 package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.ProjectConfigurationRepository
-import cromwell.pipeline.datastorage.dto.{
-  FileParameter,
-  ProjectConfiguration,
-  ProjectFileConfiguration,
-  ProjectId,
-  TypedValue
-}
+import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.womtool.WomToolAPI
 
 import java.nio.file.Path
 import scala.concurrent.{ ExecutionContext, Future }
@@ -21,11 +16,23 @@ trait ProjectConfigurationService {
 
   def deactivateLastByProjectId(projectId: ProjectId, userId: UserId): Future[Unit]
 
+  def buildConfiguration(
+    projectId: ProjectId,
+    projectFilePath: Path,
+    version: Option[PipelineVersion],
+    userId: UserId
+  ): Future[ProjectConfiguration]
+
 }
 
 object ProjectConfigurationService {
 
-  def apply(repository: ProjectConfigurationRepository, projectService: ProjectService)(
+  def apply(
+    repository: ProjectConfigurationRepository,
+    projectService: ProjectService,
+    womTool: WomToolAPI,
+    projectVersioning: ProjectVersioning[VersioningException]
+  )(
     implicit ec: ExecutionContext
   ): ProjectConfigurationService =
     new ProjectConfigurationService {
@@ -69,6 +76,43 @@ object ProjectConfigurationService {
       private def updateConfiguration(projectConfiguration: ProjectConfiguration): Future[Unit] =
         repository.updateConfiguration(projectConfiguration)
 
+      def buildConfiguration(
+        projectId: ProjectId,
+        projectFilePath: Path,
+        version: Option[PipelineVersion],
+        userId: UserId
+      ): Future[ProjectConfiguration] = {
+
+        val eitherFile = for {
+          project <- projectService.getUserProjectById(projectId, userId)
+          eitherFile <- projectVersioning.getFile(project, projectFilePath, version)
+        } yield eitherFile
+
+        val configurationVersion =
+          getLastByProjectId(projectId, userId).map {
+            case Some(configuration) => configuration.version.increaseValue
+            case None                => ProjectConfigurationVersion.defaultVersion
+          }
+
+        eitherFile.flatMap {
+          case Right(file) =>
+            womTool.inputsToList(file.content.content) match {
+              case Right(nodes) =>
+                configurationVersion.map(
+                  version =>
+                    ProjectConfiguration(
+                      ProjectConfigurationId.randomId,
+                      projectId,
+                      active = true,
+                      List(ProjectFileConfiguration(file.path, nodes)),
+                      version
+                    )
+                )
+              case Left(e) => Future.failed(ValidationError(e.toList))
+            }
+          case Left(versioningException) => Future.failed(versioningException)
+        }
+      }
     }
 
 }

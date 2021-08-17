@@ -3,6 +3,7 @@ package cromwell.pipeline.service
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
 
+import java.nio.file.Path
 import scala.concurrent.Future
 
 class ProjectConfigurationServiceTestImpl(projectConfigurations: Seq[ProjectConfiguration], testMode: TestMode)
@@ -24,6 +25,25 @@ class ProjectConfigurationServiceTestImpl(projectConfigurations: Seq[ProjectConf
     testMode match {
       case WithException(exc) => Future.failed(exc)
       case _                  => Future.unit
+    }
+
+  override def buildConfiguration(
+    projectId: ProjectId,
+    projectFilePath: Path,
+    version: Option[PipelineVersion],
+    userId: UserId
+  ): Future[ProjectConfiguration] =
+    testMode match {
+      case WithException(exc) => Future.failed(exc)
+      case _ =>
+        val config = ProjectConfiguration(
+          id = ProjectConfigurationId.randomId,
+          projectId = projectId,
+          active = true,
+          projectFileConfigurations = List(ProjectFileConfiguration(projectFilePath, Nil)),
+          version = ProjectConfigurationVersion.defaultVersion
+        )
+        Future.successful(config)
     }
 
 }
