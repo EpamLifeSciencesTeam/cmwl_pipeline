@@ -132,17 +132,6 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
       }
     }
 
-    "takeUserFromRequest" should {
-      "return some User" taggedAs Service in new AuthServiceTestContext {
-        val request: SignInRequest = SignInRequest(
-          dummyUser.email,
-          userPassword
-        )
-        (userService.getUserWithCredentialsByEmail _ when dummyUser.email).returns(Future.successful(Some(dummyUser)))
-        whenReady(authService.takeUserFromRequest(request).value) { _ shouldBe Some(dummyUser) }
-      }
-    }
-
     "responseFromUser" should {
       "return whatever getAuthResponse returns" taggedAs Service in new AuthServiceTestContext {
         private val dummyResponse = Some(AuthResponse("", "", 1))
