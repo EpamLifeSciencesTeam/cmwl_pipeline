@@ -241,7 +241,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)
     val filePath: String = URLEncoderUtils.encode(path.toString)
     val fileVersion: String = version match {
       case Some(version) => version.name
-      case None          => getDefaultProjectVersion().toString
+      case None          => config.defaultBranch
     }
 
     httpClient
