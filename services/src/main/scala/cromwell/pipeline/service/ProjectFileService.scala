@@ -30,13 +30,6 @@ trait ProjectFileService {
     userId: UserId
   ): Future[List[ProjectFile]]
 
-  def buildConfiguration(
-    projectId: ProjectId,
-    projectFilePath: Path,
-    version: Option[PipelineVersion],
-    userId: UserId
-  ): Future[ProjectConfiguration]
-
 }
 
 object ProjectFileService {
@@ -99,42 +92,5 @@ object ProjectFileService {
         }
       }
 
-    def buildConfiguration(
-      projectId: ProjectId,
-      projectFilePath: Path,
-      version: Option[PipelineVersion],
-      userId: UserId
-    ): Future[ProjectConfiguration] = {
-
-      val eitherFile = for {
-        project <- projectService.getUserProjectById(projectId, userId)
-        eitherFile <- projectVersioning.getFile(project, projectFilePath, version)
-      } yield eitherFile
-
-      val configurationVersion =
-        projectConfigurationService.getLastByProjectId(projectId, userId).map {
-          case Some(configuration) => configuration.version.increaseValue
-          case None                => ProjectConfigurationVersion.defaultVersion
-        }
-
-      eitherFile.flatMap {
-        case Right(file) =>
-          womTool.inputsToList(file.content.content) match {
-            case Right(nodes) =>
-              configurationVersion.map(
-                version =>
-                  ProjectConfiguration(
-                    ProjectConfigurationId.randomId,
-                    projectId,
-                    active = true,
-                    List(ProjectFileConfiguration(file.path, nodes)),
-                    version
-                  )
-              )
-            case Left(e) => Future.failed(ValidationError(e.toList))
-          }
-        case Left(versioningException) => Future.failed(versioningException)
-      }
-    }
   }
 }

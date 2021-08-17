@@ -5,7 +5,8 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
-import cromwell.pipeline.service.ProjectConfigurationService
+import cromwell.pipeline.service.{ ProjectConfigurationService, VersioningException }
+import cromwell.pipeline.utils.URLEncoderUtils
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
@@ -36,6 +37,11 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
       projectFileConfigurations = configuration.projectFileConfigurations,
       version = configuration.version
     )
+    val versionString = "v0.0.2"
+    val version = PipelineVersion(versionString)
+    val versionOption = Some(version)
+    val path = Paths.get("folder/file.wdl")
+    val pathString = URLEncoderUtils.encode(path.toString)
 
     "update configuration" should {
       val error = new RuntimeException("Something went wrong")
@@ -97,6 +103,39 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
         Delete(s"/projects/${projectId.value}/configurations") ~> configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
           entityAs[String] shouldBe "Something went wrong"
+        }
+      }
+    }
+
+    "build configuration" should {
+
+      "return configuration for file" in {
+        when(configurationService.buildConfiguration(projectId, path, versionOption, accessToken.userId))
+          .thenReturn(Future.successful(configuration))
+        Get(s"/projects/${projectId.value}/configurations/files/$pathString?version=$versionString") ~>
+        configurationController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.OK
+          entityAs[ProjectConfiguration] shouldBe configuration
+        }
+      }
+
+      "return failed for Bad request" in {
+        when(configurationService.buildConfiguration(projectId, path, versionOption, accessToken.userId))
+          .thenReturn(Future.failed(VersioningException.HttpException("Bad request")))
+        Get(s"/projects/${projectId.value}/configurations/files/$pathString?version=$versionString") ~>
+        configurationController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.InternalServerError
+          entityAs[String] shouldBe "Bad request"
+        }
+      }
+
+      "return failed for invalid file" in {
+        when(configurationService.buildConfiguration(projectId, path, versionOption, accessToken.userId))
+          .thenReturn(Future.failed(ValidationError(List("invalid some field"))))
+        Get(s"/projects/${projectId.value}/configurations/files/$pathString?version=$versionString") ~>
+        configurationController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.UnprocessableEntity
+          entityAs[List[String]] shouldBe List("invalid some field")
         }
       }
     }

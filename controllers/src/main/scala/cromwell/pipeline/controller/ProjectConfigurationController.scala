@@ -3,7 +3,8 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import cromwell.pipeline.controller.utils.PathMatchers.ProjectId
+import cromwell.pipeline.controller.utils.FromStringUnmarshallers._
+import cromwell.pipeline.controller.utils.PathMatchers.{ Path, ProjectId }
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.service.ProjectConfigurationService
@@ -48,8 +49,28 @@ class ProjectConfigurationController(projectConfigurationService: ProjectConfigu
     }
   }
 
+  private def buildConfiguration(projectId: ProjectId)(implicit accessToken: AccessTokenContent): Route = get {
+    path("files" / Path) { projectFilePath =>
+      parameters('version.as[PipelineVersion].optional) { version =>
+        onComplete(
+          projectConfigurationService.buildConfiguration(
+            projectId,
+            projectFilePath,
+            version,
+            accessToken.userId
+          )
+        ) {
+          case Success(configuration)        => complete(configuration)
+          case Failure(ValidationError(msg)) => complete(StatusCodes.UnprocessableEntity, msg)
+          case Failure(e)                    => complete(StatusCodes.InternalServerError, e.getMessage)
+        }
+      }
+    }
+  }
+
   val route: AccessTokenContent => Route = implicit accessToken =>
     pathPrefix("projects" / ProjectId / "configurations") { projectId =>
+      buildConfiguration(projectId) ~
       addConfiguration(projectId) ~
       getConfiguration(projectId) ~
       deactivateConfiguration(projectId)
