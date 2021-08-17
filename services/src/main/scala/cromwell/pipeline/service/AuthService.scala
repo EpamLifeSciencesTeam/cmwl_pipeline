@@ -26,8 +26,6 @@ trait AuthService {
 
   def refreshTokens(refreshToken: String): Option[AuthResponse]
 
-  def takeUserFromRequest(request: SignInRequest): OptionT[Future, UserWithCredentials]
-
   def responseFromUser(user: UserWithCredentials): Option[AuthResponse]
 
   def passwordCorrect(request: SignInRequest, user: UserWithCredentials): Option[Throwable]
@@ -88,15 +86,6 @@ object AuthService {
           .flatten
       }
 
-      def takeUserFromRequest(request: SignInRequest): OptionT[Future, UserWithCredentials] =
-        OptionT(userService.getUserWithCredentialsByEmail(request.email)).semiflatMap[UserWithCredentials] { user =>
-          val checkFilters = passwordCorrect(request, user).orElse(userIsActive(user))
-          checkFilters match {
-            case Some(value) => Future.failed(value)
-            case None        => Future.successful(user)
-          }
-        }
-
       def responseFromUser(user: UserWithCredentials): Option[AuthResponse] = {
         val accessTokenContent = AccessTokenContent(user.userId)
         val refreshTokenContent = RefreshTokenContent(user.userId, None)
@@ -109,6 +98,15 @@ object AuthService {
 
       def userIsActive(user: UserWithCredentials): Option[Throwable] =
         if (user.active) None else Some(InactiveUserException(inactiveUserMessage))
+
+      private def takeUserFromRequest(request: SignInRequest): OptionT[Future, UserWithCredentials] =
+        OptionT(userService.getUserWithCredentialsByEmail(request.email)).semiflatMap[UserWithCredentials] { user =>
+          val checkFilters = passwordCorrect(request, user).orElse(userIsActive(user))
+          checkFilters match {
+            case Some(value) => Future.failed(value)
+            case None        => Future.successful(user)
+          }
+        }
 
     }
 
