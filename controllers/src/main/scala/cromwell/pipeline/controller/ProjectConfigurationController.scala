@@ -23,7 +23,7 @@ class ProjectConfigurationController(projectConfigurationService: ProjectConfigu
         id = request.id,
         projectId = projectId,
         active = request.active,
-        projectFileConfigurations = request.projectFileConfigurations,
+        wdlParams = request.wdlParams,
         version = request.version
       )
       onComplete(projectConfigurationService.addConfiguration(newProjectConfiguration, accessToken.userId)) {

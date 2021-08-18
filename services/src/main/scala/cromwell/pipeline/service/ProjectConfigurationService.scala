@@ -37,27 +37,10 @@ object ProjectConfigurationService {
   ): ProjectConfigurationService =
     new ProjectConfigurationService {
 
-      def addConfiguration(projectConfiguration: ProjectConfiguration, userId: UserId): Future[Unit] = {
-        def toTuple(config: ProjectFileConfiguration): (Path, Map[String, TypedValue]) =
-          config.path -> config.inputs.map(fileParameter => fileParameter.name -> fileParameter.typedValue).toMap
-
-        def toProjectFileConfiguration(path: Path, inputs: Map[String, TypedValue]): ProjectFileConfiguration =
-          ProjectFileConfiguration(path, inputs.map((FileParameter.apply _).tupled).toList)
-
-        getLastByProjectId(projectConfiguration.projectId, userId).flatMap {
-          case Some(config) =>
-            val oldFileConfigsMap = config.projectFileConfigurations.map(toTuple).toMap
-            val newFileConfigsMap = projectConfiguration.projectFileConfigurations.map(toTuple).toMap
-
-            val updatedFileConfigsMap = oldFileConfigsMap ++ newFileConfigsMap
-            val updatedFileConfigs = updatedFileConfigsMap.map((toProjectFileConfiguration _).tupled).toList
-
-            val newConfig = projectConfiguration.copy(projectFileConfigurations = updatedFileConfigs)
-            updateConfiguration(newConfig)
-          case None =>
-            repository.addConfiguration(projectConfiguration)
-        }
-      }
+      def addConfiguration(projectConfiguration: ProjectConfiguration, userId: UserId): Future[Unit] =
+        projectService
+          .getUserProjectById(projectConfiguration.projectId, userId)
+          .flatMap(_ => repository.addConfiguration(projectConfiguration))
 
       private def getByProjectId(projectId: ProjectId, userId: UserId): Future[Seq[ProjectConfiguration]] =
         projectService.getUserProjectById(projectId, userId).flatMap(_ => repository.getAllByProjectId(projectId))
@@ -104,7 +87,7 @@ object ProjectConfigurationService {
                       ProjectConfigurationId.randomId,
                       projectId,
                       active = true,
-                      List(ProjectFileConfiguration(file.path, nodes)),
+                      WdlParams(file.path, nodes),
                       version
                     )
                 )

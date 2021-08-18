@@ -40,7 +40,7 @@ class ProjectConfigurationServiceTestImpl(projectConfigurations: Seq[ProjectConf
           id = ProjectConfigurationId.randomId,
           projectId = projectId,
           active = true,
-          projectFileConfigurations = List(ProjectFileConfiguration(projectFilePath, Nil)),
+          wdlParams = WdlParams(projectFilePath, Nil),
           version = ProjectConfigurationVersion.defaultVersion
         )
         Future.successful(config)

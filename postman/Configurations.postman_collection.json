@@ -6,6 +6,39 @@
 	},
 	"item": [
 		{
+			"name": "Build project configuration by project",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/projects/{{project_id}}/configurations/files/{{project_file_path}}?version=v0.0.1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"projects",
+						"{{project_id}}",
+						"configurations",
+						"files",
+						"{{project_file_path}}"
+					],
+					"query": [
+						{
+							"key": "version",
+							"value": "v0.0.1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Add configuration to MongoDB",
 			"request": {
 				"method": "PUT",
@@ -18,7 +51,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"id\": \"\",  \r\n    \"projectFileConfigurations\": [\r\n        {\"path\": \"\", \"inputs\": [\r\n            {\"name\": \"\", \"typedValue\": {\"_type\": \"\", \"value\": \"\"}},\r\n            {\"name\": \"\", \"typedValue\": {\"_type\": \"\", \"value\": \"\"}}\r\n            ]}\r\n    ]\r\n}",
+					"raw": "{\n    \"id\": \"\",\r\n    \"wdlParams\": {\r\n        \"path\": \"\", \r\n        \"inputs\": [\r\n            {\"name\": \"\", \"typedValue\": {\"_type\": \"\", \"value\": \"\"}},\r\n            {\"name\": \"\", \"typedValue\": {\"_type\": \"\", \"value\": \"\"}}\r\n        ]\r\n    }\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"

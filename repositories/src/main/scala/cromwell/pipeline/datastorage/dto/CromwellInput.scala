@@ -7,5 +7,5 @@ final case class CromwellInput(
   userId: UserId,
   projectVersion: PipelineVersion,
   files: List[ProjectFile],
-  configurations: List[ProjectFileConfiguration]
+  wdlParams: WdlParams
 )
