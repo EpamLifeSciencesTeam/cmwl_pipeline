@@ -26,15 +26,13 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
       ProjectConfigurationId.randomId,
       projectId,
       active = true,
-      List(
-        ProjectFileConfiguration(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello")))))
-      ),
+      WdlParams(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello"))))),
       ProjectConfigurationVersion.defaultVersion
     )
     val configurationAdditionRequest = ProjectConfigurationAdditionRequest(
       id = configuration.id,
       active = configuration.active,
-      projectFileConfigurations = configuration.projectFileConfigurations,
+      wdlParams = configuration.wdlParams,
       version = configuration.version
     )
     val versionString = "v0.0.2"

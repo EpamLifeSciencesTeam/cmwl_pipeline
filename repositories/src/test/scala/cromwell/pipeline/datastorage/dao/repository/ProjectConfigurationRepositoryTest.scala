@@ -16,8 +16,8 @@ class ProjectConfigurationRepositoryTest extends AsyncWordSpec with Matchers wit
 
   private val documentRepository = mock[DocumentRepository]
   private val configurationRepository = ProjectConfigurationRepository(documentRepository)
-  private val projectFileConfiguration: ProjectFileConfiguration =
-    ProjectFileConfiguration(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello")))))
+  private val wdlParams: WdlParams =
+    WdlParams(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello")))))
   private val projectId: ProjectId = TestProjectUtils.getDummyProjectId
   private val projectConfigurationId = ProjectConfigurationId.randomId
   private val configuration: ProjectConfiguration =
@@ -25,7 +25,7 @@ class ProjectConfigurationRepositoryTest extends AsyncWordSpec with Matchers wit
       projectConfigurationId,
       projectId,
       active = true,
-      List(projectFileConfiguration),
+      wdlParams,
       ProjectConfigurationVersion.defaultVersion
     )
 

@@ -26,14 +26,14 @@ object TestProjectUtils {
   def getDummyProjectConfiguration(
     projectId: ProjectId = getDummyProjectId,
     projectConfigurationId: ProjectConfigurationId = ProjectConfigurationId.randomId,
-    projectFileConfiguration: ProjectFileConfiguration =
-      ProjectFileConfiguration(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("String")))))
+    wdlParams: WdlParams =
+      WdlParams(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("String")))))
   ): ProjectConfiguration = {
     val projectConfiguration: ProjectConfiguration = ProjectConfiguration(
       projectConfigurationId,
       projectId,
       active = true,
-      List(projectFileConfiguration),
+      wdlParams,
       ProjectConfigurationVersion.defaultVersion
     )
     projectConfiguration

@@ -141,39 +141,6 @@
 				}
 			},
 			"response": []
-		},
-		{
-			"name": "Build project configuration by project",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "{{auth_token}}",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "{{base_url}}/projects/{{project_id}}/files/configurations/{{project_file_path}}?version=v0.0.1",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"projects",
-						"{{project_id}}",
-						"files",
-						"configurations",
-						"{{project_file_path}}"
-					],
-					"query": [
-						{
-							"key": "version",
-							"value": "v0.0.1"
-						}
-					]
-				}
-			},
-			"response": []
 		}
 	],
 	"protocolProfileBehavior": {}

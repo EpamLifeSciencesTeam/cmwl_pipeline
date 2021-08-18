@@ -34,26 +34,20 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
   private val optionVersion: Option[PipelineVersion] = Some(version)
   private val errorMessage = "ERROR: miss bracket"
 
-  private val projectFileConfiguration: ProjectFileConfiguration =
-    ProjectFileConfiguration(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello")))))
+  private val wdlParams: WdlParams =
+    WdlParams(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello")))))
 
   private val activeConfiguration: ProjectConfiguration =
     ProjectConfiguration(
       projectConfigurationId,
       projectId,
       active = true,
-      List(projectFileConfiguration),
+      wdlParams,
       ProjectConfigurationVersion.defaultVersion
     )
 
   private val inactiveConfiguration: ProjectConfiguration =
     activeConfiguration.copy(active = false)
-
-  private val updatedConfiguration: ProjectConfiguration = {
-    val updatedProjectFileConfiguration =
-      projectFileConfiguration.copy(inputs = List(FileParameter("nodeName", StringTyped(Some("hi")))))
-    activeConfiguration.copy(projectFileConfigurations = List(updatedProjectFileConfiguration))
-  }
 
   "ProjectConfigurationService" when {
     "add new configuration for project and user is project owner" should {
@@ -62,33 +56,12 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
       when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(dummyProject))
 
       "return success if creation was successful" in {
-        when(configurationRepository.getAllByProjectId(projectId)).thenReturn(Future.successful(Seq.empty))
         when(configurationRepository.addConfiguration(activeConfiguration)).thenReturn(Future.successful(result))
         configurationService.addConfiguration(activeConfiguration, userId).map(_ shouldBe result)
       }
 
-      "return success if update was successful" in {
-        when(configurationRepository.getAllByProjectId(projectId))
-          .thenReturn(Future.successful(Seq(activeConfiguration)))
-        when(configurationRepository.updateConfiguration(updatedConfiguration)).thenReturn(Future.successful(result))
-        configurationService.addConfiguration(updatedConfiguration, userId).map(_ shouldBe result)
-      }
-
-      "return failure if it couldn't fetch existing configuration" in {
-        when(configurationRepository.getAllByProjectId(projectId)).thenReturn(Future.failed(error))
-        configurationService.addConfiguration(activeConfiguration, userId).failed.map(_ shouldBe error)
-      }
-
       "return failure if creation wasn't successful" in {
-        when(configurationRepository.getAllByProjectId(projectId)).thenReturn(Future.successful(Seq.empty))
         when(configurationRepository.addConfiguration(activeConfiguration)).thenReturn(Future.failed(error))
-        configurationService.addConfiguration(activeConfiguration, userId).failed.map(_ shouldBe error)
-      }
-
-      "return failure if update wasn't successful" in {
-        when(configurationRepository.getAllByProjectId(projectId))
-          .thenReturn(Future.successful(Seq(activeConfiguration)))
-        when(configurationRepository.updateConfiguration(activeConfiguration)).thenReturn(Future.failed(error))
         configurationService.addConfiguration(activeConfiguration, userId).failed.map(_ shouldBe error)
       }
     }
@@ -98,8 +71,6 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
       when(projectService.getUserProjectById(projectId, strangerId)).thenReturn(Future.failed(error))
 
       "return failure" in {
-        when(configurationRepository.getAllByProjectId(projectId))
-          .thenReturn(Future.successful(Seq(activeConfiguration)))
         configurationService.addConfiguration(activeConfiguration, strangerId).failed.map(_ shouldBe error)
       }
     }
@@ -189,7 +160,7 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
                 id = builtConfiguration.id,
                 projectId = projectId,
                 active = true,
-                projectFileConfigurations = List(ProjectFileConfiguration(projectFile.path, Nil)),
+                wdlParams = WdlParams(projectFile.path, Nil),
                 version = ProjectConfigurationVersion.defaultVersion
               )
           )

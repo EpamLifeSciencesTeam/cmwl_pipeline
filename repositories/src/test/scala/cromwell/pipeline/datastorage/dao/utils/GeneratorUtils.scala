@@ -124,18 +124,18 @@ object GeneratorUtils {
     typedValue <- typedValueGen
   } yield FileParameter(name, typedValue)
 
-  lazy val projectFileConfigurationGen: Gen[ProjectFileConfiguration] = for {
+  lazy val wdlParamsGen: Gen[WdlParams] = for {
     path <- pathGen
     fileParameters <- listOfN(fileParameterGen)
-  } yield ProjectFileConfiguration(path, fileParameters)
+  } yield WdlParams(path, fileParameters)
 
   lazy val projectConfigurationGen: Gen[ProjectConfiguration] = for {
     id <- projectConfigurationIdGen
     projectId <- projectIdGen
     active <- booleanGen
-    projectFileConfigurations <- listOfN(projectFileConfigurationGen)
+    wdlParams <- wdlParamsGen
     version <- projectConfigurationVersionGen
-  } yield ProjectConfiguration(id, projectId, active, projectFileConfigurations, version)
+  } yield ProjectConfiguration(id, projectId, active, wdlParams, version)
 
   object Mail extends Enumeration {
     val Mail, Gmail, Epam, Yandex = Value

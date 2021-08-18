@@ -32,9 +32,7 @@ class AggregationServiceTest extends AsyncWordSpec with Matchers with MockitoSug
           configurationId,
           projectId,
           active = true,
-          List(
-            ProjectFileConfiguration(path, List(FileParameter("_type", StringTyped(Some("String")))))
-          ),
+          WdlParams(path, List(FileParameter("_type", StringTyped(Some("String"))))),
           ProjectConfigurationVersion.defaultVersion
         )
 
@@ -46,9 +44,7 @@ class AggregationServiceTest extends AsyncWordSpec with Matchers with MockitoSug
           userId,
           version,
           List(file),
-          List(
-            ProjectFileConfiguration(Paths.get("test.wdl"), List(FileParameter("_type", StringTyped(Some("String")))))
-          )
+          WdlParams(Paths.get("test.wdl"), List(FileParameter("_type", StringTyped(Some("String")))))
         )
 
         when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(dummyProject))

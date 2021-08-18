@@ -9,10 +9,10 @@ import play.api.libs.json.{ Format, Json, OFormat }
 import java.nio.file.Path
 import java.util.UUID
 
-case class ProjectFileConfiguration(path: Path, inputs: List[FileParameter])
+case class WdlParams(path: Path, inputs: List[FileParameter])
 
-object ProjectFileConfiguration {
-  implicit val projectFileConfigurationFormat: OFormat[ProjectFileConfiguration] = Json.format
+object WdlParams {
+  implicit val wdlParamsFormat: OFormat[WdlParams] = Json.format
 }
 
 final case class ProjectConfigurationVersion(value: VersionValue) extends Ordered[ProjectConfigurationVersion] {
@@ -65,7 +65,7 @@ object ProjectConfigurationId {
 final case class ProjectConfigurationAdditionRequest(
   id: ProjectConfigurationId,
   active: Boolean,
-  projectFileConfigurations: List[ProjectFileConfiguration],
+  wdlParams: WdlParams,
   version: ProjectConfigurationVersion
 )
 
@@ -78,7 +78,7 @@ case class ProjectConfiguration(
   id: ProjectConfigurationId,
   projectId: ProjectId,
   active: Boolean,
-  projectFileConfigurations: List[ProjectFileConfiguration],
+  wdlParams: WdlParams,
   version: ProjectConfigurationVersion
 )
 
