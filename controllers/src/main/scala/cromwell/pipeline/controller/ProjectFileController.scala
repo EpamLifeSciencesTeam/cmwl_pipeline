@@ -7,7 +7,7 @@ import cromwell.pipeline.controller.utils.FromStringUnmarshallers._
 import cromwell.pipeline.controller.utils.PathMatchers.{ Path, ProjectId }
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
-import cromwell.pipeline.service.{ ProjectFileService, VersioningException }
+import cromwell.pipeline.service.ProjectFileService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
 import scala.concurrent.ExecutionContext
@@ -49,23 +49,19 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
 
   private def uploadFile(projectId: ProjectId)(implicit accessToken: AccessTokenContent): Route = post {
     entity(as[ProjectUpdateFileRequest]) { request =>
-      onComplete(for {
-        validateResponse <- wdlService.validateFile(request.projectFile.content)
-        uploadResponse <- wdlService.uploadFile(projectId, request.projectFile, request.version, accessToken.userId)
-      } yield {
-        (validateResponse, uploadResponse) match {
-          case (Right(_), Right(responseMessage)) => StatusCodes.OK.intValue -> responseMessage
-          case (Left(_), Right(responseMessage))  => StatusCodes.Created.intValue -> responseMessage
-          case (_, Left(response)) =>
-            response match {
-              case exception: VersioningException => StatusCodes.UnprocessableEntity.intValue -> exception.getMessage
-            }
+      onComplete {
+        for {
+          validateResponse <- wdlService.validateFile(request.projectFile.content)
+          uploadResponse <- wdlService.uploadFile(projectId, request.projectFile, request.version, accessToken.userId)
+        } yield (validateResponse, uploadResponse) match {
+          case (Right(_), Right(_)) => Right(StatusCodes.OK)
+          case (Left(_), Right(_))  => Right(StatusCodes.Created)
+          case (_, Left(response))  => Left(response.getMessage)
         }
-      }) {
-        case Success((status, p @ UpdateFiledResponse(_, _))) =>
-          complete((status, p))
-        case Success((status, message)) => complete((status, s"File have not uploaded due to $message"))
-        case Failure(e)                 => complete(StatusCodes.InternalServerError, e.getMessage)
+      } {
+        case Success(Right(sc))   => complete(sc)
+        case Success(Left(error)) => complete(StatusCodes.UnprocessableEntity, s"File have not uploaded due to $error")
+        case Failure(e)           => complete(StatusCodes.InternalServerError, e.getMessage)
       }
     }
   }
