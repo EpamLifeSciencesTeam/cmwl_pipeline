@@ -9,13 +9,13 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 trait RunService {
 
-  def addRun(runCreateRequest: RunCreateRequest, userId: UserId): Future[RunId]
+  def addRun(runCreateRequest: RunCreateRequest, projectId: ProjectId, userId: UserId): Future[RunId]
 
-  def getRunByIdAndUser(runId: RunId, userId: UserId): Future[Option[Run]]
+  def getRunByIdAndUser(runId: RunId, projectId: ProjectId, userId: UserId): Future[Option[Run]]
 
-  def deleteRunById(runId: RunId, userId: UserId): Future[Int]
+  def deleteRunById(runId: RunId, projectId: ProjectId, userId: UserId): Future[Int]
 
-  def updateRun(runId: RunId, request: RunUpdateRequest, userId: UserId): Future[Int]
+  def updateRun(runId: RunId, request: RunUpdateRequest, projectId: ProjectId, userId: UserId): Future[Int]
 
 }
 
@@ -26,31 +26,32 @@ object RunService {
   ): RunService =
     new RunService {
 
-      def addRun(runCreateRequest: RunCreateRequest, userId: UserId): Future[RunId] = {
+      def addRun(runCreateRequest: RunCreateRequest, projectId: ProjectId, userId: UserId): Future[RunId] = {
         val newRun = Run(
           runId = RunId.random,
-          projectId = runCreateRequest.projectId,
+          projectId = projectId,
           projectVersion = runCreateRequest.projectVersion,
           status = Created,
           timeStart = Instant.now(),
           userId = userId,
           results = runCreateRequest.results
         )
-        projectService.getUserProjectById(runCreateRequest.projectId, userId).flatMap(_ => runRepository.addRun(newRun))
+        projectService.getUserProjectById(projectId, userId).flatMap(_ => runRepository.addRun(newRun))
       }
 
-      def getRunByIdAndUser(runId: RunId, userId: UserId): Future[Option[Run]] =
-        runRepository.getRunByIdAndUser(runId, userId)
-
-      def deleteRunById(runId: RunId, userId: UserId): Future[Int] =
-        runRepository.getRunByIdAndUser(runId, userId).flatMap {
-          case Some(_) =>
-            runRepository.deleteRunById(runId)
-          case None => Future.failed(new RuntimeException("run with this id doesn't exist"))
+      def getRunByIdAndUser(runId: RunId, projectId: ProjectId, userId: UserId): Future[Option[Run]] =
+        projectService.getUserProjectById(projectId, userId).flatMap { _ =>
+          runRepository.getRunByIdAndUser(runId, userId).map(_.filter(_.projectId == projectId))
         }
 
-      def updateRun(runId: RunId, request: RunUpdateRequest, userId: UserId): Future[Int] =
-        runRepository.getRunByIdAndUser(runId, userId).flatMap {
+      def deleteRunById(runId: RunId, projectId: ProjectId, userId: UserId): Future[Int] =
+        getRunByIdAndUser(runId, projectId, userId).flatMap {
+          case Some(_) => runRepository.deleteRunById(runId)
+          case None    => Future.failed(new RuntimeException("run with this id doesn't exist"))
+        }
+
+      def updateRun(runId: RunId, request: RunUpdateRequest, projectId: ProjectId, userId: UserId): Future[Int] =
+        getRunByIdAndUser(runId, projectId, userId).flatMap {
           case Some(run) =>
             runRepository.updateRun(
               run.copy(

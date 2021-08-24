@@ -47,7 +47,6 @@ object Status {
 }
 
 final case class RunCreateRequest(
-  projectId: ProjectId,
   projectVersion: String,
   results: String,
   cmwlWorkflowId: Option[String] = None
