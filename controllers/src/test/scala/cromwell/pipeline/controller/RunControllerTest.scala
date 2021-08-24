@@ -3,7 +3,7 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import cromwell.pipeline.datastorage.dao.utils.{ TestRunUtils, TestUserUtils }
+import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestRunUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.{ Run, RunCreateRequest, RunUpdateRequest }
 import cromwell.pipeline.model.wrapper.RunId
@@ -34,29 +34,35 @@ class RunControllerTest
       "returns the run entity" taggedAs Controller in {
         val dummyRun: Run = TestRunUtils.getDummyRun()
         val runId = dummyRun.runId
+        val projectId = dummyRun.projectId
         val runRespOption: Option[Run] = Option(dummyRun)
 
-        when(runService.getRunByIdAndUser(runId, accessToken.userId)).thenReturn(Future.successful(runRespOption))
+        when(runService.getRunByIdAndUser(runId, projectId, accessToken.userId))
+          .thenReturn(Future.successful(runRespOption))
 
-        Get(s"/runs/$runId") ~> runController.route(accessToken) ~> check {
+        Get(s"/projects/${projectId.value}/runs/$runId") ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
           responseAs[Option[Run]] shouldEqual runRespOption
         }
       }
 
       "returns the internal server error if service fails" taggedAs Controller in {
-        val runId = TestRunUtils.getDummyRunId
-        when(runService.getRunByIdAndUser(runId, accessToken.userId))
+        val dummyRun: Run = TestRunUtils.getDummyRun()
+        val runId = dummyRun.runId
+        val projectId = dummyRun.projectId
+        when(runService.getRunByIdAndUser(runId, projectId, accessToken.userId))
           .thenReturn(Future.failed(new RuntimeException("something went wrong")))
 
-        Get(s"/runs/$runId") ~> runController.route(accessToken) ~> check {
+        Get(s"/projects/${projectId.value}/runs/$runId") ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
         }
       }
 
       "returns NotFound if the run id is not valid" taggedAs Controller in {
+        val projectId = TestRunUtils.getDummyProjectId
         val invalidRunId = "123"
-        Get(s"/runs/$invalidRunId") ~> Route.seal(runController.route(accessToken)) ~> check {
+
+        Get(s"/projects/${projectId.value}/runs/$invalidRunId") ~> Route.seal(runController.route(accessToken)) ~> check {
           status shouldBe StatusCodes.NotFound
         }
       }
@@ -64,29 +70,33 @@ class RunControllerTest
 
     "deleteRunById" should {
       "returns run 1 if the entity was deleted" taggedAs Controller in {
-        val runId = TestRunUtils.getDummyRunId
+        val dummyRun: Run = TestRunUtils.getDummyRun()
+        val runId = dummyRun.runId
+        val projectId = dummyRun.projectId
 
-        when(runService.deleteRunById(runId, accessToken.userId)).thenReturn(Future.successful(1))
+        when(runService.deleteRunById(runId, projectId, accessToken.userId)).thenReturn(Future.successful(1))
 
-        Delete(s"/runs/$runId") ~> runController.route(accessToken) ~> check {
+        Delete(s"/projects/${projectId.value}/runs/$runId") ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
         }
       }
       "returns server error if run delete was failed" taggedAs Controller in {
         val runId = TestRunUtils.getDummyRunId
-        when(runService.deleteRunById(runId, accessToken.userId))
+        val projectId = TestProjectUtils.getDummyProjectId
+        when(runService.deleteRunById(runId, projectId, accessToken.userId))
           .thenReturn(Future.failed(new RuntimeException("something went wrong")))
 
-        Delete(s"/runs/$runId") ~> runController.route(accessToken) ~> check {
+        Delete(s"/projects/${projectId.value}/runs/$runId") ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
         }
       }
       "returns InternalServerError status if run id doesn't match" in {
         val runId = TestRunUtils.getDummyRunId
-        when(runService.deleteRunById(runId, accessToken.userId))
+        val projectId = TestProjectUtils.getDummyProjectId
+        when(runService.deleteRunById(runId, projectId, accessToken.userId))
           .thenReturn(Future.failed(new RuntimeException("Something wrong.")))
 
-        Delete(s"/runs/$runId") ~> runController.route(accessToken) ~> check {
+        Delete(s"/projects/${projectId.value}/runs/$runId") ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
         }
       }
@@ -94,8 +104,9 @@ class RunControllerTest
 
     "updates run entity" should {
       "returns NoContent status if run was updated" in {
-        val runId = TestRunUtils.getDummyRunId
         val dummyRun: Run = TestRunUtils.getDummyRun()
+        val runId = dummyRun.runId
+        val projectId = dummyRun.projectId
         val request = RunUpdateRequest(
           dummyRun.status,
           dummyRun.timeStart,
@@ -103,9 +114,9 @@ class RunControllerTest
           dummyRun.results,
           dummyRun.cmwlWorkflowId
         )
-        when(runService.updateRun(runId, request, accessToken.userId)).thenReturn(Future.successful(1))
+        when(runService.updateRun(runId, request, projectId, accessToken.userId)).thenReturn(Future.successful(1))
 
-        Put(s"/runs/$runId", request) ~> runController.route(accessToken) ~> check {
+        Put(s"/projects/${projectId.value}/runs/$runId", request) ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NoContent
         }
       }
@@ -113,6 +124,7 @@ class RunControllerTest
       "returns NoContent status if run entity was updated without time end" in {
         val runId = TestRunUtils.getDummyRunId
         val dummyRun: Run = TestRunUtils.getDummyRun()
+        val projectId = dummyRun.projectId
         val request = RunUpdateRequest(
           dummyRun.status,
           dummyRun.timeStart,
@@ -120,9 +132,9 @@ class RunControllerTest
           dummyRun.results,
           dummyRun.cmwlWorkflowId
         )
-        when(runService.updateRun(runId, request, accessToken.userId)).thenReturn(Future.successful(1))
+        when(runService.updateRun(runId, request, projectId, accessToken.userId)).thenReturn(Future.successful(1))
 
-        Put(s"/runs/$runId", request) ~> runController.route(accessToken) ~> check {
+        Put(s"/projects/${projectId.value}/runs/$runId", request) ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NoContent
         }
       }
@@ -130,6 +142,7 @@ class RunControllerTest
       "returns InternalServerError status if run id doesn't match" in {
         val runId = TestRunUtils.getDummyRunId
         val dummyRun: Run = TestRunUtils.getDummyRun()
+        val projectId = dummyRun.projectId
         val request = RunUpdateRequest(
           dummyRun.status,
           dummyRun.timeStart,
@@ -138,10 +151,10 @@ class RunControllerTest
           dummyRun.cmwlWorkflowId
         )
 
-        when(runService.updateRun(runId, request, accessToken.userId))
+        when(runService.updateRun(runId, request, projectId, accessToken.userId))
           .thenReturn(Future.failed(new RuntimeException("something went wrong")))
 
-        Put(s"/runs/$runId", request) ~> runController.route(accessToken) ~> check {
+        Put(s"/projects/${projectId.value}/runs/$runId", request) ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
         }
       }
@@ -150,30 +163,32 @@ class RunControllerTest
     "adds run entity" should {
 
       "returns the run id" taggedAs Controller in {
-        val runId = TestRunUtils.getDummyRunId
+        val dummyRun: Run = TestRunUtils.getDummyRun()
+        val runId = dummyRun.runId
+        val projectId = dummyRun.projectId
         val request = RunCreateRequest(
-          projectId = TestRunUtils.getDummyProjectId,
           projectVersion = "new-version",
           results = "new-results"
         )
 
-        when(runService.addRun(request, accessToken.userId)).thenReturn(Future.successful(runId))
-        Post("/runs", request) ~> runController.route(accessToken) ~> check {
+        when(runService.addRun(request, projectId, accessToken.userId)).thenReturn(Future.successful(runId))
+        Post(s"/projects/${projectId.value}/runs", request) ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
           responseAs[RunId] shouldEqual runId
         }
       }
 
       "returns server error if run addition was failed" taggedAs Controller in {
+        val projectId = TestRunUtils.getDummyProjectId
         val request = RunCreateRequest(
-          projectId = TestRunUtils.getDummyProjectId,
           projectVersion = "new-version",
           results = "new-results"
         )
-        when(runService.addRun(request, accessToken.userId))
+
+        when(runService.addRun(request, projectId, accessToken.userId))
           .thenReturn(Future.failed(new RuntimeException("something went wrong")))
 
-        Post("/runs", request) ~> runController.route(accessToken) ~> check {
+        Post(s"/projects/${projectId.value}/runs", request) ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
         }
       }
