@@ -22,6 +22,14 @@ class RunController(runService: RunService) {
       }
     }
   }
+  private def getRunsByProject(projectId: ProjectId)(implicit accessToken: AccessTokenContent): Route = get {
+    pathEndOrSingleSlash {
+      onComplete(runService.getRunsByProject(projectId, accessToken.userId)) {
+        case Success(response) => complete(response)
+        case Failure(_)        => complete(StatusCodes.InternalServerError, "Internal error")
+      }
+    }
+  }
 
   private def deleteRun(projectId: ProjectId)(implicit accessToken: AccessTokenContent): Route = delete {
     path(RunId) { runId =>
@@ -55,6 +63,7 @@ class RunController(runService: RunService) {
   val route: AccessTokenContent => Route = implicit accessToken =>
     pathPrefix("projects" / ProjectId / "runs") { projectId =>
       getRun(projectId) ~
+      getRunsByProject(projectId) ~
       deleteRun(projectId) ~
       updateRun(projectId) ~
       addRun(projectId)

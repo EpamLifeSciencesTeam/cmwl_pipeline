@@ -1,7 +1,8 @@
 package cromwell.pipeline.datastorage.dao.repository
 
-import cromwell.pipeline.datastorage.dto.Run
+import cromwell.pipeline.datastorage.dto.{ ProjectId, Run }
 import cromwell.pipeline.model.wrapper.{ RunId, UserId }
+
 import scala.collection.mutable
 import scala.concurrent.Future
 
@@ -14,6 +15,11 @@ class RunRepositoryTestImpl extends RunRepository {
       (id, entity) <- runs if id == runId && entity.userId == userId
     } yield entity
     Future.successful(run.headOption)
+  }
+
+  def getRunsByProject(projectId: ProjectId): Future[Seq[Run]] = {
+    val runsByProject = runs.values.filter(_.projectId == projectId).toSeq
+    Future.successful(runsByProject)
   }
 
   def deleteRunById(runId: RunId): Future[Int] = {

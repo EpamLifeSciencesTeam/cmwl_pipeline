@@ -92,6 +92,31 @@ class RunServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
       }
     }
 
+    "getRunsByProject" should {
+      val runSeq = Seq(run)
+
+      "return runs Seq if user is the owner" taggedAs Service in {
+        when(projectService.getUserProjectById(projectId, run.userId)).thenReturn(Future.successful(project))
+        when(runRepository.getRunsByProject(projectId)).thenReturn(Future.successful(runSeq))
+
+        runService.getRunsByProject(projectId, run.userId).map { _ shouldBe runSeq }
+      }
+
+      "return empty Seq if there are no runs" taggedAs Service in {
+        when(projectService.getUserProjectById(projectId, run.userId)).thenReturn(Future.successful(project))
+        when(runRepository.getRunsByProject(projectId)).thenReturn(Future.successful(Seq.empty))
+
+        runService.getRunsByProject(projectId, run.userId).map { _ shouldBe Seq.empty }
+      }
+
+      "fail if user is NOT the owner" taggedAs Service in {
+        val error = ProjectAccessDeniedException()
+        when(projectService.getUserProjectById(projectId, run.userId)).thenReturn(Future.failed(error))
+
+        runService.getRunsByProject(projectId, run.userId).failed.map { _ shouldBe error }
+      }
+    }
+
     "deleteRunById" should {
 
       "return 1 if the entity was deleted" taggedAs Service in {

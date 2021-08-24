@@ -26,20 +26,24 @@ class ProjectController(projectService: ProjectService) {
   }
 
   private def getProjectByName(implicit accessToken: AccessTokenContent): Route = get {
-    parameter('name.as[String]) { name =>
-      onComplete(projectService.getUserProjectByName(name, accessToken.userId)) {
-        case Success(project)                         => complete(project)
-        case Failure(e: ProjectNotFoundException)     => complete(StatusCodes.NotFound, e.getMessage)
-        case Failure(e: ProjectAccessDeniedException) => complete(StatusCodes.Forbidden, e.getMessage)
-        case Failure(e)                               => complete(StatusCodes.InternalServerError, e.getMessage)
+    pathEndOrSingleSlash {
+      parameter('name.as[String]) { name =>
+        onComplete(projectService.getUserProjectByName(name, accessToken.userId)) {
+          case Success(project)                         => complete(project)
+          case Failure(e: ProjectNotFoundException)     => complete(StatusCodes.NotFound, e.getMessage)
+          case Failure(e: ProjectAccessDeniedException) => complete(StatusCodes.Forbidden, e.getMessage)
+          case Failure(e)                               => complete(StatusCodes.InternalServerError, e.getMessage)
+        }
       }
     }
   }
 
   private def getProjects(implicit accessToken: AccessTokenContent): Route = get {
-    onComplete(projectService.getUserProjects(accessToken.userId)) {
-      case Success(projects) => complete(projects)
-      case Failure(e)        => complete(StatusCodes.InternalServerError, e.getMessage)
+    pathEndOrSingleSlash {
+      onComplete(projectService.getUserProjects(accessToken.userId)) {
+        case Success(projects) => complete(projects)
+        case Failure(e)        => complete(StatusCodes.InternalServerError, e.getMessage)
+      }
     }
   }
 
