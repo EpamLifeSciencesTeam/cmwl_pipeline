@@ -31,8 +31,11 @@ trait RunEntry { this: Profile with UserEntry with ProjectEntry with CustomsWith
 
   val runs = TableQuery[RunTable]
 
-  def getRunByIdAndUser(runId: RunId, userId: UserId) =
+  def getRunByIdAndUser(runId: RunId, userId: UserId): Query[RunTable, Run, Seq] =
     runs.filter(run => run.runId === runId && run.userId === userId).take(1)
+
+  def getRunsByProject(projectId: ProjectId): Query[RunTable, Run, Seq] =
+    runs.filter(run => run.projectId === projectId)
 
   def deleteRunById(runId: RunId): ActionResult[Int] = runs.filter(_.runId === runId).delete
 

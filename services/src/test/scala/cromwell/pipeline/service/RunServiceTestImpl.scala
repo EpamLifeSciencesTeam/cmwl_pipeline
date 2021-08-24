@@ -18,6 +18,12 @@ class RunServiceTestImpl(runs: Seq[Run], testMode: TestMode) extends RunService 
       case _                  => Future.successful(runs.headOption)
     }
 
+  override def getRunsByProject(projectId: ProjectId, userId: UserId): Future[Seq[Run]] =
+    testMode match {
+      case WithException(exc) => Future.failed(exc)
+      case _                  => Future.successful(runs)
+    }
+
   override def deleteRunById(runId: RunId, projectId: ProjectId, userId: UserId): Future[Int] =
     testMode match {
       case WithException(exc) => Future.failed(exc)

@@ -2,7 +2,7 @@ package cromwell.pipeline.datastorage.dao.repository
 
 import cromwell.pipeline.database.PipelineDatabaseEngine
 import cromwell.pipeline.datastorage.dao.entry.RunEntry
-import cromwell.pipeline.datastorage.dto.Run
+import cromwell.pipeline.datastorage.dto.{ ProjectId, Run }
 import cromwell.pipeline.model.wrapper.{ RunId, UserId }
 
 import scala.concurrent.Future
@@ -10,6 +10,8 @@ import scala.concurrent.Future
 trait RunRepository {
 
   def getRunByIdAndUser(runId: RunId, userId: UserId): Future[Option[Run]]
+
+  def getRunsByProject(projectId: ProjectId): Future[Seq[Run]]
 
   def deleteRunById(runId: RunId): Future[Int]
 
@@ -30,6 +32,9 @@ object RunRepository {
 
       def getRunByIdAndUser(runId: RunId, userId: UserId): Future[Option[Run]] =
         database.run(runEntry.getRunByIdAndUser(runId, userId).result.headOption)
+
+      def getRunsByProject(projectId: ProjectId): Future[Seq[Run]] =
+        database.run(runEntry.getRunsByProject(projectId).result)
 
       def deleteRunById(runId: RunId): Future[Int] = database.run(runEntry.deleteRunById(runId))
 

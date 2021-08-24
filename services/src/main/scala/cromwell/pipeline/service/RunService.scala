@@ -13,6 +13,8 @@ trait RunService {
 
   def getRunByIdAndUser(runId: RunId, projectId: ProjectId, userId: UserId): Future[Option[Run]]
 
+  def getRunsByProject(projectId: ProjectId, userId: UserId): Future[Seq[Run]]
+
   def deleteRunById(runId: RunId, projectId: ProjectId, userId: UserId): Future[Int]
 
   def updateRun(runId: RunId, request: RunUpdateRequest, projectId: ProjectId, userId: UserId): Future[Int]
@@ -43,6 +45,9 @@ object RunService {
         projectService.getUserProjectById(projectId, userId).flatMap { _ =>
           runRepository.getRunByIdAndUser(runId, userId).map(_.filter(_.projectId == projectId))
         }
+
+      def getRunsByProject(projectId: ProjectId, userId: UserId): Future[Seq[Run]] =
+        projectService.getUserProjectById(projectId, userId).flatMap(_ => runRepository.getRunsByProject(projectId))
 
       def deleteRunById(runId: RunId, projectId: ProjectId, userId: UserId): Future[Int] =
         getRunByIdAndUser(runId, projectId, userId).flatMap {

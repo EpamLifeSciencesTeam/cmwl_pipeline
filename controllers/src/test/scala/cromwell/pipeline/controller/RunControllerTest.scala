@@ -68,6 +68,34 @@ class RunControllerTest
       }
     }
 
+    "get runs by project" should {
+
+      "returns all runs of a project" taggedAs Controller in {
+        val dummyRun1 = TestRunUtils.getDummyRun()
+        val projectId = dummyRun1.projectId
+        val dummyRun2: Run = TestRunUtils.getDummyRun(projectId = projectId)
+        val runRespSeq: Seq[Run] = Seq(dummyRun1, dummyRun2)
+
+        when(runService.getRunsByProject(projectId, accessToken.userId)).thenReturn(Future.successful(runRespSeq))
+
+        Get(s"/projects/${projectId.value}/runs") ~> runController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.OK
+          responseAs[Seq[Run]] shouldEqual runRespSeq
+        }
+      }
+
+      "returns the internal server error if service fails" taggedAs Controller in {
+        val dummyRun: Run = TestRunUtils.getDummyRun()
+        val projectId = dummyRun.projectId
+        when(runService.getRunsByProject(projectId, accessToken.userId))
+          .thenReturn(Future.failed(new RuntimeException("something went wrong")))
+
+        Get(s"/projects/${projectId.value}/runs") ~> runController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.InternalServerError
+        }
+      }
+    }
+
     "deleteRunById" should {
       "returns run 1 if the entity was deleted" taggedAs Controller in {
         val dummyRun: Run = TestRunUtils.getDummyRun()

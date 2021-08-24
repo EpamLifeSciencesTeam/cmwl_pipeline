@@ -44,6 +44,25 @@ class RunRepositoryTest
       }
     }
 
+    "getRunsByProject" should {
+
+      "find newly added project runs" taggedAs Dao in {
+        val dummyUser: UserWithCredentials = TestUserUtils.getDummyUserWithCredentials()
+        val dummyProject: Project = TestProjectUtils.getDummyProject(ownerId = dummyUser.userId)
+        val dummyRun: Run = TestRunUtils.getDummyRun(userId = dummyUser.userId, projectId = dummyProject.projectId)
+        val dummyRun2: Run = TestRunUtils.getDummyRun(userId = dummyUser.userId, projectId = dummyProject.projectId)
+        val addUserFuture = userRepository.addUser(dummyUser)
+        val result = for {
+          _ <- addUserFuture
+          _ <- projectRepository.addProject(dummyProject)
+          _ <- runRepository.addRun(dummyRun)
+          _ <- runRepository.addRun(dummyRun2)
+          getByProject <- runRepository.getRunsByProject(dummyProject.projectId)
+        } yield getByProject
+        result.map(seqRun => seqRun shouldEqual Seq(dummyRun, dummyRun2))
+      }
+    }
+
     "update run by id" should {
 
       "update status, time start, time end, result and cmwlWorkflowId" taggedAs Dao in {
