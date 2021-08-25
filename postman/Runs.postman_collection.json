@@ -1,0 +1,155 @@
+{
+	"info": {
+		"_postman_id": "1c1a25b4-0233-44e4-802f-136dae7da4ce",
+		"name": "Runs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get run by Id",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/projects/{{projectId}}/runs/{{runId}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"projects",
+						"{{projectId}}",
+						"runs",
+						"{{runId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all project runs",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/projects/{{projectId}}/runs",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"projects",
+						"{{projectId}}",
+						"runs"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete run",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/projects/{{projectId}}/runs/{{runId}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"projects",
+						"{{projectId}}",
+						"runs",
+						"{{runId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update run",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"status\": \"submitted\",\n    \"timeStart\": \"2019-09-20T23:00:00.000Z\",\n    \"results\": \"Just some alien DNA\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/projects/{{projectId}}/runs/{{runId}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"projects",
+						"{{projectId}}",
+						"runs",
+						"{{runId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add run",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"projectVersion\": \"v0.0.1\",\n    \"results\": \"You are 85% CUCUMBER\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/projects/{{projectId}}/runs",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"projects",
+						"{{projectId}}",
+						"runs"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

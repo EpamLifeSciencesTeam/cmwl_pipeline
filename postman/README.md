@@ -8,3 +8,4 @@ This folder contains all endpoints for the **Cromwell Pipeline** at the moment (
 | Projects.postman_collection.json       | Collection for project interaction.                                                                         |
 | Files.postman_collection.json          | Collection for files interaction.                                                                           |
 | Configurations.postman_collection.json | Collection for configurations interaction.                                                                  |
+| Runs.postman_collection.json           | Collection for runs interaction.                                                                            |
