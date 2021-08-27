@@ -1,7 +1,9 @@
 package cromwell.pipeline.controller
 
-import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.Multipart.FormData
+import akka.http.scaladsl.model.{ ContentTypes, HttpEntity, Multipart, StatusCodes }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
+import akka.util.ByteString
 import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
@@ -9,25 +11,30 @@ import cromwell.pipeline.service.VersioningException.FileException
 import cromwell.pipeline.service.{ ProjectFileService, VersioningException }
 import cromwell.pipeline.utils.URLEncoderUtils
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
-import java.nio.file.Paths
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
 
+import java.nio.file.Path
 import scala.concurrent.Future
 
 class ProjectFileControllerTest extends AsyncWordSpec with Matchers with ScalatestRouteTest with MockitoSugar {
+
   private val projectFileService: ProjectFileService = mock[ProjectFileService]
   private val projectFileController = new ProjectFileController(projectFileService)
 
   "ProjectFileController" when {
     val accessToken = AccessTokenContent(TestUserUtils.getDummyUserId)
+
     val versionString = "v0.0.2"
     val version = PipelineVersion(versionString)
     val versionOption = Some(version)
+
+    val pathString = "folder/file.wdl"
+    val path = Path.of(pathString)
+    val pathEncoded = URLEncoderUtils.encode(pathString)
+
     val projectId = TestProjectUtils.getDummyProjectId
-    val path = Paths.get("folder/file.wdl")
-    val pathString = URLEncoderUtils.encode(path.toString)
     val projectFileContent = ProjectFileContent("task hello {}")
     val projectFile = ProjectFile(path, projectFileContent)
 
@@ -52,14 +59,68 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
     }
 
     "upload file" should {
+
+      val defaultVersionPart = Option(
+        Multipart.FormData.BodyPart.Strict(
+          "version",
+          HttpEntity(ContentTypes.`text/plain(UTF-8)`, versionString)
+        )
+      )
+
+      def getMultiPartRequest(
+        versionPart: Option[FormData.BodyPart] = defaultVersionPart
+      ): Multipart.FormData = {
+
+        val filePart = Multipart.FormData.BodyPart.Strict(
+          "file",
+          HttpEntity(ContentTypes.`application/octet-stream`, ByteString(projectFileContent.content)),
+          Map("filename" -> pathString)
+        )
+
+        val pathPart = Multipart.FormData.BodyPart.Strict(
+          "path",
+          HttpEntity(ContentTypes.`text/plain(UTF-8)`, pathString)
+        )
+
+        versionPart match {
+          case Some(version) => Multipart.FormData(filePart, pathPart, version)
+          case None          => Multipart.FormData(filePart, pathPart)
+        }
+      }
+
+      val request = getMultiPartRequest()
+      val requestWithoutVersion = getMultiPartRequest(None)
+
       val projectFile = ProjectFile(path, projectFileContent)
-      val request = ProjectUpdateFileRequest(projectFile, Some(version))
 
       "return OK response for valid request with a valid file" taggedAs Controller in {
         when(projectFileService.validateFile(projectFileContent)).thenReturn(Future.successful(Right(())))
-        when(projectFileService.uploadFile(projectId, projectFile, Some(version), accessToken.userId))
-          .thenReturn(Future.successful(Right(())))
+        when(
+          projectFileService.uploadFile(
+            projectId,
+            projectFile,
+            versionOption,
+            accessToken.userId
+          )
+        ).thenReturn(Future.successful(Right(())))
         Post(s"/projects/${projectId.value}/files", request) ~> projectFileController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.OK
+        }
+      }
+
+      "return OK response for valid request with a valid file without version" taggedAs Controller in {
+        when(projectFileService.validateFile(projectFileContent)).thenReturn(Future.successful(Right(())))
+        when(
+          projectFileService.uploadFile(
+            projectId,
+            projectFile,
+            None,
+            accessToken.userId
+          )
+        ).thenReturn(Future.successful(Right(())))
+        Post(s"/projects/${projectId.value}/files", requestWithoutVersion) ~> projectFileController.route(
+          accessToken
+        ) ~> check {
           status shouldBe StatusCodes.OK
         }
       }
@@ -67,16 +128,29 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       "return Precondition File response for valid request with an invalid file" taggedAs Controller in {
         when(projectFileService.validateFile(projectFileContent))
           .thenReturn(Future.successful(Left(ValidationError(List("Miss close bracket")))))
-        when(projectFileService.uploadFile(projectId, projectFile, Some(version), accessToken.userId))
-          .thenReturn(Future.successful(Right(())))
+        when(
+          projectFileService.uploadFile(
+            projectId,
+            projectFile,
+            versionOption,
+            accessToken.userId
+          )
+        ).thenReturn(Future.successful(Right(())))
         Post(s"/projects/${projectId.value}/files", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.Created
         }
       }
 
       "return UnprocessableEntity for bad request" taggedAs Controller in {
-        when(projectFileService.uploadFile(projectId, projectFile, Some(version), accessToken.userId))
-          .thenReturn(Future.successful(Left(VersioningException.HttpException("Bad request"))))
+        when(projectFileService.validateFile(projectFileContent)).thenReturn(Future.successful(Right(())))
+        when(
+          projectFileService.uploadFile(
+            projectId,
+            projectFile,
+            versionOption,
+            accessToken.userId
+          )
+        ).thenReturn(Future.successful(Left(VersioningException.HttpException("Bad request"))))
         Post(s"/projects/${projectId.value}/files", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.UnprocessableEntity
           entityAs[String] shouldBe "File have not uploaded due to Bad request"
@@ -121,7 +195,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       "return file with status code OK" in {
         when(projectFileService.getFile(projectId, path, versionOption, accessToken.userId))
           .thenReturn(Future.successful(projectFile))
-        Get(s"/projects/${projectId.value}/files/$pathString?version=$versionString") ~>
+        Get(s"/projects/${projectId.value}/files/$pathEncoded?version=$versionString") ~>
         projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
           entityAs[ProjectFile] shouldBe projectFile
@@ -131,7 +205,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       "return file with status code OK without version" in {
         when(projectFileService.getFile(projectId, path, None, accessToken.userId))
           .thenReturn(Future.successful(projectFile))
-        Get(s"/projects/${projectId.value}/files/$pathString") ~> projectFileController.route(
+        Get(s"/projects/${projectId.value}/files/$pathEncoded") ~> projectFileController.route(
           accessToken
         ) ~> check {
           status shouldBe StatusCodes.OK
@@ -144,7 +218,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
 
         when(projectFileService.getFile(projectId, path, versionOption, accessToken.userId))
           .thenReturn(Future.failed(versioningException))
-        Get(s"/projects/${projectId.value}/files/$pathString?version=$versionString") ~> projectFileController.route(
+        Get(s"/projects/${projectId.value}/files/$pathEncoded?version=$versionString") ~> projectFileController.route(
           accessToken
         ) ~> check {
           status shouldBe StatusCodes.NotFound

@@ -3,6 +3,8 @@ package cromwell.pipeline.controller
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import akka.stream.Materializer
+import cromwell.pipeline.controller.utils.FieldUnmarshallers._
 import cromwell.pipeline.controller.utils.FromStringUnmarshallers._
 import cromwell.pipeline.controller.utils.PathMatchers.{ Path, ProjectId }
 import cromwell.pipeline.datastorage.dto._
@@ -10,10 +12,14 @@ import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.service.ProjectFileService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
+import java.nio.file._
 import scala.concurrent.ExecutionContext
 import scala.util.{ Failure, Success }
 
-class ProjectFileController(wdlService: ProjectFileService)(implicit val executionContext: ExecutionContext) {
+class ProjectFileController(wdlService: ProjectFileService)(
+  implicit val executionContext: ExecutionContext,
+  val materializer: Materializer
+) {
 
   private val validateFile: Route = post {
     pathPrefix("files" / "validation") {
@@ -48,20 +54,34 @@ class ProjectFileController(wdlService: ProjectFileService)(implicit val executi
   }
 
   private def uploadFile(projectId: ProjectId)(implicit accessToken: AccessTokenContent): Route = post {
-    entity(as[ProjectUpdateFileRequest]) { request =>
-      onComplete {
-        for {
-          validateResponse <- wdlService.validateFile(request.projectFile.content)
-          uploadResponse <- wdlService.uploadFile(projectId, request.projectFile, request.version, accessToken.userId)
-        } yield (validateResponse, uploadResponse) match {
-          case (Right(_), Right(_)) => Right(StatusCodes.OK)
-          case (Left(_), Right(_))  => Right(StatusCodes.Created)
-          case (_, Left(response))  => Left(response.getMessage)
-        }
-      } {
-        case Success(Right(sc))   => complete(sc)
-        case Success(Left(error)) => complete(StatusCodes.UnprocessableEntity, s"File have not uploaded due to $error")
-        case Failure(e)           => complete(StatusCodes.InternalServerError, e.getMessage)
+
+    formFields('path.as[Path], 'version.as[PipelineVersion].optional) { (path, version) =>
+      fileUpload("file") {
+        case (_, byteSource) =>
+          onSuccess(byteSource.map(_.utf8String).runFold("")(_ + _)) { content =>
+            val uploadedFile: ProjectFile =
+              ProjectFile(path, ProjectFileContent(content))
+            onComplete {
+              for {
+                validateResponse <- wdlService.validateFile(uploadedFile.content)
+                uploadResponse <- wdlService.uploadFile(
+                  projectId,
+                  uploadedFile,
+                  version,
+                  accessToken.userId
+                )
+              } yield (validateResponse, uploadResponse) match {
+                case (Right(_), Right(_)) => Right(StatusCodes.OK)
+                case (Left(_), Right(_))  => Right(StatusCodes.Created)
+                case (_, Left(response))  => Left(response.getMessage)
+              }
+            } {
+              case Success(Right(sc)) => complete(sc)
+              case Success(Left(error)) =>
+                complete(StatusCodes.UnprocessableEntity, s"File have not uploaded due to $error")
+              case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
+            }
+          }
       }
     }
   }

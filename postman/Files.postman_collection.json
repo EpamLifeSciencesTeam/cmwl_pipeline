@@ -120,8 +120,24 @@
 					}
 				],
 				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"projectFile\": {\r\n        \"path\": \"\",\r\n        \"content\": \"{{valid_wdl_file}}\"\r\n    },\r\n    \"version\": \"v0.0.1\"\n}",
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": []
+						},
+						{
+							"key": "version",
+							"value": "v0.0.1",
+							"type": "text"
+						},
+						{
+							"key": "path",
+							"value": "hello.wdl",
+							"type": "text"
+						}
+					],
 					"options": {
 						"raw": {
 							"language": "json"
