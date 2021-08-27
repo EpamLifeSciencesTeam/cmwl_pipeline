@@ -1,5 +1,6 @@
 package cromwell.pipeline.controller
 
+import akka.stream.Materializer
 import cromwell.pipeline.auth.SecurityDirective
 import cromwell.pipeline.service.ServiceModule
 import cromwell.pipeline.utils.AuthConfig
@@ -7,7 +8,8 @@ import cromwell.pipeline.utils.AuthConfig
 import scala.concurrent.ExecutionContext
 
 class ControllerModule(serviceModule: ServiceModule, authConfig: AuthConfig)(
-  implicit executionContext: ExecutionContext
+  implicit executionContext: ExecutionContext,
+  materializer: Materializer
 ) {
   lazy val authController: AuthController = new AuthController(serviceModule.authService)
   lazy val userController: UserController = new UserController(serviceModule.userService)
