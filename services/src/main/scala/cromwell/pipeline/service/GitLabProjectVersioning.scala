@@ -1,13 +1,13 @@
 package cromwell.pipeline.service
 
-import java.nio.file.{ Path, Paths }
-
 import cats.data.EitherT
 import cats.implicits.toTraverseOps
 import cromwell.pipeline.datastorage.dto.File.UpdateFileRequest
 import cromwell.pipeline.datastorage.dto._
+import cromwell.pipeline.service.VersioningException._
 import cromwell.pipeline.utils.{ GitLabConfig, HttpStatusCodes, URLEncoderUtils }
 
+import java.nio.file.{ Path, Paths }
 import scala.concurrent.{ ExecutionContext, Future }
 
 class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)(implicit ec: ExecutionContext)
@@ -15,7 +15,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)(impl
 
   override def createRepository(localProject: LocalProject): AsyncResult[Project] =
     if (!localProject.active) {
-      Future.failed(VersioningException.RepositoryException("Could not create a repository for deleted project."))
+      Future.failed(RepositoryException("Could not create a repository for deleted project."))
     } else {
       val createRepoUrl: String = s"${config.url}projects"
       val postProject = PostProject(name = localProject.projectId.value)
@@ -26,12 +26,12 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)(impl
             Right(localProject.toProject(gitLabResponse.id, defaultProjectVersion))
           case Response(statusCode, FailureResponseBody(error), _) =>
             Left {
-              VersioningException.RepositoryException {
+              RepositoryException {
                 s"The repository was not created. Response status: $statusCode; Response body [$error]"
               }
             }
         }
-        .recover { case e: Throwable => Left(VersioningException.HttpException(e.getMessage)) }
+        .recover { case e: Throwable => Left(HttpException(e.getMessage)) }
     }
 
   override def updateFile(
@@ -50,16 +50,13 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)(impl
         httpClient
           .put[UpdateFiledResponse, UpdateFileRequest](fileUrl, payload = payload, headers = config.token)
           .flatMap {
-            case Response(_, SuccessResponseBody(_), _) =>
-              handleCreateTag(repositoryId, newVersion)
+            case Response(_, SuccessResponseBody(_), _) => handleCreateTag(repositoryId, newVersion)
             case _ =>
               httpClient
                 .post[UpdateFiledResponse, UpdateFileRequest](fileUrl, payload = payload, headers = config.token)
                 .flatMap {
-                  case Response(_, SuccessResponseBody(_), _) =>
-                    handleCreateTag(repositoryId, newVersion)
-                  case Response(_, FailureResponseBody(body), _) =>
-                    Future.successful(Left(VersioningException.HttpException(body)))
+                  case Response(_, SuccessResponseBody(_), _)    => handleCreateTag(repositoryId, newVersion)
+                  case Response(_, FailureResponseBody(body), _) => Future.successful(Left(HttpException(body)))
                 }
           }
     }
@@ -73,28 +70,29 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)(impl
 
   override def getFile(project: Project, path: Path, version: Option[PipelineVersion]): AsyncResult[ProjectFile] = {
     val filePath: String = URLEncoderUtils.encode(path.toString)
-    val fileVersion: String = version.getOrElse(defaultProjectVersion).name
+    val actualFileVersion = version.fold(getLastProjectVersion(project))(Future.successful)
 
-    httpClient
-      .get[GitLabFileContent](
-        s"${config.url}/projects/${project.repositoryId.value}/repository/files/$filePath",
-        Map("ref" -> fileVersion),
-        config.token
-      )
-      .map {
-        case Response(HttpStatusCodes.OK, SuccessResponseBody(gitLabFile), _) =>
-          val content = decodeBase64(gitLabFile.content)
-          Right(ProjectFile(path, ProjectFileContent(content)))
-        case Response(HttpStatusCodes.OK, FailureResponseBody(error), _) =>
-          Left(
-            VersioningException.HttpException(
-              s"Could not take Project File. Response status: ${HttpStatusCodes.OK}. ResponseBody: $error"
+    actualFileVersion.flatMap { fileVersion =>
+      httpClient
+        .get[GitLabFileContent](
+          s"${config.url}projects/${project.repositoryId.value}/repository/files/$filePath",
+          Map("ref" -> fileVersion.name),
+          config.token
+        )
+        .map {
+          case Response(HttpStatusCodes.OK, SuccessResponseBody(gitLabFile), _) =>
+            val content = decodeBase64(gitLabFile.content)
+            Right(ProjectFile(path, ProjectFileContent(content)))
+          case Response(HttpStatusCodes.OK, FailureResponseBody(error), _) =>
+            Left(
+              HttpException(
+                s"Could not take Project File. Response status: ${HttpStatusCodes.OK}. ResponseBody: $error"
+              )
             )
-          )
-        case Response(responseStatus, _, _) =>
-          Left(VersioningException.HttpException(s"Exception. Response status: $responseStatus"))
-      }
-      .recover { case e: Throwable => Left(VersioningException.HttpException(e.getMessage)) }
+          case Response(responseStatus, _, _) => Left(HttpException(s"Exception. Response status: $responseStatus"))
+        }
+        .recover { case e: Throwable => Left(HttpException(e.getMessage)) }
+    }
   }
 
   override def getFiles(
@@ -134,8 +132,8 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)(impl
             tagFile <- tagsFiles
             if tagFile.id == tagProject.commit.id
           } yield tagProject.name)
-        case (_, Left(exception)) => Left(VersioningException.FileException(exception.getMessage))
-        case (Left(exception), _) => Left(VersioningException.FileException(exception.getMessage))
+        case (_, Left(exception)) => Left(FileException(exception.getMessage))
+        case (Left(exception), _) => Left(FileException(exception.getMessage))
       }
     }
   }
@@ -147,11 +145,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)(impl
     httpClient.get[List[FileCommit]](url = commitsUrl, headers = config.token).map {
       case Response(_, SuccessResponseBody(commitsSeq), _) => Right(commitsSeq.map(fc => Commit(fc.commitId)))
       case Response(_, FailureResponseBody(error), _) =>
-        Left(
-          VersioningException.FileException(
-            s"Could not take the file commits. ResponseBody: $error"
-          )
-        )
+        Left(FileException(s"Could not take the file commits. ResponseBody: $error"))
     }
   }
 
@@ -160,16 +154,11 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)(impl
     httpClient
       .get[List[GitLabVersion]](url = versionsListUrl, headers = config.token)
       .map {
-        case Response(_, SuccessResponseBody(versionSeq), _) =>
-          Right(versionSeq)
+        case Response(_, SuccessResponseBody(versionSeq), _) => Right(versionSeq)
         case Response(_, FailureResponseBody(error), _) =>
-          Left(
-            VersioningException.ProjectException(
-              s"Could not take versions. ResponseBody: $error"
-            )
-          )
+          Left(ProjectException(s"Could not take versions. ResponseBody: $error"))
       }
-      .recover { case e: Throwable => Left(VersioningException.HttpException("recover " + e.getMessage)) }
+      .recover { case e: Throwable => Left(HttpException("recover " + e.getMessage)) }
   }
 
   private def handleCreateTag(repositoryId: RepositoryId, version: PipelineVersion): AsyncResult[PipelineVersion] =
@@ -186,7 +175,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)(impl
       )
       .map {
         case Response(_, SuccessResponseBody(body), _)  => Right(body)
-        case Response(_, FailureResponseBody(error), _) => Left(VersioningException.HttpException(error))
+        case Response(_, FailureResponseBody(error), _) => Left(HttpException(error))
       }
   }
 
@@ -206,12 +195,12 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)(impl
         case Response(_, SuccessResponseBody(fileTreeSeq), _) => Right(fileTreeSeq)
         case Response(statusCode, FailureResponseBody(error), _) =>
           Left(
-            VersioningException.FileException(
+            FileException(
               s"Could not take the files tree or parse json. Response status: $statusCode. ResponseBody: $error"
             )
           )
       }
-      .recover { case e: Throwable => Left(VersioningException.HttpException(e.getMessage)) }
+      .recover { case e: Throwable => Left(HttpException(e.getMessage)) }
 
   }
 
@@ -221,38 +210,22 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)(impl
   ): AsyncResult[PipelineVersion] =
     getLastProjectVersion(project).map(projectVersion => getNewProjectVersion(projectVersion, optionUserVersion))
 
-  private def getLastProjectVersion(project: Project): Future[Option[PipelineVersion]] =
+  private def getLastProjectVersion(project: Project): Future[PipelineVersion] =
     getProjectVersions(project).flatMap {
       case Left(error)        => Future.failed(error)
-      case Right(List(_))     => Future.successful(None) // fixme why ignore the only version?
-      case Right(List(v, _*)) => Future.successful(Some(v))
-      // fixme how is this possible? Project must have at least one version project.version
-      case Right(List()) => Future.successful(Some(defaultProjectVersion))
+      case Right(List(v, _*)) => Future.successful(v)
+      case Right(List())      => Future.successful(project.version)
     }
 
   private def getNewProjectVersion(
-    optionProjectVersion: Option[PipelineVersion],
+    projectVersion: PipelineVersion,
     optionUserVersion: Option[PipelineVersion]
   ): Either[VersioningException, PipelineVersion] =
-    (optionProjectVersion, optionUserVersion) match {
-      case (Some(projectVersion), Some(userVersion)) =>
-        if (projectVersion >= userVersion) {
-          Left {
-            VersioningException.ProjectException {
-              s"Your version $userVersion is out of date. Current version of project: $projectVersion"
-            }
-          }
-        } else {
-          Right(userVersion)
-        }
-      case (Some(projectVersion), None) => Right(projectVersion.increaseRevision)
-      case (None, Some(userVersion))    => Right(userVersion)
-      case (None, None) =>
-        Left(
-          VersioningException.ProjectException(
-            "Can't take decision what version should it be: no version from user and no version in project yet"
-          )
-        )
+    optionUserVersion match {
+      case None => Right(projectVersion.increaseRevision)
+      case Some(userVersion) if projectVersion >= userVersion =>
+        Left(ProjectException(s"Your version $userVersion is out of date. Current version of project: $projectVersion"))
+      case Some(userVersion) => Right(userVersion)
     }
 
   private def decodeBase64(str: String): String = new String(java.util.Base64.getDecoder.decode(str))
