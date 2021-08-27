@@ -241,7 +241,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
         val encodedPathStr = URLEncoderUtils.encode(path.toString)
         when {
           mockHttpClient.get[GitLabFileContent](
-            s"${gitLabConfig.url}/projects/${activeProject.repositoryId.value}/repository/files/$encodedPathStr",
+            s"${gitLabConfig.url}projects/${activeProject.repositoryId.value}/repository/files/$encodedPathStr",
             Map("ref" -> dummyPipelineVersion.name),
             gitLabConfig.token
           )
@@ -265,7 +265,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
         val encodedPathStr = URLEncoderUtils.encode(path.toString)
         when {
           mockHttpClient.get[GitLabFileContent](
-            s"${gitLabConfig.url}/projects/${activeProject.repositoryId.value}/repository/files/$encodedPathStr",
+            s"${gitLabConfig.url}projects/${activeProject.repositoryId.value}/repository/files/$encodedPathStr",
             Map("ref" -> dummyPipelineVersion.name),
             gitLabConfig.token
           )
@@ -305,10 +305,17 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
         version: Option[PipelineVersion]
       ): Future[Response[GitLabFileContent]] =
         mockHttpClient.get[GitLabFileContent](
-          exact(s"${gitLabConfig.url}/projects/${project.repositoryId.value}/repository/files/$filePath"),
-          exact(Map("ref" -> version.map(_.name).getOrElse(gitLabConfig.defaultFileVersion))),
+          exact(s"${gitLabConfig.url}projects/${project.repositoryId.value}/repository/files/$filePath"),
+          exact(Map("ref" -> version.map(_.name).getOrElse(project.version.name))),
           exact(gitLabConfig.token)
         )(ec = any[ExecutionContext], f = any[Reads[GitLabFileContent]])
+
+      def getGitLabProjectVersions(project: Project): Future[Response[List[GitLabVersion]]] =
+        mockHttpClient.get[List[GitLabVersion]](
+          exact(s"${gitLabConfig.url}projects/${project.repositoryId.value}/repository/tags"),
+          any[Map[String, String]],
+          exact(gitLabConfig.token)
+        )(ec = any[ExecutionContext], f = any[Reads[List[GitLabVersion]]])
 
       "return files with version with 200 response" taggedAs Service in {
         when(getFileTrees(activeProject, Some(version))).thenReturn {
@@ -327,6 +334,16 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
       }
 
       "return files without version with 200 response" taggedAs Service in {
+        when(getGitLabProjectVersions(activeProject)).thenReturn {
+          Future.successful {
+            Response(
+              HttpStatusCodes.OK,
+              SuccessResponseBody(List(GitLabVersion(Commit("some commit"), activeProject.version))),
+              EmptyHeaders
+            )
+          }
+        }
+
         when(getFileTrees(activeProject, None)).thenReturn {
           Future.successful(Response(HttpStatusCodes.OK, SuccessResponseBody(dummyFilesTree), Map()))
         }
@@ -348,7 +365,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
         }
         when {
           mockHttpClient.get[GitLabFileContent](
-            s"${gitLabConfig.url}/projects/${activeProject.repositoryId.value}/repository/files/$encodedPathStr",
+            s"${gitLabConfig.url}projects/${activeProject.repositoryId.value}/repository/files/$encodedPathStr",
             Map("ref" -> dummyPipelineVersion.name),
             gitLabConfig.token
           )
