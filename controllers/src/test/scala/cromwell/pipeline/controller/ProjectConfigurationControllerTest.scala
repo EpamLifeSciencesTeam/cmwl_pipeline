@@ -5,6 +5,7 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
+import cromwell.pipeline.service.ProjectService.Exceptions.ProjectNotFoundException
 import cromwell.pipeline.service.{ ProjectConfigurationService, VersioningException }
 import cromwell.pipeline.utils.URLEncoderUtils
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
@@ -64,6 +65,17 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
           entityAs[String] shouldBe "Something went wrong"
         }
       }
+
+      "return NotFound when failure find project to update configuration" in {
+        when(configurationService.addConfiguration(configuration, accessToken.userId))
+          .thenReturn(Future.failed(new ProjectNotFoundException))
+        Put(s"/projects/${projectId.value}/configurations", configurationAdditionRequest) ~> configurationController
+          .route(
+            accessToken
+          ) ~> check {
+          status shouldBe StatusCodes.NotFound
+        }
+      }
     }
 
     "get configuration by project id" should {
@@ -101,6 +113,14 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
         Delete(s"/projects/${projectId.value}/configurations") ~> configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
           entityAs[String] shouldBe "Something went wrong"
+        }
+      }
+
+      "return NotFound when failure find project to deactivate configuration" in {
+        when(configurationService.deactivateLastByProjectId(projectId, accessToken.userId))
+          .thenReturn(Future.failed(new ProjectNotFoundException))
+        Delete(s"/projects/${projectId.value}/configurations") ~> configurationController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.NotFound
         }
       }
     }
