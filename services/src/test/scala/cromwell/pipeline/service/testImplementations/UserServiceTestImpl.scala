@@ -1,7 +1,9 @@
-package cromwell.pipeline.service
+package cromwell.pipeline.service.testImplementations
+
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
 import cromwell.pipeline.datastorage.dto.{ User, UserWithCredentials }
 import cromwell.pipeline.model.wrapper.{ UserEmail, UserId }
+import cromwell.pipeline.service.UserService
 
 import scala.concurrent.Future
 
@@ -47,7 +49,10 @@ class UserServiceTestImpl(users: Seq[UserWithCredentials], testMode: TestMode) e
 
 object UserServiceTestImpl {
 
-  def apply(testUsers: UserWithCredentials*)(implicit testMode: TestMode = Success): UserServiceTestImpl =
-    new UserServiceTestImpl(testUsers, testMode)
+  def apply(users: UserWithCredentials*): UserServiceTestImpl =
+    new UserServiceTestImpl(users = users, testMode = Success)
+
+  def withException(exception: Throwable): UserServiceTestImpl =
+    new UserServiceTestImpl(users = Seq.empty, testMode = WithException(exception))
 
 }
