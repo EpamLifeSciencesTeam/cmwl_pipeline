@@ -1,7 +1,8 @@
-package cromwell.pipeline.service
+package cromwell.pipeline.service.impls
 
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.service.ProjectConfigurationService
 
 import java.nio.file.Path
 import scala.concurrent.Future
@@ -50,9 +51,10 @@ class ProjectConfigurationServiceTestImpl(projectConfigurations: Seq[ProjectConf
 
 object ProjectConfigurationServiceTestImpl {
 
-  def apply(
-    projectConfigurations: ProjectConfiguration*
-  )(implicit testMode: TestMode = Success): ProjectConfigurationServiceTestImpl =
-    new ProjectConfigurationServiceTestImpl(projectConfigurations, testMode)
+  def apply(projectConfigurations: ProjectConfiguration*): ProjectConfigurationServiceTestImpl =
+    new ProjectConfigurationServiceTestImpl(projectConfigurations = projectConfigurations, testMode = Success)
+
+  def withException(exception: Throwable): ProjectConfigurationServiceTestImpl =
+    new ProjectConfigurationServiceTestImpl(projectConfigurations = Seq.empty, testMode = WithException(exception))
 
 }

@@ -1,5 +1,6 @@
-package cromwell.pipeline.datastorage.dao.repository
+package cromwell.pipeline.datastorage.dao.repository.impls
 
+import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dto.{ Project, ProjectId }
 import cromwell.pipeline.model.wrapper.UserId
 
