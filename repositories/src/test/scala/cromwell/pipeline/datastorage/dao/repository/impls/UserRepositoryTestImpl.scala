@@ -1,11 +1,13 @@
-package cromwell.pipeline.datastorage.dao.repository
+package cromwell.pipeline.datastorage.dao.repository.impls
 
+import cromwell.pipeline.datastorage.dao.repository.UserRepository
 import cromwell.pipeline.datastorage.dto.UserWithCredentials
 import cromwell.pipeline.model.wrapper.{ UserEmail, UserId }
+
 import scala.collection.mutable
 import scala.concurrent.Future
 
-class UserRepositoryTestImp extends UserRepository {
+class UserRepositoryTestImpl extends UserRepository {
 
   private val users: mutable.Map[UserId, UserWithCredentials] = mutable.Map.empty
 
@@ -49,12 +51,12 @@ class UserRepositoryTestImp extends UserRepository {
 
 }
 
-object UserRepositoryTestImp {
+object UserRepositoryTestImpl {
 
-  def apply(users: UserWithCredentials*): UserRepositoryTestImp = {
-    val userRepositoryTestImp = new UserRepositoryTestImp
-    users.foreach(userRepositoryTestImp.addUser)
-    userRepositoryTestImp
+  def apply(users: UserWithCredentials*): UserRepositoryTestImpl = {
+    val userRepositoryTestImpl = new UserRepositoryTestImpl
+    users.foreach(userRepositoryTestImpl.addUser)
+    userRepositoryTestImpl
   }
 
 }
