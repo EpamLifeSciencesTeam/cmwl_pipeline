@@ -1,5 +1,7 @@
-package cromwell.pipeline.service
+package cromwell.pipeline.service.impls
+
 import cromwell.pipeline.datastorage.dto._
+import cromwell.pipeline.service.{ ProjectVersioning, VersioningException }
 
 import java.nio.file.Path
 import scala.concurrent.Future

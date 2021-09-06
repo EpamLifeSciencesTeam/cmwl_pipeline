@@ -1,7 +1,8 @@
-package cromwell.pipeline.service
+package cromwell.pipeline.service.impls
 
 import cromwell.pipeline.datastorage.dto.UserWithCredentials
 import cromwell.pipeline.datastorage.dto.auth.{ AuthResponse, SignInRequest, SignUpRequest }
+import cromwell.pipeline.service.AuthService
 
 import scala.concurrent.Future
 
@@ -38,7 +39,11 @@ class AuthServiceTestImpl(authResponses: Seq[AuthResponse], testMode: TestMode) 
 }
 
 object AuthServiceTestImpl {
-  def apply(authResponses: AuthResponse*)(implicit testMode: TestMode = Success): AuthServiceTestImpl =
-    new AuthServiceTestImpl(authResponses, testMode)
+
+  def apply(authResponses: AuthResponse*): AuthServiceTestImpl =
+    new AuthServiceTestImpl(authResponses = authResponses, testMode = Success)
+
+  def withException(exception: Throwable): AuthServiceTestImpl =
+    new AuthServiceTestImpl(authResponses = Seq.empty, testMode = WithException(exception))
 
 }

@@ -1,7 +1,9 @@
-package cromwell.pipeline.service
+package cromwell.pipeline.service.impls
+
 import cromwell.pipeline.datastorage.dao.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.service.ProjectService
 
 import scala.concurrent.Future
 
@@ -52,7 +54,10 @@ class ProjectServiceTestImpl(projects: Seq[Project], testMode: TestMode) extends
 
 object ProjectServiceTestImpl {
 
-  def apply(testProjects: Project*)(implicit testMode: TestMode = Success): ProjectServiceTestImpl =
-    new ProjectServiceTestImpl(testProjects, testMode)
+  def apply(projects: Project*): ProjectServiceTestImpl =
+    new ProjectServiceTestImpl(projects = projects, testMode = Success)
+
+  def withException(exception: Throwable): ProjectServiceTestImpl =
+    new ProjectServiceTestImpl(projects = Seq.empty, testMode = WithException(exception))
 
 }

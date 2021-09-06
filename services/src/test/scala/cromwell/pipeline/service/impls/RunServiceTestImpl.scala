@@ -1,6 +1,8 @@
-package cromwell.pipeline.service
+package cromwell.pipeline.service.impls
+
 import cromwell.pipeline.datastorage.dto.{ ProjectId, Run, RunCreateRequest, RunUpdateRequest }
 import cromwell.pipeline.model.wrapper.{ RunId, UserId }
+import cromwell.pipeline.service.RunService
 
 import scala.concurrent.Future
 
@@ -40,7 +42,10 @@ class RunServiceTestImpl(runs: Seq[Run], testMode: TestMode) extends RunService 
 
 object RunServiceTestImpl {
 
-  def apply(testRuns: Run*)(implicit testMode: TestMode = Success): RunServiceTestImpl =
-    new RunServiceTestImpl(testRuns, testMode)
+  def apply(runs: Run*): RunServiceTestImpl =
+    new RunServiceTestImpl(runs = runs, testMode = Success)
+
+  def withException(exception: Throwable): RunServiceTestImpl =
+    new RunServiceTestImpl(runs = Seq.empty, testMode = WithException(exception))
 
 }
