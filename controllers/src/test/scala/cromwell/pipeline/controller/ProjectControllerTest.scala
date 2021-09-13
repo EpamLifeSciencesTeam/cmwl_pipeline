@@ -5,6 +5,7 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.datastorage.dto.{ Project, ProjectAdditionRequest, ProjectUpdateNameRequest }
+import cromwell.pipeline.service.ProjectService.Exceptions.InternalError
 import cromwell.pipeline.service.{ ProjectService, VersioningException }
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 import org.mockito.Mockito.when
@@ -44,7 +45,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
       }
 
       "return 500 if service return exception" taggedAs Controller in {
-        val error = new RuntimeException("Something went wrong")
+        val error = InternalError()
         when(projectService.getUserProjects(accessToken.userId)).thenReturn(Future.failed(error))
 
         Get("/projects") ~> projectController.route(accessToken) ~> check {
@@ -67,7 +68,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
 
       "return status code InternalServerError if service returned failure" taggedAs Controller in {
         val accessToken = AccessTokenContent(stranger.userId)
-        val error = new RuntimeException("Something went wrong")
+        val error = InternalError()
         when(projectService.getUserProjectById(dummyProject.projectId, accessToken.userId))
           .thenReturn(Future.failed(error))
 
@@ -90,7 +91,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
 
       "return status code InternalServerError if service returned failure" taggedAs Controller in {
         val accessToken = AccessTokenContent(stranger.userId)
-        val error = new RuntimeException("Something went wrong")
+        val error = InternalError()
         when(projectService.getUserProjectByName(dummyProject.name, accessToken.userId))
           .thenReturn(Future.failed(error))
 
@@ -104,7 +105,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
       val request = ProjectAdditionRequest("")
 
       "return created project" taggedAs Controller in {
-        when(projectService.addProject(request, accessToken.userId)).thenReturn(Future.successful(Right(dummyProject)))
+        when(projectService.addProject(request, accessToken.userId)).thenReturn(Future.successful(dummyProject))
 
         Post("/projects", request) ~> projectController.route(accessToken) ~> check {
           responseAs[Project] shouldBe dummyProject
@@ -113,7 +114,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
 
       "return server error if project addition was failed" taggedAs Controller in {
         when(projectService.addProject(request, accessToken.userId)).thenReturn(
-          Future.successful(Left(VersioningException.RepositoryException("VersioningException.RepositoryException")))
+          Future.failed(VersioningException.RepositoryException("VersioningException.RepositoryException"))
         )
 
         Post("/projects", request) ~> projectController.route(accessToken) ~> check {
@@ -139,7 +140,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
         val projectId = dummyProject.projectId
 
         when(projectService.deactivateProjectById(projectId, strangerAccessToken.userId))
-          .thenReturn(Future.failed(new RuntimeException("Something wrong")))
+          .thenReturn(Future.failed(InternalError()))
 
         Delete(s"/projects/${projectId.value}") ~> projectController.route(strangerAccessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
@@ -163,7 +164,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
         val request = ProjectUpdateNameRequest(dummyProject.name)
 
         when(projectService.updateProjectName(dummyProject.projectId, request, strangerAccessToken.userId))
-          .thenReturn(Future.failed(new RuntimeException("Something wrong")))
+          .thenReturn(Future.failed(InternalError()))
 
         Put(s"/projects/${dummyProject.projectId.value}", request) ~> projectController.route(strangerAccessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError

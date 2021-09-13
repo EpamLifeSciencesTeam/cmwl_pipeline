@@ -2,7 +2,7 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestRunUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto._
-import cromwell.pipeline.service.ProjectService.Exceptions.ProjectNotFoundException
+import cromwell.pipeline.service.ProjectService.Exceptions.NotFound
 import java.nio.file.Paths
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
@@ -58,8 +58,7 @@ class AggregationServiceTest extends AsyncWordSpec with Matchers with MockitoSug
       }
 
       "should return exception if project not found" taggedAs Service in {
-        when(projectService.getUserProjectById(projectId, userId))
-          .thenReturn(Future.failed(new ProjectNotFoundException))
+        when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.failed(NotFound()))
         when(projectConfigurationService.getLastByProjectId(projectId, userId))
           .thenReturn(Future.successful(Some(projectConfigurations)))
 

@@ -4,7 +4,7 @@ import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dao.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
-import cromwell.pipeline.service.ProjectService.Exceptions.{ ProjectAccessDeniedException, ProjectNotFoundException }
+import cromwell.pipeline.service.ProjectService.Exceptions._
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
@@ -50,16 +50,16 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         when(projectRepository.addProject(dummyProject)).thenReturn(Future.successful(dummyProject.projectId))
 
         projectService.addProject(request, ownerId).map {
-          _ shouldBe Right(dummyProject)
+          _ shouldBe dummyProject
         }
       }
 
-      "fail with VersioningException.RepositoryException" taggedAs Service in {
+      "fail with InternalError" taggedAs Service in {
         val repositoryException = VersioningException.RepositoryException("VersioningException")
         when(projectVersioning.createRepository(any[LocalProject]))
           .thenReturn(Future.successful(Left(repositoryException)))
-        projectService.addProject(request, ownerId).map {
-          _ shouldBe Left(repositoryException)
+        projectService.addProject(request, ownerId).failed.map {
+          _ shouldBe InternalError("Failed to create project due to unexpected internal error")
         }
       }
     }
@@ -122,7 +122,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
 
         when(projectRepository.getProjectById(projectId)).thenReturn(Future(None))
 
-        projectService.getUserProjectById(projectId, userId).failed.map { _ shouldBe ProjectNotFoundException() }
+        projectService.getUserProjectById(projectId, userId).failed.map { _ shouldBe NotFound() }
       }
     }
 
@@ -138,14 +138,14 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
       "fail with ProjectAccessDeniedException" taggedAs Service in {
         when(projectRepository.getProjectsByName(project1.name)).thenReturn(Future.successful(Seq(project2)))
         projectService.getUserProjectByName(project1.name, project1.ownerId).failed.map {
-          _ shouldBe ProjectAccessDeniedException()
+          _ shouldBe AccessDenied()
         }
       }
 
       "fail with ProjectNotFoundException" taggedAs Service in {
         when(projectRepository.getProjectsByName(project1.name)).thenReturn(Future.successful(Seq()))
         projectService.getUserProjectByName(project1.name, project1.ownerId).failed.map {
-          _ shouldBe ProjectNotFoundException()
+          _ shouldBe NotFound()
         }
       }
     }

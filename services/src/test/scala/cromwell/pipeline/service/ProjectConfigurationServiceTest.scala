@@ -5,7 +5,7 @@ import cromwell.pipeline.datastorage.dao.repository.ProjectConfigurationReposito
 import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
-import cromwell.pipeline.service.ProjectService.Exceptions.ProjectAccessDeniedException
+import cromwell.pipeline.service.ProjectService.Exceptions._
 import cromwell.pipeline.womtool.WomTool
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
@@ -67,7 +67,7 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
     }
 
     "add new configuration for project and user is not project owner" should {
-      val error = new ProjectAccessDeniedException
+      val error = AccessDenied()
       when(projectService.getUserProjectById(projectId, strangerId)).thenReturn(Future.failed(error))
 
       "return failure" in {
@@ -105,7 +105,7 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
     }
 
     "get configuration by project id and user is not project owner" should {
-      val error = new ProjectAccessDeniedException
+      val error = AccessDenied()
       when(projectService.getUserProjectById(projectId, strangerId)).thenReturn(Future.failed(error))
       "return failure" in {
         configurationService.getLastByProjectId(projectId, strangerId).failed.map(_ shouldBe error)
@@ -132,14 +132,14 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers with M
     }
 
     "deactivate configuration and user is not project owner" should {
-      val error = new ProjectAccessDeniedException
+      val error = AccessDenied()
       when(projectService.getUserProjectById(projectId, strangerId)).thenReturn(Future.failed(error))
 
       "return exception" in {
         configurationService
           .deactivateLastByProjectId(projectId, strangerId)
           .failed
-          .map(_ should have.message("Access denied. You  not owner of the project"))
+          .map(_ should have.message("Access denied. You are not the project owner"))
       }
     }
     "build configuration" should {

@@ -5,7 +5,7 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
-import cromwell.pipeline.service.ProjectService.Exceptions.ProjectNotFoundException
+import cromwell.pipeline.service.ProjectService.Exceptions.{ InternalError, NotFound }
 import cromwell.pipeline.service.{ ProjectConfigurationService, VersioningException }
 import cromwell.pipeline.utils.URLEncoderUtils
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
@@ -43,7 +43,6 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
     val pathString = URLEncoderUtils.encode(path.toString)
 
     "update configuration" should {
-      val error = new RuntimeException("Something went wrong")
 
       "return success for update configuration" in {
         when(configurationService.addConfiguration(configuration, accessToken.userId)).thenReturn(Future.unit)
@@ -56,6 +55,7 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
       }
 
       "return InternalServerError when failure update configuration" in {
+        val error = InternalError("Something went wrong")
         when(configurationService.addConfiguration(configuration, accessToken.userId)).thenReturn(Future.failed(error))
         Put(s"/projects/${projectId.value}/configurations", configurationAdditionRequest) ~> configurationController
           .route(
@@ -68,7 +68,7 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
 
       "return NotFound when failure find project to update configuration" in {
         when(configurationService.addConfiguration(configuration, accessToken.userId))
-          .thenReturn(Future.failed(new ProjectNotFoundException))
+          .thenReturn(Future.failed(NotFound()))
         Put(s"/projects/${projectId.value}/configurations", configurationAdditionRequest) ~> configurationController
           .route(
             accessToken
@@ -118,7 +118,7 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
 
       "return NotFound when failure find project to deactivate configuration" in {
         when(configurationService.deactivateLastByProjectId(projectId, accessToken.userId))
-          .thenReturn(Future.failed(new ProjectNotFoundException))
+          .thenReturn(Future.failed(NotFound()))
         Delete(s"/projects/${projectId.value}/configurations") ~> configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NotFound
         }

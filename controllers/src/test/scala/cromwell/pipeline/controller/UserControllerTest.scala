@@ -10,6 +10,7 @@ import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdat
 import cromwell.pipeline.model.validator.Enable
 import cromwell.pipeline.model.wrapper.{ Password, UserEmail, UserId }
 import cromwell.pipeline.service.UserService
+import cromwell.pipeline.service.UserService.Exceptions._
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import org.mockito.Mockito._
 import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
@@ -47,6 +48,7 @@ class UserControllerTest
           responseAs[Seq[User]].size shouldEqual 1
         }
       }
+
       "return the internal server error if service fails" taggedAs Controller in {
         val usersByEmailRequest = "someDomain@mail.com"
         val userId = UserId.random
@@ -58,6 +60,7 @@ class UserControllerTest
           status shouldBe StatusCodes.InternalServerError
         }
       }
+
       "return the sequence of users when pattern must contain correct number of entries" taggedAs Controller in {
         val usersByEmailRequest: UserEmail = UserEmail("someDomain@mail.com", Enable.Unsafe)
         val dummyUser: User = TestUserUtils.getDummyUser()
@@ -82,13 +85,14 @@ class UserControllerTest
         val userId = response.userId
         val accessToken = AccessTokenContent(userId)
 
-        when(userService.deactivateUserById(userId)).thenReturn(Future.successful(Some(response)))
+        when(userService.deactivateUserById(userId)).thenReturn(Future.successful(response))
 
         Delete("/users") ~> userController.route(accessToken) ~> check {
           responseAs[User] shouldBe response
           status shouldBe StatusCodes.OK
         }
       }
+
       "return server error if user deactivation was failed" taggedAs Controller in {
         val userId = UserId.random
         val accessToken = AccessTokenContent(userId)
@@ -98,10 +102,11 @@ class UserControllerTest
           status shouldBe StatusCodes.InternalServerError
         }
       }
+
       "return NotFound status if user deactivation was failed" taggedAs Controller in {
         val userId = UserId.random
         val accessToken = AccessTokenContent(userId)
-        when(userService.deactivateUserById(userId)).thenReturn(Future(None))
+        when(userService.deactivateUserById(userId)).thenReturn(Future.failed(NotFound()))
 
         Delete("/users") ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NotFound
@@ -140,14 +145,26 @@ class UserControllerTest
         }
       }
 
-      "return InternalServerError status if user's id doesn't match" in {
+      "return 404 status if user's id doesn't match" in {
         val dummyUser: User = TestUserUtils.getDummyUser()
         val userId = dummyUser.userId
         val accessToken = AccessTokenContent(userId)
         val request = UserUpdateRequest(dummyUser.email, dummyUser.firstName, dummyUser.lastName)
 
-        when(userService.updateUser(userId, request))
-          .thenReturn(Future.failed(new RuntimeException("Something wrong.")))
+        when(userService.updateUser(userId, request)).thenReturn(Future.failed(NotFound()))
+
+        Put("/users/info", request) ~> userController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.NotFound
+        }
+      }
+
+      "return InternalServerError status if have an unexpected internal error" in {
+        val dummyUser: User = TestUserUtils.getDummyUser()
+        val userId = dummyUser.userId
+        val accessToken = AccessTokenContent(userId)
+        val request = UserUpdateRequest(dummyUser.email, dummyUser.firstName, dummyUser.lastName)
+
+        when(userService.updateUser(userId, request)).thenReturn(Future.failed(InternalError()))
 
         Put("/users/info", request) ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
@@ -165,8 +182,7 @@ class UserControllerTest
             Password(password, Enable.Unsafe)
           )
 
-        when(userService.updatePassword(userId, request))
-          .thenReturn(Future.failed(new RuntimeException("Something wrong.")))
+        when(userService.updatePassword(userId, request)).thenReturn(Future.failed(WrongPassword()))
 
         Put("/users/password", request) ~> userController.route(accessToken) ~> check {
           status shouldBe StatusCodes.BadRequest
