@@ -7,6 +7,7 @@ import cromwell.pipeline.datastorage.dto.User
 import cromwell.pipeline.datastorage.dto.user.{ PasswordUpdateRequest, UserUpdateRequest }
 import cromwell.pipeline.model.validator.Enable
 import cromwell.pipeline.model.wrapper.{ Name, Password, UserEmail, UserId }
+import cromwell.pipeline.service.UserService.Exceptions.NotFound
 import cromwell.pipeline.utils.StringUtils._
 import org.mockito.Mockito._
 import org.scalatest.{ AsyncWordSpec, Matchers }
@@ -32,18 +33,18 @@ class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
 
         val response = User.fromUserWithCredentials(user)
         userService.deactivateUserById(user.userId).map { result =>
-          result shouldBe Some(response)
+          result shouldBe response
         }
       }
 
-      "return None if user wasn't found by Id" taggedAs Service in {
+      "return NotFound if user wasn't found by Id" taggedAs Service in {
         val userId = UserId.random
 
         when(userRepository.deactivateUserById(userId)).thenReturn(Future.successful(0))
         when(userRepository.getUserById(userId)).thenReturn(Future(None))
 
-        userService.deactivateUserById(userId).map { result =>
-          result shouldBe None
+        userService.deactivateUserById(userId).failed.map { result =>
+          result shouldBe NotFound()
         }
       }
     }
@@ -91,7 +92,7 @@ class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         when(userRepository.getUserById(user.userId)).thenReturn(Future.successful(None))
 
         userService.updatePassword(user.userId, request, salt).failed.map { error =>
-          error should have.message("user with this id doesn't exist")
+          error should have.message("User with this id doesn't exist")
         }
       }
 
@@ -100,7 +101,7 @@ class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         val request = PasswordUpdateRequest(password, newPassword, repeatedNewPassword)
 
         userService.updatePassword(user.userId, request, salt).failed.map { error =>
-          error should have.message("new password incorrectly duplicated")
+          error should have.message("New password incorrectly duplicated")
         }
       }
 
@@ -111,7 +112,7 @@ class UserServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         when(userRepository.getUserById(user.userId)).thenReturn(Future.successful(Some(user)))
 
         userService.updatePassword(user.userId, request, salt).failed.map { error =>
-          error should have.message("user password differs from entered")
+          error should have.message("Users password differs from entered")
         }
       }
     }

@@ -8,7 +8,7 @@ import cromwell.pipeline.controller.utils.PathMatchers.{ Path, ProjectId }
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.service.ProjectConfigurationService
-import cromwell.pipeline.service.ProjectService.Exceptions.ProjectNotFoundException
+import cromwell.pipeline.service.ProjectService.Exceptions.NotFound
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
 import scala.concurrent.ExecutionContext
@@ -28,9 +28,9 @@ class ProjectConfigurationController(projectConfigurationService: ProjectConfigu
         version = request.version
       )
       onComplete(projectConfigurationService.addConfiguration(newProjectConfiguration, accessToken.userId)) {
-        case Failure(e: ProjectNotFoundException) => complete(StatusCodes.NotFound, e.getMessage)
-        case Failure(e)                           => complete(StatusCodes.InternalServerError, e.getMessage)
-        case Success(_)                           => complete(StatusCodes.OK)
+        case Failure(e: NotFound) => complete(StatusCodes.NotFound, e.getMessage)
+        case Failure(e)           => complete(StatusCodes.InternalServerError, e.getMessage)
+        case Success(_)           => complete(StatusCodes.OK)
       }
     }
   }
@@ -46,9 +46,9 @@ class ProjectConfigurationController(projectConfigurationService: ProjectConfigu
 
   private def deactivateConfiguration(projectId: ProjectId)(implicit accessToken: AccessTokenContent): Route = delete {
     onComplete(projectConfigurationService.deactivateLastByProjectId(projectId, accessToken.userId)) {
-      case Failure(e: ProjectNotFoundException) => complete(StatusCodes.NotFound, e.getMessage)
-      case Failure(e)                           => complete(StatusCodes.InternalServerError, e.getMessage)
-      case Success(_)                           => complete(StatusCodes.NoContent)
+      case Failure(e: NotFound) => complete(StatusCodes.NotFound, e.getMessage)
+      case Failure(e)           => complete(StatusCodes.InternalServerError, e.getMessage)
+      case Success(_)           => complete(StatusCodes.NoContent)
     }
   }
 

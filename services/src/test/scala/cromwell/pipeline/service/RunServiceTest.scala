@@ -3,7 +3,7 @@ package cromwell.pipeline.service
 import cromwell.pipeline.datastorage.dao.repository.RunRepository
 import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestRunUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto.{ Done, Run, RunCreateRequest, RunUpdateRequest }
-import cromwell.pipeline.service.ProjectService.Exceptions.ProjectAccessDeniedException
+import cromwell.pipeline.service.ProjectService.Exceptions.AccessDenied
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
@@ -85,7 +85,7 @@ class RunServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
     "getRunById when user is NOT the owner" should {
 
       "fail with access denied exception" taggedAs Service in {
-        val error = ProjectAccessDeniedException()
+        val error = AccessDenied()
         when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.failed(error))
 
         runService.getRunByIdAndUser(runId, projectId, userId).failed.map { _ shouldBe error }
@@ -110,7 +110,7 @@ class RunServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
       }
 
       "fail if user is NOT the owner" taggedAs Service in {
-        val error = ProjectAccessDeniedException()
+        val error = AccessDenied()
         when(projectService.getUserProjectById(projectId, run.userId)).thenReturn(Future.failed(error))
 
         runService.getRunsByProject(projectId, run.userId).failed.map { _ shouldBe error }
@@ -128,7 +128,7 @@ class RunServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
       }
 
       "fail with exception if user is NOT the owner" taggedAs Service in {
-        val error = ProjectAccessDeniedException()
+        val error = AccessDenied()
         when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.failed(error))
 
         runService.deleteRunById(runId, projectId, userId).failed.map { _ shouldBe error }
@@ -157,7 +157,7 @@ class RunServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
       }
 
       "fail with access denied exception when user is NOT the owner" taggedAs Service in {
-        val error = new ProjectAccessDeniedException
+        val error = AccessDenied()
         when(projectService.getUserProjectById(projectId, run.userId)).thenReturn(Future.failed(error))
 
         runService.updateRun(runId, request, projectId, run.userId).failed.map { _ shouldBe error }

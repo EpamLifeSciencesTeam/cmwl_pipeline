@@ -102,7 +102,7 @@ class ProjectControllerItTest
       /**
        * Ignored because we have no gitlab test environment and test is falling
        */
-      "return status code OK if project was successfully updated" ignore {
+      "return status code OK if project was successfully updated" in {
         val request = ProjectUpdateNameRequest(dummyProject.name)
         val accessToken = AccessTokenContent(dummyUser.userId)
 
@@ -111,12 +111,12 @@ class ProjectControllerItTest
         }
       }
 
-      "return status code 500 if user doesn't have access to project" in {
+      "return status code 403 if user doesn't have access to project" in {
         val request = ProjectUpdateNameRequest(dummyProject.name)
         val accessToken = AccessTokenContent(stranger.userId)
 
         Put(s"/projects/${dummyProject.projectId.value}", request) ~> projectController.route(accessToken) ~> check {
-          status shouldBe StatusCodes.InternalServerError
+          status shouldBe StatusCodes.Forbidden
         }
       }
     }

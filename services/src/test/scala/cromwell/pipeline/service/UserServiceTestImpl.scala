@@ -25,10 +25,10 @@ class UserServiceTestImpl(users: Seq[UserWithCredentials], testMode: TestMode) e
       case _                  => Future.successful(user.userId)
     }
 
-  override def deactivateUserById(userId: UserId): Future[Option[User]] =
+  override def deactivateUserById(userId: UserId): Future[User] =
     testMode match {
       case WithException(exc) => Future.failed(exc)
-      case _                  => Future.successful(users.headOption.map(user => User.fromUserWithCredentials(user)))
+      case _                  => Future.successful(User.fromUserWithCredentials(users.head))
     }
 
   override def updateUser(userId: UserId, request: UserUpdateRequest): Future[Int] =

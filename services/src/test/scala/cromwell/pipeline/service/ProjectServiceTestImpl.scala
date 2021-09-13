@@ -19,13 +19,10 @@ class ProjectServiceTestImpl(projects: Seq[Project], testMode: TestMode) extends
       case _                  => Future.successful(projects.head)
     }
 
-  def addProject(request: ProjectAdditionRequest, userId: UserId): Future[Either[VersioningException, Project]] =
+  def addProject(request: ProjectAdditionRequest, userId: UserId): Future[Project] =
     testMode match {
-      case WithException(exc: VersioningException) => Future.successful(Left(exc))
-      case WithException(exc)                      => Future.failed(exc)
-      case _ =>
-        val newProject = TestProjectUtils.getDummyProject(name = request.name, ownerId = userId)
-        Future.successful(Right(newProject))
+      case WithException(exc) => Future.failed(exc)
+      case _                  => Future.successful(TestProjectUtils.getDummyProject(name = request.name, ownerId = userId))
     }
 
   def deactivateProjectById(projectId: ProjectId, userId: UserId): Future[Project] =

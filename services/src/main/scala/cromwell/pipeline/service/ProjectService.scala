@@ -3,7 +3,8 @@ package cromwell.pipeline.service
 import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
-import cromwell.pipeline.service.ProjectService.Exceptions.{ ProjectAccessDeniedException, ProjectNotFoundException }
+import cromwell.pipeline.service.ProjectService.Exceptions._
+import cromwell.pipeline.service.exceptions.ServiceException
 
 import java.util.UUID
 import scala.concurrent.{ ExecutionContext, Future }
@@ -16,7 +17,7 @@ trait ProjectService {
 
   def getUserProjectByName(namePattern: String, userId: UserId): Future[Project]
 
-  def addProject(request: ProjectAdditionRequest, userId: UserId): Future[Either[VersioningException, Project]]
+  def addProject(request: ProjectAdditionRequest, userId: UserId): Future[Project]
 
   def deactivateProjectById(projectId: ProjectId, userId: UserId): Future[Project]
 
@@ -29,9 +30,12 @@ trait ProjectService {
 object ProjectService {
 
   object Exceptions {
-    final case class ProjectNotFoundException(message: String = "Project not found") extends RuntimeException(message)
-    final case class ProjectAccessDeniedException(message: String = "Access denied. You  not owner of the project")
-        extends RuntimeException(message)
+    sealed abstract class ProjectServiceException(message: String) extends ServiceException(message)
+
+    final case class NotFound(message: String = "Project not found") extends ProjectServiceException(message)
+    final case class AccessDenied(message: String = "Access denied. You are not the project owner")
+        extends ProjectServiceException(message)
+    final case class InternalError(message: String = "Internal error") extends ProjectServiceException(message)
   }
 
   def apply(projectRepository: ProjectRepository, projectVersioning: ProjectVersioning[VersioningException])(
@@ -40,22 +44,34 @@ object ProjectService {
     new ProjectService {
 
       def getUserProjectById(projectId: ProjectId, userId: UserId): Future[Project] =
-        projectRepository.getProjectById(projectId).flatMap(project => getForUserOrFail(project.toSeq, userId))
+        projectRepository
+          .getProjectById(projectId)
+          .recoverWith {
+            case _ => internalError("find user")
+          }
+          .flatMap(project => getForUserOrFail(project.toSeq, userId))
 
       def getUserProjects(userId: UserId): Future[Seq[Project]] =
-        projectRepository.getProjectsByOwnerId(userId)
+        projectRepository.getProjectsByOwnerId(userId).recoverWith {
+          case _ => internalError("find user")
+        }
 
       def getUserProjectByName(namePattern: String, userId: UserId): Future[Project] =
-        projectRepository.getProjectsByName(namePattern).flatMap(getForUserOrFail(_, userId))
+        projectRepository
+          .getProjectsByName(namePattern)
+          .recoverWith {
+            case _ => internalError("find user")
+          }
+          .flatMap(getForUserOrFail(_, userId))
 
       private def getForUserOrFail(projects: Seq[Project], userId: UserId): Future[Project] =
         projects.find(_.ownerId == userId) match {
           case Some(project)             => Future.successful(project)
-          case None if projects.nonEmpty => Future.failed(new ProjectAccessDeniedException)
-          case _                         => Future.failed(new ProjectNotFoundException)
+          case None if projects.nonEmpty => Future.failed(AccessDenied())
+          case _                         => Future.failed(NotFound())
         }
 
-      def addProject(request: ProjectAdditionRequest, userId: UserId): Future[Either[VersioningException, Project]] = {
+      def addProject(request: ProjectAdditionRequest, userId: UserId): Future[Project] = {
         val localProject =
           LocalProject(
             projectId = ProjectId(UUID.randomUUID().toString),
@@ -64,8 +80,11 @@ object ProjectService {
             active = true
           )
         projectVersioning.createRepository(localProject).flatMap {
-          case Left(exception) => Future.successful(Left(exception))
-          case Right(project)  => projectRepository.addProject(project).map(_ => Right(project))
+          case Left(_) => internalError("create project")
+          case Right(project) =>
+            projectRepository.addProject(project).map(_ => project).recoverWith {
+              case _ => internalError("add project")
+            }
         }
       }
 
@@ -74,7 +93,13 @@ object ProjectService {
           if (!project.active) {
             Future.successful(project)
           } else {
-            projectRepository.deactivateProjectById(projectId).flatMap(_ => getUserProjectById(projectId, userId))
+            projectRepository
+              .deactivateProjectById(projectId)
+              .recoverWith {
+                case _ => internalError("deactivate project")
+              }
+              .flatMap(_ => getUserProjectById(projectId, userId))
+
           }
         }
 
@@ -85,12 +110,22 @@ object ProjectService {
       ): Future[ProjectId] =
         getUserProjectById(projectId, userId).flatMap { project =>
           val updatedProject = project.copy(name = request.name)
-          projectRepository.updateProjectName(updatedProject).map(_ => updatedProject.projectId)
+          projectRepository
+            .updateProjectName(updatedProject)
+            .recoverWith {
+              case _ => internalError("update project")
+            }
+            .map(_ => updatedProject.projectId)
         }
 
       def updateProjectVersion(projectId: ProjectId, version: PipelineVersion, userId: UserId): Future[Int] =
         getUserProjectById(projectId, userId).flatMap { project =>
-          projectRepository.updateProjectVersion(project.copy(version = version))
+          projectRepository.updateProjectVersion(project.copy(version = version)).recoverWith {
+            case _ => internalError("update project")
+          }
         }
+
+      private def internalError(action: String): Future[Nothing] =
+        Future.failed(InternalError(s"Failed to $action due to unexpected internal error"))
     }
 }
