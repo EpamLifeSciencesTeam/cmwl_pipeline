@@ -25,7 +25,7 @@ class RunRepositoryTestImpl extends RunRepository {
 
   def deleteRunById(runId: RunId): Future[Int] = {
     runs -= runId
-    Future.successful(0)
+    Future.successful(1)
   }
 
   def addRun(run: Run): Future[RunId] = {
@@ -35,7 +35,7 @@ class RunRepositoryTestImpl extends RunRepository {
 
   def updateRun(updatedRun: Run): Future[Int] = {
     if (runs.contains(updatedRun.runId)) runs += (updatedRun.runId -> updatedRun)
-    Future.successful(0)
+    Future.successful(1)
   }
 
 }
