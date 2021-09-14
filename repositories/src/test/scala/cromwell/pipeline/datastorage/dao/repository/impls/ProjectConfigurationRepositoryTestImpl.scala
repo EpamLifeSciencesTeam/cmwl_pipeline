@@ -38,4 +38,19 @@ object ProjectConfigurationRepositoryTestImpl {
     projectConfigurationRepositoryTestImpl
   }
 
+  def withException(exception: Throwable): ProjectConfigurationRepository =
+    new ProjectConfigurationRepository {
+      override def addConfiguration(projectConfiguration: ProjectConfiguration): Future[Unit] =
+        Future.failed(exception)
+
+      override def updateConfiguration(projectConfiguration: ProjectConfiguration): Future[Unit] =
+        Future.failed(exception)
+
+      override def getById(id: ProjectConfigurationId): Future[Option[ProjectConfiguration]] =
+        Future.failed(exception)
+
+      override def getAllByProjectId(projectId: ProjectId): Future[Seq[ProjectConfiguration]] =
+        Future.failed(exception)
+    }
+
 }

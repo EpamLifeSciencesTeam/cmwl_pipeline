@@ -3,19 +3,16 @@ package cromwell.pipeline.service
 import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestRunUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.service.ProjectService.Exceptions.ProjectNotFoundException
-import java.nio.file.Paths
-import org.mockito.Mockito.when
+import cromwell.pipeline.service.impls.{
+  ProjectConfigurationServiceTestImpl,
+  ProjectServiceTestImpl,
+  ProjectVersioningTestImpl
+}
 import org.scalatest.{ AsyncWordSpec, Matchers }
-import org.scalatestplus.mockito.MockitoSugar
-import scala.concurrent.Future
 
-class AggregationServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
+import java.nio.file.Paths
 
-  private val projectService: ProjectService = mock[ProjectService]
-  private val projectConfigurationService: ProjectConfigurationService = mock[ProjectConfigurationService]
-  private val projectVersioning: GitLabProjectVersioning = mock[GitLabProjectVersioning]
-  private val aggregatorService: AggregationService =
-    AggregationService(projectService, projectVersioning, projectConfigurationService)
+class AggregationServiceTest extends AsyncWordSpec with Matchers {
 
   "AggregatorService" when {
     "aggregate" should {
@@ -46,11 +43,10 @@ class AggregationServiceTest extends AsyncWordSpec with Matchers with MockitoSug
           List(file),
           WdlParams(Paths.get("test.wdl"), List(FileParameter("_type", StringTyped(Some("String")))))
         )
-
-        when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(dummyProject))
-        when(projectVersioning.getFiles(dummyProject, Some(version))).thenReturn(Future.successful(Right(List(file))))
-        when(projectConfigurationService.getLastByProjectId(projectId, userId))
-          .thenReturn(Future.successful(Some(projectConfigurations)))
+        val projectService = ProjectServiceTestImpl(dummyProject)
+        val projectVersioning = ProjectVersioningTestImpl(projectFiles = List(file))
+        val projectConfigurationService = ProjectConfigurationServiceTestImpl(projectConfigurations)
+        val aggregatorService = AggregationService(projectService, projectVersioning, projectConfigurationService)
 
         aggregatorService.aggregate(run).map {
           _ shouldBe result
@@ -58,10 +54,11 @@ class AggregationServiceTest extends AsyncWordSpec with Matchers with MockitoSug
       }
 
       "should return exception if project not found" taggedAs Service in {
-        when(projectService.getUserProjectById(projectId, userId))
-          .thenReturn(Future.failed(new ProjectNotFoundException))
-        when(projectConfigurationService.getLastByProjectId(projectId, userId))
-          .thenReturn(Future.successful(Some(projectConfigurations)))
+
+        val projectService = ProjectServiceTestImpl.withException(new ProjectNotFoundException)
+        val projectVersioning = ProjectVersioningTestImpl()
+        val projectConfigurationService = ProjectConfigurationServiceTestImpl(projectConfigurations)
+        val aggregatorService = AggregationService(projectService, projectVersioning, projectConfigurationService)
 
         aggregatorService.aggregate(run).failed.map {
           _ should have.message("Project not found")
@@ -71,9 +68,10 @@ class AggregationServiceTest extends AsyncWordSpec with Matchers with MockitoSug
       "should return exception if configuration not found" taggedAs Service in {
         val file = ProjectFile(path, ProjectFileContent(""))
 
-        when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(dummyProject))
-        when(projectVersioning.getFiles(dummyProject, Some(version))).thenReturn(Future.successful(Right(List(file))))
-        when(projectConfigurationService.getLastByProjectId(projectId, userId)).thenReturn(Future.successful(None))
+        val projectService = ProjectServiceTestImpl(dummyProject)
+        val projectVersioning = ProjectVersioningTestImpl(projectFiles = List(file))
+        val projectConfigurationService = ProjectConfigurationServiceTestImpl()
+        val aggregatorService = AggregationService(projectService, projectVersioning, projectConfigurationService)
 
         aggregatorService.aggregate(run).failed.map {
           _ should have.message("Configurations for projectId " + projectId + " not found")
@@ -81,11 +79,12 @@ class AggregationServiceTest extends AsyncWordSpec with Matchers with MockitoSug
       }
 
       "should return exception if file not found" taggedAs Service in {
-        when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(dummyProject))
-        when(projectVersioning.getFiles(dummyProject, Some(version)))
-          .thenReturn(Future.successful(Left(VersioningException.FileException("Could not take the files tree"))))
-        when(projectConfigurationService.getLastByProjectId(projectId, userId))
-          .thenReturn(Future.successful(Some(projectConfigurations)))
+
+        val projectService = ProjectServiceTestImpl(dummyProject)
+        val projectVersioning =
+          ProjectVersioningTestImpl.withException(VersioningException.FileException("Could not take the files tree"))
+        val projectConfigurationService = ProjectConfigurationServiceTestImpl(projectConfigurations)
+        val aggregatorService = AggregationService(projectService, projectVersioning, projectConfigurationService)
 
         aggregatorService.aggregate(run).failed.map {
           _ should have.message("Could not take the files tree")
