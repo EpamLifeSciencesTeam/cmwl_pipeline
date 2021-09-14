@@ -11,6 +11,7 @@ import cromwell.pipeline.service.AuthorizationException.{
   InactiveUserException,
   IncorrectPasswordException
 }
+import cromwell.pipeline.service.impls.{ AuthUtilsTestImpl, UserServiceTestImpl }
 import cromwell.pipeline.utils.{ AuthConfig, ExpirationTimeInSeconds }
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures.whenReady
@@ -20,7 +21,7 @@ import pdi.jwt.{ Jwt, JwtAlgorithm, JwtClaim }
 import play.api.libs.json.Json
 
 import java.time.Instant
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext
 
 class AuthServiceTest extends WordSpec with Matchers with MockFactory {
 
@@ -67,7 +68,8 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
         )
         val accessToken: String = Jwt.encode(accessTokenClaims, secretKey, hmacAlgorithm)
 
-        (authUtils.getOptJwtClaims _ when accessToken).returns(Some(accessTokenClaims))
+        override val authService: AuthService =
+          createAuthService(authUtils = AuthUtilsTestImpl(jwtClaims = List(accessTokenClaims)))
 
         authService.refreshTokens(accessToken) shouldBe None
       }
@@ -75,7 +77,8 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
       "return None for wrong token" taggedAs Service in new AuthServiceTestContext {
         val wrongToken = "wrongToken"
 
-        (authUtils.getOptJwtClaims _ when wrongToken).returns(None)
+        override val authService: AuthService =
+          createAuthService(authUtils = AuthUtilsTestImpl(jwtClaims = List()))
 
         authService.refreshTokens(wrongToken) shouldBe None
       }
@@ -84,7 +87,6 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
     "signUp" should {
 
       "return Failed future when user already exists" taggedAs Service in new AuthServiceTestContext {
-        (userService.getUserWithCredentialsByEmail _ when userEmail).returns(Future.successful(Some(dummyUser)))
         whenReady(
           authService
             .signUp(
@@ -103,8 +105,7 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
     "signIn" should {
 
       "return Failed future when user is inactive" taggedAs Service in new AuthServiceTestContext {
-        (userService.getUserWithCredentialsByEmail _ when inactiveUserEmail)
-          .returns(Future.successful(Some(inactiveUser)))
+        override val authService: AuthService = createAuthService(userService = UserServiceTestImpl(inactiveUser))
         whenReady(
           authService
             .signIn(
@@ -118,7 +119,6 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
       }
 
       "return Failed future when password is incorrect" taggedAs Service in new AuthServiceTestContext {
-        (userService.getUserWithCredentialsByEmail _ when userEmail).returns(Future.successful(Some(dummyUser)))
         whenReady(
           authService
             .signIn(
@@ -134,9 +134,10 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
 
     "responseFromUser" should {
       "return whatever getAuthResponse returns" taggedAs Service in new AuthServiceTestContext {
-        private val dummyResponse = Some(AuthResponse("", "", 1))
-        (authUtils.getAuthResponse _ when (*, *, *)).returns(dummyResponse)
-        authService.responseFromUser(dummyUser) shouldBe dummyResponse
+        private val dummyResponse = AuthResponse("", "", 1)
+        override val authService: AuthService =
+          createAuthService(authUtils = AuthUtilsTestImpl(authResponses = List(dummyResponse)))
+        authService.responseFromUser(dummyUser) shouldBe Some(dummyResponse)
       }
     }
 
@@ -172,9 +173,18 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
   }
 
   class AuthServiceTestContext {
-    protected val userService: UserService = stub[UserService]
-    protected val authUtils: AuthUtils = stub[AuthUtils]
-    protected val authService: AuthService = AuthService(userService, authUtils)
+
+    private val defaultUserService: UserService = UserServiceTestImpl(dummyUser)
+    private val defaultAuthUtils: AuthUtils = AuthUtilsTestImpl()
+
+    protected def createAuthService(
+      userService: UserService = defaultUserService,
+      authUtils: AuthUtils = defaultAuthUtils
+    ): AuthService =
+      AuthService(userService, authUtils)
+
+    protected def authService: AuthService = createAuthService()
+
   }
 
   class RefreshTokenContext(lifetime: Long) extends AuthServiceTestContext {
@@ -191,8 +201,9 @@ class AuthServiceTest extends WordSpec with Matchers with MockFactory {
     val refreshToken: String = Jwt.encode(refreshTokenClaims, secretKey, hmacAlgorithm)
     val authResponse: AuthResponse = AuthResponse("accessToken", "refreshToken", expirationTimeInSeconds.accessToken)
 
-    (authUtils.getOptJwtClaims _ when refreshToken).returns(Some(refreshTokenClaims))
-    (authUtils.getAuthResponse _ when (*, *, *)).returns(Some(authResponse))
+    override val authService: AuthService = createAuthService(
+      authUtils = AuthUtilsTestImpl(authResponses = List(authResponse), jwtClaims = List(refreshTokenClaims))
+    )
   }
 
 }

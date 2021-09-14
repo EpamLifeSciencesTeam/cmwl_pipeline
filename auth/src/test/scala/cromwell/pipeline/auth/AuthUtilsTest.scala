@@ -17,7 +17,7 @@ class AuthUtilsTest extends WordSpec with Matchers {
     hmacAlgorithm = JwtAlgorithm.fromString(algo = "HS256").asInstanceOf[JwtHmacAlgorithm],
     expirationTimeInSeconds = ExpirationTimeInSeconds(accessToken = 300, refreshToken = 900, userSession = 3600)
   )
-  private val authUtils = new AuthUtils(authConfig)
+  private val authUtils = AuthUtils(authConfig)
   private val userId = UserId.random
 
   "AuthUtils" when {

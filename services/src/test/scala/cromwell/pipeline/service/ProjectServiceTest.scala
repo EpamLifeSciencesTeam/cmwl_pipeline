@@ -1,23 +1,27 @@
 package cromwell.pipeline.service
 
-import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
+import cromwell.pipeline.datastorage.dao.repository.impls.ProjectRepositoryTestImpl
 import cromwell.pipeline.datastorage.dao.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto._
-import cromwell.pipeline.model.wrapper.UserId
-import cromwell.pipeline.service.ProjectService.Exceptions._
-import org.mockito.Matchers.any
-import org.mockito.Mockito.when
+import cromwell.pipeline.service.ProjectService.Exceptions.{ AccessDenied, InternalError, NotFound }
+import cromwell.pipeline.service.impls.ProjectVersioningTestImpl
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
 
-import scala.concurrent.Future
-
 class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
 
-  private val projectRepository = mock[ProjectRepository]
-  private val projectVersioning = mock[ProjectVersioning[VersioningException]]
-  private val projectService = ProjectService(projectRepository, projectVersioning)
   private val dummyProject: Project = TestProjectUtils.getDummyProject()
+
+  private def defaultProjectRepository = ProjectRepositoryTestImpl(dummyProject)
+  private val defaultProjectVersioning = ProjectVersioningTestImpl(projects = List(dummyProject))
+
+  private def createProjectService(
+    projectRepository: ProjectRepositoryTestImpl = defaultProjectRepository,
+    projectVersioning: ProjectVersioningTestImpl = defaultProjectVersioning
+  ): ProjectService =
+    ProjectService(projectRepository, projectVersioning)
+
+  def projectService: ProjectService = createProjectService()
 
   "ProjectServiceTest" when {
 
@@ -25,7 +29,6 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
       val ownerId = dummyProject.ownerId
 
       "return list projects" taggedAs Service in {
-        when(projectRepository.getProjectsByOwnerId(ownerId)).thenReturn(Future.successful(Seq(dummyProject)))
 
         projectService.getUserProjects(ownerId).map {
           _ shouldBe Seq(dummyProject)
@@ -33,7 +36,8 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
       }
 
       "return empty list projects" taggedAs Service in {
-        when(projectRepository.getProjectsByOwnerId(ownerId)).thenReturn(Future.successful(Seq()))
+        val emptyProjectRepository = ProjectRepositoryTestImpl()
+        val projectService = createProjectService(projectRepository = emptyProjectRepository)
 
         projectService.getUserProjects(ownerId).map {
           _ shouldBe Seq.empty
@@ -46,8 +50,6 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
       val ownerId = dummyProject.ownerId
 
       "return a new project" taggedAs Service in {
-        when(projectVersioning.createRepository(any[LocalProject])).thenReturn(Future.successful(Right(dummyProject)))
-        when(projectRepository.addProject(dummyProject)).thenReturn(Future.successful(dummyProject.projectId))
 
         projectService.addProject(request, ownerId).map {
           _ shouldBe dummyProject
@@ -56,8 +58,8 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
 
       "fail with InternalError" taggedAs Service in {
         val repositoryException = VersioningException.RepositoryException("VersioningException")
-        when(projectVersioning.createRepository(any[LocalProject]))
-          .thenReturn(Future.successful(Left(repositoryException)))
+        val projectService =
+          createProjectService(projectVersioning = ProjectVersioningTestImpl.withException(repositoryException))
         projectService.addProject(request, ownerId).failed.map {
           _ shouldBe InternalError("Failed to create project due to unexpected internal error")
         }
@@ -71,79 +73,66 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         val ownerId = dummyProject.ownerId
         val request = ProjectUpdateNameRequest(newProjectName)
 
-        when(projectRepository.getProjectById(projectId)).thenReturn(Future.successful(Some(dummyProject)))
-        when(projectRepository.updateProjectName(dummyProject.copy(name = newProjectName)))
-          .thenReturn(Future.successful(1))
-
         projectService.updateProjectName(projectId, request, ownerId).map { _ shouldBe projectId }
       }
     }
 
     "deactivateProjectById" should {
       "return deactivated project" taggedAs Service in {
-        val projectId = ProjectId("projectId")
-        val userId = UserId.random
-        val project = TestProjectUtils.getDummyProject(projectId, userId)
+        val projectId = dummyProject.projectId
+        val userId = dummyProject.ownerId
+        val deactivatedProject = dummyProject.copy(active = false)
 
-        when(projectRepository.deactivateProjectById(projectId)).thenReturn(Future(0))
-        when(projectRepository.getProjectById(projectId)).thenReturn(Future(Some(project)))
-
-        projectService.deactivateProjectById(projectId, userId).map { _ shouldBe project }
+        projectService.deactivateProjectById(projectId, userId).map { _ shouldBe deactivatedProject }
       }
     }
 
     "updateProjectVersion" should {
       "succeed if repository returned successful result" taggedAs Service in {
-        val projectId = ProjectId("projectId")
-        val userId = UserId.random
-        val version = PipelineVersion("v1.0.0")
-        val project = TestProjectUtils.getDummyProject(projectId, userId)
+        val projectId = dummyProject.projectId
+        val userId = dummyProject.ownerId
+        val newVersion = TestProjectUtils.getDummyPipeLineVersion()
 
-        when(projectRepository.getProjectById(projectId)).thenReturn(Future.successful(Some(project)))
-        when(projectRepository.updateProjectVersion(project.copy(version = version))).thenReturn(Future.successful(0))
-
-        projectService.updateProjectVersion(projectId, version, userId).map(_ shouldBe 0)
+        projectService.updateProjectVersion(projectId, newVersion, userId).map(_ shouldBe 0)
       }
     }
 
     "getUserProjectById" should {
-      val userId = UserId.random
+      val userId = dummyProject.ownerId
       "return project with corresponding id" taggedAs Service in {
-        val projectId = ProjectId("projectId")
-        val project = TestProjectUtils.getDummyProject(projectId, userId)
+        val projectId = dummyProject.projectId
 
-        when(projectRepository.getProjectById(projectId)).thenReturn(Future(Some(project)))
-
-        projectService.getUserProjectById(projectId, userId).map { _ shouldBe project }
+        projectService.getUserProjectById(projectId, userId).map { _ shouldBe dummyProject }
       }
 
       "return none if project not found" taggedAs Service in {
         val projectId = ProjectId("projectId")
-
-        when(projectRepository.getProjectById(projectId)).thenReturn(Future(None))
 
         projectService.getUserProjectById(projectId, userId).failed.map { _ shouldBe NotFound() }
       }
     }
 
     "getUserProjectByName" should {
-      val project1 = TestProjectUtils.getDummyProject()
-      val project2 = TestProjectUtils.getDummyProject(name = project1.name)
+      val project1 = dummyProject
+      val project2 = TestProjectUtils.getDummyProject(name = dummyProject.name)
 
       "return project with corresponding user id" taggedAs Service in {
-        when(projectRepository.getProjectsByName(project2.name)).thenReturn(Future.successful(Seq(project1, project2)))
+        val projectService = createProjectService(projectRepository = ProjectRepositoryTestImpl(project1, project2))
+
         projectService.getUserProjectByName(project2.name, project2.ownerId).map { _ shouldBe project2 }
       }
 
       "fail with ProjectAccessDeniedException" taggedAs Service in {
-        when(projectRepository.getProjectsByName(project1.name)).thenReturn(Future.successful(Seq(project2)))
+        val projectService = createProjectService(projectRepository = ProjectRepositoryTestImpl(project2))
+
         projectService.getUserProjectByName(project1.name, project1.ownerId).failed.map {
           _ shouldBe AccessDenied()
         }
       }
 
       "fail with ProjectNotFoundException" taggedAs Service in {
-        when(projectRepository.getProjectsByName(project1.name)).thenReturn(Future.successful(Seq()))
+        val projectService = createProjectService(projectRepository = ProjectRepositoryTestImpl())
+
         projectService.getUserProjectByName(project1.name, project1.ownerId).failed.map {
           _ shouldBe NotFound()
         }

@@ -36,7 +36,7 @@ class UserRepositoryTestImpl extends UserRepository {
       (_, user) <- users if userParam == toUserField(user)
       deactivatedUser = user.copy(active = false)
     } yield users += (deactivatedUser.userId -> deactivatedUser)
-    Future.successful(0)
+    Future.successful(1)
   }
 
   def updateUser(updatedUser: UserWithCredentials): Future[Int] = update(updatedUser)
@@ -46,7 +46,7 @@ class UserRepositoryTestImpl extends UserRepository {
 
   private def update(updatedUser: UserWithCredentials): Future[Int] = {
     if (users.contains(updatedUser.userId)) users += (updatedUser.userId -> updatedUser)
-    Future.successful(0)
+    Future.successful(1)
   }
 
 }
