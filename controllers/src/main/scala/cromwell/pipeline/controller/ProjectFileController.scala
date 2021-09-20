@@ -6,16 +6,17 @@ import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
 import cromwell.pipeline.controller.utils.FieldUnmarshallers._
 import cromwell.pipeline.controller.utils.FromStringUnmarshallers._
-import cromwell.pipeline.controller.utils.PathMatchers.{ Path, ProjectId }
+import cromwell.pipeline.controller.utils.PathMatchers.{Path, ProjectId}
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
-import cromwell.pipeline.service.{ ProjectFileService, VersioningException }
+import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.service.{ProjectFileService, VersioningException}
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
 import java.nio.file._
 import scala.collection.immutable
-import scala.concurrent.{ ExecutionContext, Future }
-import scala.util.{ Failure, Success }
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 class ProjectFileController(wdlService: ProjectFileService)(
   implicit val executionContext: ExecutionContext,
@@ -87,89 +88,53 @@ class ProjectFileController(wdlService: ProjectFileService)(
   }
 
   private def uploadAllFiles(projectId: ProjectId)(implicit accessToken: AccessTokenContent): Route = post {
-    case class FilePathAndResponse(
-                                    path: Path,
-                                    validateResponse: Either[ValidationError, Unit],
-                                    uploadResponse: Either[VersioningException, Unit]
-                                  )
 
-    formField('version.as[PipelineVersion].optional) { version =>
-      fileUploadAll("file") { byteSources =>
-        formField('path.as[Path]) { path =>
-          byteSources.map { byteSource =>
-            val contentF: Future[String] = byteSource._2.map(_.utf8String).runFold("")(_ + _)
-            val uploadedFileF: Future[ProjectFile] = contentF.map(x => ProjectFile(path, ProjectFileContent(x)))
+    case class JobsResult(
+                           file: ProjectFile,
+                           validateResponse: Either[ValidationError, Unit],
+                           uploadResponse: Either[VersioningException, Unit]
+                         )
 
-            onComplete {
-              uploadedFileF.map { uploadedFile =>
-                for {
-                  validateResponse <- wdlService.validateFile(uploadedFile.content)
-                  uploadResponse <- wdlService.uploadFile(
-                    projectId,
-                    uploadedFile,
-                    version,
-                    accessToken.userId
-                  )
-                } yield (validateResponse, uploadResponse) match {
-                  case (Right(_), Right(_)) => Right(StatusCodes.OK)
-                  case (Left(_), Right(_)) => Right(StatusCodes.Created)
-                  case (_, Left(response)) => Left(response.getMessage)
-                }
-              }
-            }
-          } {
-            case _ => complete(StatusCodes.OK)
+    def getJobsResult(file: ProjectFile,
+                      version: Option[PipelineVersion],
+                      projectId: ProjectId,
+                      userId: UserId): Route = {
+      onComplete {
+        for {
+          validateResponse <- wdlService.validateFile(file.content)
+          uploadResponse <- wdlService.uploadFile(
+            projectId,
+            file,
+            version,
+            accessToken.userId
+          )
+        } yield JobsResult(file, validateResponse, uploadResponse)
+      }
+    }
+
+      formFields('path.as[Path], 'version.as[PipelineVersion].optional) { (path, version) =>
+        fileUploadAll("file") { byteSources =>
+          val files: Future[Seq[ProjectFile]] = Future.sequence {
+            byteSources.map(
+              byteSource =>
+                byteSource._2
+                  .map(_.utf8String)
+                  .runFold("")(_ + _)
+                  .map(content => ProjectFile(path, ProjectFileContent(content)))
+            )
           }
+
+          val results: Future[Seq[Route]] = files.map(fileSeq => fileSeq.map(file => getJobsResult(file, version, projectId, userId)))
+
+
         }
       }
     }
-  }
 
-//  private def uploadAllFiles(projectId: ProjectId)(implicit accessToken: AccessTokenContent): Route = post {
-//
-//    case class FilePathAndResponse(
-//      path: Path,
-//      validateResponse: Either[ValidationError, Unit],
-//      uploadResponse: Either[VersioningException, Unit])
-//
-//    formField('version.as[PipelineVersion].optional) { version =>
-//      fileUploadAll("file") { byteSources =>
-//        formField('path.as[Path]) { path =>
-//          byteSources.map { byteSource =>
-//
-//            val contentF: Future[String] = byteSource._2.map(_.utf8String).runFold("")(_ + _)
-//            val uploadedFileF: Future[ProjectFile] = contentF.map(x => ProjectFile(path, ProjectFileContent(x)))
-//
-//            onComplete {
-//              uploadedFileF.map { uploadedFile =>
-//              for {
-//                  validateResponse <- wdlService.validateFile(uploadedFile.content)
-//                  uploadResponse <- wdlService.uploadFile(
-//                    projectId,
-//                    uploadedFile,
-//                    version,
-//                    accessToken.userId
-//                  )
-//                } yield (validateResponse, uploadResponse) match {
-//                  case (Right(_), Right(_)) => Right(StatusCodes.OK)
-//                  case (Left(_), Right(_)) => Right(StatusCodes.Created)
-//                  case (_, Left(response)) => Left(response.getMessage)
-//                }
-//              }
-//            }
-//                {
-//                  case Success(Right(sc)) => complete(sc)
-//                  case Success(Left(error)) =>
-//                    complete(StatusCodes.UnprocessableEntity, s"File have not uploaded due to $error")
-//                  case Failure(e) => complete(StatusCodes.InternalServerError, e.getMessage)
-//                }
-//              }
-//            }
-//          }.map { x =>
-//
-//          }
-//        }
-//      }
+
+
+
+  }
 
   val route: AccessTokenContent => Route = implicit accessToken =>
     validateFile ~
