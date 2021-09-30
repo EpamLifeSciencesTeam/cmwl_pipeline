@@ -3,7 +3,7 @@ package cromwell.pipeline.service
 import cromwell.pipeline.datastorage.dao.repository.RunRepository
 import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestRunUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto.{ Done, Run, RunCreateRequest, RunUpdateRequest }
-import cromwell.pipeline.service.ProjectService.Exceptions.AccessDenied
+import cromwell.pipeline.service.RunService.Exceptions._
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
@@ -135,14 +135,13 @@ class RunServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
       }
 
       "fail with exception if run belongs to another project" taggedAs Service in {
+        val error = NotFound()
         val anotherProjectRun = TestRunUtils.getDummyRun(userId = userId)
         when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
         when(runRepository.getRunByIdAndUser(anotherProjectRun.runId, userId))
           .thenReturn(Future.successful(Some(anotherProjectRun)))
 
-        runService.deleteRunById(anotherProjectRun.runId, projectId, userId).failed.map {
-          _.getMessage shouldBe "run with this id doesn't exist"
-        }
+        runService.deleteRunById(anotherProjectRun.runId, projectId, userId).failed.map { _ shouldBe error }
       }
     }
 
@@ -164,14 +163,13 @@ class RunServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
       }
 
       "fail with exception if run belongs to another project" taggedAs Service in {
+        val error = NotFound()
         val anotherProjectRun = TestRunUtils.getDummyRun(userId = userId)
         when(projectService.getUserProjectById(projectId, userId)).thenReturn(Future.successful(project))
         when(runRepository.getRunByIdAndUser(anotherProjectRun.runId, userId))
           .thenReturn(Future.successful(Some(anotherProjectRun)))
 
-        runService.updateRun(anotherProjectRun.runId, request, projectId, run.userId).failed.map {
-          _.getMessage shouldBe "run with this id doesn't exist"
-        }
+        runService.updateRun(anotherProjectRun.runId, request, projectId, run.userId).failed.map { _ shouldBe error }
       }
     }
   }
