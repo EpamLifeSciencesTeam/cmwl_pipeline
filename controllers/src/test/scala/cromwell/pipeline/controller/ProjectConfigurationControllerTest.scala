@@ -5,7 +5,7 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
-import cromwell.pipeline.service.ProjectService.Exceptions.{ InternalError, NotFound }
+import cromwell.pipeline.service.ProjectConfigurationService.Exceptions.{ InternalError, NotFound, ValidationError }
 import cromwell.pipeline.service.{ ProjectConfigurationService, VersioningException }
 import cromwell.pipeline.utils.URLEncoderUtils
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
@@ -50,7 +50,7 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
           .route(
             accessToken
           ) ~> check {
-          status shouldBe StatusCodes.OK
+          status shouldBe StatusCodes.NoContent
         }
       }
 
@@ -81,15 +81,16 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
     "get configuration by project id" should {
       "return configuration by existing project id" in {
         when(configurationService.getLastByProjectId(projectId, accessToken.userId))
-          .thenReturn(Future.successful(Some(configuration)))
+          .thenReturn(Future.successful(configuration))
         Get(s"/projects/${projectId.value}/configurations") ~> configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
           entityAs[ProjectConfiguration] shouldBe configuration
         }
       }
 
-      "return message about no project with this project id" in {
-        when(configurationService.getLastByProjectId(projectId, accessToken.userId)).thenReturn(Future.successful(None))
+      "return Configuration not found message" in {
+        when(configurationService.getLastByProjectId(projectId, accessToken.userId))
+          .thenReturn(Future.failed(NotFound(s"There is no configuration with project_id: ${projectId.value}")))
         Get(s"/projects/${projectId.value}/configurations") ~> configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NotFound
           entityAs[String] shouldBe s"There is no configuration with project_id: ${projectId.value}"
@@ -149,11 +150,11 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
 
       "return failed for invalid file" in {
         when(configurationService.buildConfiguration(projectId, path, versionOption, accessToken.userId))
-          .thenReturn(Future.failed(ValidationError(List("invalid some field"))))
+          .thenReturn(Future.failed(ValidationError(List("invalid some field").mkString(","))))
         Get(s"/projects/${projectId.value}/configurations/files/$pathString?version=$versionString") ~>
         configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.UnprocessableEntity
-          entityAs[List[String]] shouldBe List("invalid some field")
+          entityAs[String] shouldBe "invalid some field"
         }
       }
     }

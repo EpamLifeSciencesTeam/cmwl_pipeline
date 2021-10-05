@@ -1,18 +1,19 @@
 package cromwell.pipeline.controller
 
-import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.{ StatusCode, StatusCodes }
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.{ ExceptionHandler, Route }
+import cromwell.pipeline.controller.ProjectConfigurationController._
 import cromwell.pipeline.controller.utils.FromStringUnmarshallers._
+import cromwell.pipeline.controller.utils.FromUnitMarshaller._
 import cromwell.pipeline.controller.utils.PathMatchers.{ Path, ProjectId }
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
 import cromwell.pipeline.service.ProjectConfigurationService
-import cromwell.pipeline.service.ProjectService.Exceptions.NotFound
+import cromwell.pipeline.service.ProjectConfigurationService.Exceptions._
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
 import scala.concurrent.ExecutionContext
-import scala.util.{ Failure, Success }
 
 class ProjectConfigurationController(projectConfigurationService: ProjectConfigurationService)(
   implicit val ec: ExecutionContext
@@ -27,55 +28,58 @@ class ProjectConfigurationController(projectConfigurationService: ProjectConfigu
         wdlParams = request.wdlParams,
         version = request.version
       )
-      onComplete(projectConfigurationService.addConfiguration(newProjectConfiguration, accessToken.userId)) {
-        case Failure(e: NotFound) => complete(StatusCodes.NotFound, e.getMessage)
-        case Failure(e)           => complete(StatusCodes.InternalServerError, e.getMessage)
-        case Success(_)           => complete(StatusCodes.OK)
-      }
+      complete(
+        projectConfigurationService.addConfiguration(newProjectConfiguration, accessToken.userId)
+      )
     }
   }
 
   private def getConfiguration(projectId: ProjectId)(implicit accessToken: AccessTokenContent): Route = get {
-    onComplete(projectConfigurationService.getLastByProjectId(projectId, accessToken.userId)) {
-      case Failure(e)                   => complete(StatusCodes.InternalServerError, e.getMessage)
-      case Success(Some(configuration)) => complete(configuration)
-      case Success(None) =>
-        complete(StatusCodes.NotFound, s"There is no configuration with project_id: ${projectId.value}")
-    }
+    complete(projectConfigurationService.getLastByProjectId(projectId, accessToken.userId))
   }
 
   private def deactivateConfiguration(projectId: ProjectId)(implicit accessToken: AccessTokenContent): Route = delete {
-    onComplete(projectConfigurationService.deactivateLastByProjectId(projectId, accessToken.userId)) {
-      case Failure(e: NotFound) => complete(StatusCodes.NotFound, e.getMessage)
-      case Failure(e)           => complete(StatusCodes.InternalServerError, e.getMessage)
-      case Success(_)           => complete(StatusCodes.NoContent)
-    }
+    complete(
+      projectConfigurationService.deactivateLastByProjectId(projectId, accessToken.userId)
+    )
   }
 
   private def buildConfiguration(projectId: ProjectId)(implicit accessToken: AccessTokenContent): Route = get {
     path("files" / Path) { projectFilePath =>
       parameters('version.as[PipelineVersion].optional) { version =>
-        onComplete(
+        complete(
           projectConfigurationService.buildConfiguration(
             projectId,
             projectFilePath,
             version,
             accessToken.userId
           )
-        ) {
-          case Success(configuration)        => complete(configuration)
-          case Failure(ValidationError(msg)) => complete(StatusCodes.UnprocessableEntity, msg)
-          case Failure(e)                    => complete(StatusCodes.InternalServerError, e.getMessage)
-        }
+        )
       }
     }
   }
 
   val route: AccessTokenContent => Route = implicit accessToken =>
-    pathPrefix("projects" / ProjectId / "configurations") { projectId =>
-      buildConfiguration(projectId) ~
-      addConfiguration(projectId) ~
-      getConfiguration(projectId) ~
-      deactivateConfiguration(projectId)
+    handleExceptions(projectConfigurationServiceExceptionHandler) {
+      pathPrefix("projects" / ProjectId / "configurations") { projectId =>
+        buildConfiguration(projectId) ~
+        addConfiguration(projectId) ~
+        getConfiguration(projectId) ~
+        deactivateConfiguration(projectId)
+      }
     }
+}
+
+object ProjectConfigurationController {
+  def excToStatusCode(e: ProjectConfigurationServiceException): StatusCode = e match {
+    case _: ProjectConfigurationService.Exceptions.NotFound        => StatusCodes.NotFound
+    case _: ProjectConfigurationService.Exceptions.AccessDenied    => StatusCodes.Forbidden
+    case _: ProjectConfigurationService.Exceptions.InternalError   => StatusCodes.InternalServerError
+    case _: ProjectConfigurationService.Exceptions.ValidationError => StatusCodes.UnprocessableEntity
+  }
+
+  val projectConfigurationServiceExceptionHandler: ExceptionHandler = ExceptionHandler {
+    case e: ProjectConfigurationServiceException => complete(excToStatusCode(e), e.getMessage)
+    case e                                       => complete(StatusCodes.InternalServerError, e.getMessage)
+  }
 }
