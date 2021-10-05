@@ -25,12 +25,8 @@ object AggregationService {
         val version = PipelineVersion(run.projectVersion)
         val projectFiles =
           getFilesByProjectId(run.projectId, run.userId, Some(version)).valueOrF(e => Future.failed(e))
-        val futureWdlParams =
-          projectConfigurationService.getLastByProjectId(run.projectId, run.userId).flatMap {
-            case Some(config) => Future.successful(config.wdlParams)
-            case None =>
-              Future.failed(new RuntimeException("Configurations for projectId " + run.projectId + " not found"))
-          }
+        val futureWdlParams = projectConfigurationService.getLastByProjectId(run.projectId, run.userId).map(_.wdlParams)
+
         for {
           files <- projectFiles
           wdlParams <- futureWdlParams

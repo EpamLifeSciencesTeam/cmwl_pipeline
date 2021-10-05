@@ -3,6 +3,14 @@ package cromwell.pipeline.service
 import cromwell.pipeline.datastorage.dao.repository.ProjectConfigurationRepository
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.service.ProjectConfigurationService.Exceptions.{
+  AccessDenied,
+  InternalError,
+  NotFound,
+  ValidationError
+}
+import cromwell.pipeline.service.ProjectService.Exceptions.ProjectServiceException
+import cromwell.pipeline.service.exceptions.ServiceException
 import cromwell.pipeline.womtool.WomToolAPI
 
 import java.nio.file.Path
@@ -12,7 +20,7 @@ trait ProjectConfigurationService {
 
   def addConfiguration(projectConfiguration: ProjectConfiguration, userId: UserId): Future[Unit]
 
-  def getLastByProjectId(projectId: ProjectId, userId: UserId): Future[Option[ProjectConfiguration]]
+  def getLastByProjectId(projectId: ProjectId, userId: UserId): Future[ProjectConfiguration]
 
   def deactivateLastByProjectId(projectId: ProjectId, userId: UserId): Future[Unit]
 
@@ -27,6 +35,19 @@ trait ProjectConfigurationService {
 
 object ProjectConfigurationService {
 
+  object Exceptions {
+    sealed abstract class ProjectConfigurationServiceException(message: String) extends ServiceException(message)
+
+    final case class NotFound(message: String = "Configuration not found")
+        extends ProjectConfigurationServiceException(message)
+    final case class AccessDenied(message: String = "Access denied. You are not the project owner")
+        extends ProjectConfigurationServiceException(message)
+    final case class InternalError(message: String = "Internal error")
+        extends ProjectConfigurationServiceException(message)
+    final case class ValidationError(message: String = "Unprocessable entity")
+        extends ProjectConfigurationServiceException(message)
+  }
+
   def apply(
     repository: ProjectConfigurationRepository,
     projectService: ProjectService,
@@ -40,24 +61,44 @@ object ProjectConfigurationService {
       def addConfiguration(projectConfiguration: ProjectConfiguration, userId: UserId): Future[Unit] =
         projectService
           .getUserProjectById(projectConfiguration.projectId, userId)
-          .flatMap(_ => repository.addConfiguration(projectConfiguration))
+          .recoverWith { case e: ProjectServiceException => serviceErrorMapper(e) }
+          .flatMap(
+            _ =>
+              repository.addConfiguration(projectConfiguration).recoverWith {
+                case _ => internalError("add configuration")
+              }
+          )
 
       private def getByProjectId(projectId: ProjectId, userId: UserId): Future[Seq[ProjectConfiguration]] =
-        projectService.getUserProjectById(projectId, userId).flatMap(_ => repository.getAllByProjectId(projectId))
+        projectService
+          .getUserProjectById(projectId, userId)
+          .recoverWith { case e: ProjectServiceException => serviceErrorMapper(e) }
+          .flatMap(
+            _ =>
+              repository.getAllByProjectId(projectId).recoverWith {
+                case _ => internalError("find configuration")
+              }
+          )
 
-      def getLastByProjectId(projectId: ProjectId, userId: UserId): Future[Option[ProjectConfiguration]] =
-        getByProjectId(projectId, userId).map(
-          _.filter(_.active).sortBy(_.version).lastOption
-        )
+      private def getLastOptionByProjectId(projectId: ProjectId, userId: UserId): Future[Option[ProjectConfiguration]] =
+        getByProjectId(projectId, userId).map(_.filter(_.active).sortBy(_.version).lastOption)
+
+      def getLastByProjectId(projectId: ProjectId, userId: UserId): Future[ProjectConfiguration] =
+        getLastOptionByProjectId(projectId, userId).flatMap {
+          case Some(config) => Future.successful(config)
+          case None         => notFoundProjectError(projectId)
+        }
 
       def deactivateLastByProjectId(projectId: ProjectId, userId: UserId): Future[Unit] =
-        getLastByProjectId(projectId: ProjectId, userId: UserId).flatMap {
+        getLastOptionByProjectId(projectId: ProjectId, userId: UserId).flatMap {
           case Some(config) => updateConfiguration(config.copy(active = false))
-          case _            => Future.failed(new RuntimeException("There is no project to deactivate"))
+          case None         => notFoundProjectError(projectId)
         }
 
       private def updateConfiguration(projectConfiguration: ProjectConfiguration): Future[Unit] =
-        repository.updateConfiguration(projectConfiguration)
+        repository.updateConfiguration(projectConfiguration).recoverWith {
+          case _ => internalError("update project")
+        }
 
       def buildConfiguration(
         projectId: ProjectId,
@@ -72,7 +113,7 @@ object ProjectConfigurationService {
         } yield eitherFile
 
         val configurationVersion =
-          getLastByProjectId(projectId, userId).map {
+          getLastOptionByProjectId(projectId, userId).map {
             case Some(configuration) => configuration.version.increaseValue
             case None                => ProjectConfigurationVersion.defaultVersion
           }
@@ -91,11 +132,23 @@ object ProjectConfigurationService {
                       version
                     )
                 )
-              case Left(e) => Future.failed(ValidationError(e.toList))
+              case Left(e) => Future.failed(ValidationError(e.toList.mkString(",")))
             }
-          case Left(versioningException) => Future.failed(versioningException)
+          case Left(_) => internalError("get file")
         }
       }
-    }
 
+      private def internalError(action: String): Future[Nothing] =
+        Future.failed(InternalError(s"Failed to $action due to unexpected internal error"))
+
+      private def notFoundProjectError(projectId: ProjectId) =
+        Future.failed(NotFound(s"There is no configuration with project_id: ${projectId.value}"))
+
+      private def serviceErrorMapper(exc: ProjectServiceException): Future[Nothing] =
+        exc match {
+          case _: ProjectService.Exceptions.AccessDenied  => Future.failed(AccessDenied())
+          case _: ProjectService.Exceptions.NotFound      => Future.failed(NotFound())
+          case e: ProjectService.Exceptions.InternalError => Future.failed(InternalError(e.getMessage))
+        }
+    }
 }

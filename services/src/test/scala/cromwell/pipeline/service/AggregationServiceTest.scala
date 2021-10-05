@@ -74,11 +74,13 @@ class AggregationServiceTest extends AsyncWordSpec with Matchers {
 
       "should return exception if configuration not found" taggedAs Service in {
 
-        val emptyProjectConfigurationService = ProjectConfigurationServiceTestImpl()
+        val emptyProjectConfigurationService = ProjectConfigurationServiceTestImpl.withException(
+          NotFound(s"Configurations for projectId ${projectId.value} not found")
+        )
         val aggregatorService = createAggregationService(projectConfigurationService = emptyProjectConfigurationService)
 
         aggregatorService.aggregate(run).failed.map {
-          _ should have.message("Configurations for projectId " + projectId + " not found")
+          _ should have.message(s"Configurations for projectId ${projectId.value} not found")
         }
       }
 

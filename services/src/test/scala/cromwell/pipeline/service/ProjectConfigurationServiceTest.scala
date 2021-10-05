@@ -5,7 +5,7 @@ import cromwell.pipeline.datastorage.dao.repository.impls.ProjectConfigurationRe
 import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.UserId
-import cromwell.pipeline.service.ProjectService.Exceptions.AccessDenied
+import cromwell.pipeline.service.ProjectConfigurationService.Exceptions._
 import cromwell.pipeline.service.impls.{ ProjectServiceTestImpl, ProjectVersioningTestImpl, WomToolTestImpl }
 import cromwell.pipeline.womtool.WomToolAPI
 import org.scalatest.{ AsyncWordSpec, Matchers }
@@ -62,13 +62,13 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers {
 
     "add new configuration for project and user is project owner" should {
       val result: Unit = ()
-      val error = new Exception("Oh no")
 
       "return success if creation was successful" in {
         configurationService.addConfiguration(activeConfiguration, userId).map(_ shouldBe result)
       }
 
       "return failure if creation wasn't successful" in {
+        val error = InternalError("Failed to add configuration due to unexpected internal error")
         val configurationService = createConfigurationService(
           projectConfigurationRepository = ProjectConfigurationRepositoryTestImpl.withException(error)
         )
@@ -89,34 +89,43 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers {
 
     "get configuration by project id and user is project owner" should {
       "return project if it was found" in {
-        val result: Option[ProjectConfiguration] = Some(activeConfiguration)
+        val result: ProjectConfiguration = activeConfiguration
 
         configurationService.getLastByProjectId(projectId, userId).map(_ shouldBe result)
       }
 
       "not return inactive project" in {
         val result: Seq[ProjectConfiguration] = Seq(inactiveConfiguration)
-
+        val error = NotFound(
+          s"There is no configuration with project_id: ${projectId.value}"
+        )
         val configurationService = createConfigurationService(
           projectConfigurationRepository = ProjectConfigurationRepositoryTestImpl(result: _*)
         )
-        configurationService.getLastByProjectId(projectId, userId).map(_ shouldBe None)
+
+        configurationService.getLastByProjectId(projectId, userId).failed.map(_ shouldBe error)
       }
 
-      "not fail if project wasn't found" in {
-        val result: Option[ProjectConfiguration] = None
+      "fail if project wasn't found" in {
+        val error = NotFound(
+          s"There is no configuration with project_id: ${projectId.value}"
+        )
         val configurationService = createConfigurationService(
           projectConfigurationRepository = ProjectConfigurationRepositoryTestImpl()
         )
-        configurationService.getLastByProjectId(projectId, userId).map(_ shouldBe result)
+
+        configurationService.getLastByProjectId(projectId, userId).failed.map(_ shouldBe error)
       }
 
       "return failure if repository returned error" in {
-        val error = new Exception("Oh no")
+        val error = InternalError(
+          s"Failed to find configuration due to unexpected internal error"
+        )
 
         val configurationService = createConfigurationService(
           projectConfigurationRepository = ProjectConfigurationRepositoryTestImpl.withException(error)
         )
+
         configurationService.getLastByProjectId(projectId, userId).failed.map(_ shouldBe error)
       }
     }
@@ -146,7 +155,7 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers {
         configurationService
           .deactivateLastByProjectId(projectId, userId)
           .failed
-          .map(_ should have.message("There is no project to deactivate"))
+          .map(_ should have.message(s"There is no configuration with project_id: ${projectId.value}"))
       }
     }
 
@@ -186,21 +195,24 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers {
       "return error message for invalid file request" taggedAs Service in {
         val configurationService =
           createConfigurationService(womTool = WomToolTestImpl.withErrorMessages(List(errorMessage)))
-
+        val error = ProjectConfigurationService.Exceptions.ValidationError(errorMessage)
         configurationService
           .buildConfiguration(projectId, projectFile.path, optionVersion, userId)
           .failed
-          .map(_ shouldBe ValidationError(List(errorMessage)))
+          .map(_ shouldBe error)
       }
 
       "return error message for error request" taggedAs Service in {
         val configurationService = createConfigurationService(
           projectVersioning = ProjectVersioningTestImpl.withException(VersioningException.FileException("404"))
         )
+        val error =
+          ProjectConfigurationService.Exceptions.InternalError("Failed to get file due to unexpected internal error")
+
         configurationService
           .buildConfiguration(projectId, projectFile.path, optionVersion, userId)
           .failed
-          .map(_ shouldBe VersioningException.FileException("404"))
+          .map(_ shouldBe error)
       }
     }
   }

@@ -16,10 +16,10 @@ class ProjectConfigurationServiceTestImpl(projectConfigurations: Seq[ProjectConf
       case _                  => Future.unit
     }
 
-  override def getLastByProjectId(projectId: ProjectId, userId: UserId): Future[Option[ProjectConfiguration]] =
+  override def getLastByProjectId(projectId: ProjectId, userId: UserId): Future[ProjectConfiguration] =
     testMode match {
       case WithException(exc) => Future.failed(exc)
-      case _                  => Future.successful(projectConfigurations.headOption)
+      case _                  => Future.successful(projectConfigurations.head)
     }
 
   override def deactivateLastByProjectId(projectId: ProjectId, userId: UserId): Future[Unit] =
