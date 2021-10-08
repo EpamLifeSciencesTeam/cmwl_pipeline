@@ -39,7 +39,8 @@ final class CromwellPipelineRoute(applicationConfig: ApplicationConfig, controll
         projectFileController.route,
         runController.route,
         configurationController.route,
-        projectController.route
+        projectController.route,
+        projectSearchController.route
       )
     }
   }
