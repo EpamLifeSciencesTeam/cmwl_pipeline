@@ -18,4 +18,6 @@ class ControllerModule(serviceModule: ServiceModule, authConfig: AuthConfig)(
   lazy val projectFileController: ProjectFileController = new ProjectFileController(serviceModule.projectFileService)
   lazy val configurationController = new ProjectConfigurationController(serviceModule.configurationService)
   lazy val runController: RunController = new RunController(serviceModule.runService)
+  lazy val projectSearchController: ProjectSearchController =
+    new ProjectSearchController(serviceModule.projectSearchService)
 }

@@ -120,7 +120,7 @@ lazy val controllers =
     .settings(
       libraryDependencies ++= akkaDependencies ++ jsonDependencies :+ cats :+ akkaHttpCore :+ playJson
     )
-    .dependsOn(services, utils, model, repositories % "test->test")
+    .dependsOn(services % "compile->compile;test->test", utils, model, repositories % "test->test")
 
 lazy val womtool = (project in file("womtool"))
   .configs(IntegrationTest)

@@ -1,0 +1,41 @@
+{
+	"info": {
+		"_postman_id": "7232e7e3-e677-4348-9cac-129d5f705896",
+		"name": "ProjectSearch",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Search projects",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"filter\": {\n        \"type\": \"or\",\n        \"left\": {\n            \"type\": \"name\",\n            \"mode\": \"full_match\",\n            \"value\": \"Hello World\"\n        },\n        \"right\": {\n            \"type\": \"configurations\",\n            \"mode\": \"exists\",\n            \"value\": true\n        }\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/projects/search",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"projects/search"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

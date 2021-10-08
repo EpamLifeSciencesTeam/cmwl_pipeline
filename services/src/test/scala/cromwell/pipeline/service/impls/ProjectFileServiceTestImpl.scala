@@ -7,7 +7,8 @@ import cromwell.pipeline.service.{ ProjectFileService, VersioningException }
 import java.nio.file.Path
 import scala.concurrent.Future
 
-class ProjectFileServiceTestImpl(projectFiles: Seq[ProjectFile], testMode: TestMode) extends ProjectFileService {
+class ProjectFileServiceTestImpl(projectFileBundles: Map[ProjectId, Seq[ProjectFile]], testMode: TestMode)
+    extends ProjectFileService {
 
   override def validateFile(fileContent: ProjectFileContent): Future[Either[ValidationError, Unit]] =
     testMode match {
@@ -36,7 +37,11 @@ class ProjectFileServiceTestImpl(projectFiles: Seq[ProjectFile], testMode: TestM
   ): Future[ProjectFile] =
     testMode match {
       case WithException(exc) => Future.failed(exc)
-      case _                  => Future.successful(projectFiles.find(_.path == path).get)
+      case _ =>
+        projectFileBundles.get(projectId).flatMap(seq => seq.find(_.path == path)) match {
+          case Some(value) => Future.successful(value)
+          case None        => Future.failed(new RuntimeException("No correct test file bundle received"))
+        }
     }
 
   override def getFiles(
@@ -46,17 +51,16 @@ class ProjectFileServiceTestImpl(projectFiles: Seq[ProjectFile], testMode: TestM
   ): Future[List[ProjectFile]] =
     testMode match {
       case WithException(exc) => Future.failed(exc)
-      case _                  => Future.successful(projectFiles.toList)
+      case _                  => Future.successful(projectFileBundles.getOrElse(projectId, List.empty).toList)
     }
-
 }
 
 object ProjectFileServiceTestImpl {
 
-  def apply(projectFiles: ProjectFile*): ProjectFileServiceTestImpl =
-    new ProjectFileServiceTestImpl(projectFiles = projectFiles, testMode = Success)
+  def apply(projectFileBundles: (ProjectId, Seq[ProjectFile])*): ProjectFileServiceTestImpl =
+    new ProjectFileServiceTestImpl(projectFileBundles = projectFileBundles.toMap, testMode = Success)
 
   def withException(exception: Throwable): ProjectFileServiceTestImpl =
-    new ProjectFileServiceTestImpl(projectFiles = Seq.empty, testMode = WithException(exception))
+    new ProjectFileServiceTestImpl(projectFileBundles = Map.empty, testMode = WithException(exception))
 
 }
