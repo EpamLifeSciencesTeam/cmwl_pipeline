@@ -89,51 +89,39 @@ class ProjectFileController(wdlService: ProjectFileService)(
 
   private def uploadAllFiles(projectId: ProjectId)(implicit accessToken: AccessTokenContent): Route = post {
 
-    case class JobsResult(
-                           file: ProjectFile,
-                           validateResponse: Either[ValidationError, Unit],
-                           uploadResponse: Either[VersioningException, Unit]
+    case class JobsResult(projectFile: ProjectFile,
+                          validateResponse: Either[ValidationError, Unit],
+                          uploadResponse: Either[VersioningException, Unit]
                          )
 
-    def getJobsResult(file: ProjectFile,
+    def getJobsResult(projectId: ProjectId,
+                      projectFile: ProjectFile,
                       version: Option[PipelineVersion],
-                      projectId: ProjectId,
-                      userId: UserId): Route = {
-      onComplete {
-        for {
-          validateResponse <- wdlService.validateFile(file.content)
-          uploadResponse <- wdlService.uploadFile(
-            projectId,
-            file,
-            version,
-            accessToken.userId
-          )
-        } yield JobsResult(file, validateResponse, uploadResponse)
-      }
+                      accessToken: AccessTokenContent): Future[JobsResult] = {
+      for {
+        validateResponse <- wdlService.validateFile(projectFile.content)
+        uploadResponse <- wdlService.uploadFile(
+          projectId,
+          projectFile,
+          version,
+          accessToken.userId
+        )
+      } yield JobsResult(projectFile, validateResponse, uploadResponse)
     }
 
-      formFields('path.as[Path], 'version.as[PipelineVersion].optional) { (path, version) =>
-        fileUploadAll("file") { byteSources =>
-          val files: Future[Seq[ProjectFile]] = Future.sequence {
-            byteSources.map(
-              byteSource =>
-                byteSource._2
-                  .map(_.utf8String)
-                  .runFold("")(_ + _)
-                  .map(content => ProjectFile(path, ProjectFileContent(content)))
-            )
-          }
+    formFields('path.as[Path], 'version.as[PipelineVersion].optional) { (path, version) =>
 
-          val results: Future[Seq[Route]] = files.map(fileSeq => fileSeq.map(file => getJobsResult(file, version, projectId, userId)))
+      fileUploadAll("file") { byteSources =>
+        val sources: Future[Seq[String]] = Future.sequence(byteSources
+          .map(byteSource => byteSource._2
+            .map(_.utf8String).runFold("")(_ + _)))
 
+        val files = sources.map(sourceSequence => sourceSequence.map(source => ProjectFile(path, ProjectFileContent(source))))
 
-        }
+        val jobsResults = files.map(fileSequence => fileSequence.map(file => getJobsResult(projectId, file, version, accessToken)))
+
       }
     }
-
-
-
-
   }
 
   val route: AccessTokenContent => Route = implicit accessToken =>

@@ -66,7 +66,9 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)(impl
     project: Project,
     projectFiles: ProjectFiles,
     version: Option[PipelineVersion]
-  ): AsyncResult[PipelineVersion] = ???
+  ): AsyncResult[PipelineVersion] = {
+
+  }
 
   override def getFile(project: Project, path: Path, version: Option[PipelineVersion]): AsyncResult[ProjectFile] = {
     val filePath: String = URLEncoderUtils.encode(path.toString)

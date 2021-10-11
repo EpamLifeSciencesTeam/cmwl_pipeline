@@ -64,6 +64,13 @@ object ProjectFileService {
         }
       }
 
+    def uploadFiles(
+                    projectId: ProjectId,
+                    projectFiles: List[ProjectFile],
+                    version: Option[PipelineVersion],
+                    userId: UserId
+                  ) = ???
+
     def getFile(
       projectId: ProjectId,
       path: Path,
