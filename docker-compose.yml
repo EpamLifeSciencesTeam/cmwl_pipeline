@@ -65,4 +65,4 @@ services:
     volumes:
       - ./docker/gitlab/config:/etc/gitlab
       - ./docker/gitlab/logs:/var/log/gitlab
-      - ./docker/gitlab/data:/var/opt/gitlab
+      - ./docker/gitlab/data:/var/data/gitlab
