@@ -6,7 +6,7 @@ import cromwell.pipeline.model.wrapper.UserId
 import slick.lifted.MappedToBase.mappedToIsomorphism
 import slick.lifted.{ ForeignKeyQuery, ProvenShape }
 
-trait ProjectEntry { this: Profile with UserEntry with CustomsWithEnumSupport with AliasesSupport =>
+trait ProjectEntry { this: Profile with UserEntry with MyPostgresProfile with AliasesSupport =>
   import Implicits._
   import api._
 

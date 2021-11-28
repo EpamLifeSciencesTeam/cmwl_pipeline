@@ -1,14 +1,17 @@
 package cromwell.pipeline.datastorage.dto
 
-import com.github.tminglei.slickpg.PgEnumSupport
+import com.github.tminglei.slickpg.{ ExPostgresProfile, PgEnumSupport, PgPlayJsonSupport }
 import slick.basic.Capability
-import slick.jdbc.{ JdbcType, PostgresProfile }
+import slick.jdbc.JdbcType
 
-trait CustomsWithEnumSupport extends PostgresProfile with PgEnumSupport {
+trait MyPostgresProfile extends ExPostgresProfile with PgEnumSupport with PgPlayJsonSupport {
+
+  def pgjson = "jsonb"
+
   override protected def computeCapabilities: Set[Capability] =
     super.computeCapabilities + slick.jdbc.JdbcCapabilities.insertOrUpdate
-  override val api: API = new API {}
-  trait API extends super.API {
+  override val api = MyAPI
+  object MyAPI extends API with JsonImplicits {
     implicit val visibilityTypeMapper: JdbcType[Visibility] =
       createEnumJdbcType[Visibility]("visibility_type", Visibility.toString, Visibility.fromString, quoteName = false)
     implicit val visibilityTypeListMapper: JdbcType[List[Visibility]] =

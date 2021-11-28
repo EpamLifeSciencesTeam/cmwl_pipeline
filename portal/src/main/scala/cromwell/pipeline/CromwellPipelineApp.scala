@@ -6,6 +6,7 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{ RejectionHandler, ValidationRejection }
 import cromwell.pipeline.auth.token.MissingAccessTokenRejection
+import cromwell.pipeline.service.ProjectSearchFilterCleaner
 import cromwell.pipeline.utils.configs.ConfigJsonOps
 import org.slf4j.LoggerFactory
 
@@ -36,6 +37,15 @@ object CromwellPipelineApp extends App {
     pipelineDatabaseEngine.updateSchema()
   }
 
+  def startCleaningExpiredFilters(components: ApplicationComponents): Try[Unit] =
+    Try {
+      val filterConfig = components.applicationConfig.serviceConfig.filtersCleanup
+      val filterService = components.serviceModule.projectSearchFilterService
+
+      val expiredFilterCleaner = ProjectSearchFilterCleaner(filterService, filterConfig, system)
+      expiredFilterCleaner.scheduleFiltersCleanup()
+    }
+
   def startHttpServer(components: ApplicationComponents): Try[Unit] =
     Try {
       import components.applicationConfig
@@ -51,6 +61,8 @@ object CromwellPipelineApp extends App {
     applicationComponents <- initializeApplicationComponents
 
     _ <- updateDb(applicationComponents)
+
+    _ <- startCleaningExpiredFilters(applicationComponents)
 
     _ <- startHttpServer(applicationComponents)
 

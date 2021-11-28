@@ -99,14 +99,14 @@ lazy val repositories =
   (project in file("repositories"))
     .settings(
       Seq(parallelExecution in Test := false),
-      libraryDependencies ++= allTestDependencies ++ jsonDependencies ++ mongoDependencies :+ cats :+ slick :+ slickPg :+ slickPgCore :+ configHokon :+ playJson :+ catsKernel :+ playFunctional
+      libraryDependencies ++= allTestDependencies ++ jsonDependencies ++ mongoDependencies :+ cats :+ slick :+ slickPg :+ slickPgCore :+ slickPgPlayJson :+ configHokon :+ playJson :+ catsKernel :+ playFunctional
     )
     .configs(IntegrationTest)
     .dependsOn(datasource % "compile->compile;test->test", model, utils % "compile->compile;test->test")
 
 lazy val services =
   (project in file("services"))
-    .settings(libraryDependencies ++= jsonDependencies ++ mongoDependencies :+ cats :+ playJson)
+    .settings(libraryDependencies ++= jsonDependencies ++ mongoDependencies :+ cats :+ playJson :+ akkaActor)
     .dependsOn(
       repositories % "compile->compile;test->test",
       utils % "compile->compile;test->test",

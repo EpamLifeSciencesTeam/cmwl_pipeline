@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "7232e7e3-e677-4348-9cac-129d5f705896",
+		"_postman_id": "ef904f6e-2a2c-4f64-b509-c105b343601b",
 		"name": "ProjectSearch",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -31,7 +31,34 @@
 						"{{base_url}}"
 					],
 					"path": [
-						"projects/search"
+						"projects",
+						"search",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search by filter Id",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/projects/search/{{project_search_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"projects",
+						"search",
+						"{{project_search_id}}"
 					]
 				}
 			},

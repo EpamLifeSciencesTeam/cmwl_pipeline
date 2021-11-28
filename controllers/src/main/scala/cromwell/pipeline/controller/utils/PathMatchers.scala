@@ -11,4 +11,6 @@ object PathMatchers {
   val ProjectId: PathMatcher1[dto.ProjectId] = Segment.map(dto.ProjectId(_))
   val Path: PathMatcher1[Path] = Segment.map(Paths.get(_))
   val RunId: PathMatcher1[wrapper.RunId] = Segment.flatMap(wrapper.RunId.from(_).toOption)
+  val ProjectSearchFilterId: PathMatcher1[wrapper.ProjectSearchFilterId] =
+    Segment.flatMap(wrapper.ProjectSearchFilterId.from(_).toOption)
 }

@@ -7,7 +7,7 @@ import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.model.wrapper.{ RunId, UserId }
 import slick.lifted.{ ForeignKeyQuery, ProvenShape }
 
-trait RunEntry { this: Profile with UserEntry with ProjectEntry with CustomsWithEnumSupport with AliasesSupport =>
+trait RunEntry { this: Profile with UserEntry with ProjectEntry with MyPostgresProfile with AliasesSupport =>
   import Implicits._
   import api._
 

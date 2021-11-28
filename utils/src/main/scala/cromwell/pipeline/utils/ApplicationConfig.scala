@@ -4,6 +4,8 @@ import com.typesafe.config.{ Config, ConfigFactory }
 import pdi.jwt.JwtAlgorithm
 import pdi.jwt.algorithms.JwtHmacAlgorithm
 
+import java.time.Duration
+
 sealed trait ConfigComponent
 
 final case class WebServiceConfig(
@@ -43,9 +45,13 @@ final case class PostgreConfig(
   password: Array[Char]
 ) extends ConfigComponent
 
+final case class ServiceConfig(filtersCleanup: FiltersCleanupConfig) extends ConfigComponent
+
 final case class CorsConfig(allowedOrigins: Seq[String]) extends ConfigComponent
 
 final case class ExpirationTimeInSeconds(accessToken: Long, refreshToken: Long, userSession: Long)
+
+final case class FiltersCleanupConfig(timeToLive: Duration, interval: Duration) extends ConfigComponent
 
 class ApplicationConfig(val config: Config) {
 
@@ -119,6 +125,17 @@ class ApplicationConfig(val config: Config) {
     )
   }
 
+  lazy val serviceConfig: ServiceConfig = {
+    val _config = config.getConfig("service")
+    val filtersCleanup = _config.getConfig("filtersCleanup")
+    ServiceConfig(
+      filtersCleanup = FiltersCleanupConfig(
+        timeToLive = filtersCleanup.getDuration("timeToLive"),
+        interval = filtersCleanup.getDuration("interval")
+      )
+    )
+  }
+
 }
 
 object ApplicationConfig {
@@ -127,7 +144,15 @@ object ApplicationConfig {
 
   def unapply(
     config: ApplicationConfig
-  ): Option[(WebServiceConfig, AuthConfig, GitLabConfig, MongoConfig, PostgreConfig)] = Option(
-    (config.webServiceConfig, config.authConfig, config.gitLabConfig, config.mongoConfig, config.postgreConfig)
+  ): Option[(WebServiceConfig, AuthConfig, GitLabConfig, MongoConfig, PostgreConfig, ServiceConfig)] = Option(
+    (
+      config.webServiceConfig,
+      config.authConfig,
+      config.gitLabConfig,
+      config.mongoConfig,
+      config.postgreConfig,
+      config.serviceConfig
+    )
   )
+
 }
