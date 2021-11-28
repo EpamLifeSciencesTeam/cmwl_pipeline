@@ -26,9 +26,15 @@ class ServiceModule(
       womToolModule.womTool,
       projectVersioning
     )
-  lazy val projectSearchService: ProjectSearchService =
-    ProjectSearchService(projectService, projectFileService, configurationService)
   lazy val projectFileService: ProjectFileService =
     ProjectFileService(projectService, configurationService, womToolModule.womTool, projectVersioning)
   lazy val runService: RunService = RunService(datastorageModule.runRepository, projectService)
+  lazy val projectSearchFilterService: ProjectSearchFilterService = ProjectSearchFilterService(
+    datastorageModule.projectSearchFilterRepository
+  )
+  lazy val projectSearchEngine: ProjectSearchEngine =
+    ProjectSearchEngine(projectService, projectFileService, configurationService)
+  lazy val projectSearchService: ProjectSearchService =
+    ProjectSearchService(projectService, projectSearchFilterService, projectSearchEngine)
+
 }

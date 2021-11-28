@@ -6,6 +6,8 @@ import play.api.libs.functional.syntax.{ toFunctionalBuilderOps, unlift }
 import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json.{ Json, Writes, __ }
 
+import java.time.Duration
+
 trait ConfigJsonOps {
   def configToJsonString(applicationConfig: ApplicationConfig): String
 }
@@ -65,12 +67,22 @@ object ConfigJsonOps extends ConfigJsonOps {
         postgreConfig => unlift(PostgreConfig.unapply)(postgreConfig).copy(_5 = postgreConfig.password)
       )
 
+    implicit val filtersCleanupWrites: Writes[FiltersCleanupConfig] =
+      ((__ \ "timeToLive").write[Duration] ~
+        (__ \ "interval").write[Duration])(unlift(FiltersCleanupConfig.unapply))
+
+    implicit val serviceWrites: Writes[ServiceConfig] =
+      (__ \ "filtersCleanup")
+        .write[FiltersCleanupConfig](filtersCleanupWrites)
+        .contramap[ServiceConfig](_.filtersCleanup)
+
     implicit val appConfigWrites: Writes[ApplicationConfig] =
       ((__ \ "WebServiceConfig").write[WebServiceConfig] ~
         (__ \ "AuthConfig").write[AuthConfig] ~
         (__ \ "GitLabConfig").write[GitLabConfig] ~
         (__ \ "MongoConfig").write[MongoConfig] ~
-        (__ \ "PostgreConfig").write[PostgreConfig])(unlift(ApplicationConfig.unapply))
+        (__ \ "PostgreConfig").write[PostgreConfig] ~
+        (__ \ "ServiceConfig").write[ServiceConfig])(unlift(ApplicationConfig.unapply))
 
     val messageHeader: String = {
       val headerDelimiter = "-"

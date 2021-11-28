@@ -24,6 +24,12 @@ class ConfigJsonOpsTest extends WordSpec {
        |    userSession = 30
        |  }
        |}
+       |service {
+       |  filtersCleanup {
+       |    timeToLive = 7 days
+       |    interval = 1 day
+       |  }
+       |}
        |database {
        |  postgres_dc {
        |    profile = "dbProfile"
@@ -70,6 +76,12 @@ class ConfigJsonOpsTest extends WordSpec {
        |    accessToken = 10
        |    refreshToken = 20
        |    userSession = 30
+       |  }
+       |}
+       |service {
+       |  filtersCleanup {
+       |    timeToLive = 7 days
+       |    interval = 1 day
        |  }
        |}
        |database {
@@ -148,6 +160,12 @@ class ConfigJsonOpsTest extends WordSpec {
        |    "databaseName" : "postgre",
        |    "user" : "postgreUser",
        |    "password" : "*********"
+       |  },
+       |  "ServiceConfig" : {
+       |    "filtersCleanup" : {
+       |      "timeToLive" : "PT168H",
+       |      "interval" : "PT24H"
+       |    }
        |  }
        |}""".stripMargin
 
@@ -196,6 +214,12 @@ class ConfigJsonOpsTest extends WordSpec {
        |    "databaseName" : "postgre",
        |    "user" : "postgreUser",
        |    "password" : ""
+       |  },
+       |  "ServiceConfig" : {
+       |    "filtersCleanup" : {
+       |      "timeToLive" : "PT168H",
+       |      "interval" : "PT24H"
+       |    }
        |  }
        |}""".stripMargin
 

@@ -1,28 +1,31 @@
 package cromwell.pipeline.datastorage.dto
 
+import cromwell.pipeline.model.wrapper.ProjectSearchFilterId
 import cromwell.pipeline.utils.json.AdtJsonFormatter._
 import play.api.libs.functional.syntax.{ toFunctionalBuilderOps, toInvariantFunctorOps, unlift }
 import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json.{ Json, __, _ }
 
-sealed trait ProjectSearchFilter
-case object All extends ProjectSearchFilter
-final case class ByName(mode: NameSearchMode, value: String) extends ProjectSearchFilter
-final case class ByConfig(mode: ContentSearchMode, value: Boolean) extends ProjectSearchFilter
-final case class ByFiles(mode: ContentSearchMode, value: Boolean) extends ProjectSearchFilter
-final case class Or(left: ProjectSearchFilter, right: ProjectSearchFilter) extends ProjectSearchFilter
-final case class And(left: ProjectSearchFilter, right: ProjectSearchFilter) extends ProjectSearchFilter
+import java.time.Instant
 
-object ProjectSearchFilter {
+sealed trait ProjectSearchQuery extends Serializable
+case object All extends ProjectSearchQuery
+final case class ByName(mode: NameSearchMode, value: String) extends ProjectSearchQuery
+final case class ByConfig(mode: ContentSearchMode, value: Boolean) extends ProjectSearchQuery
+final case class ByFiles(mode: ContentSearchMode, value: Boolean) extends ProjectSearchQuery
+final case class Or(left: ProjectSearchQuery, right: ProjectSearchQuery) extends ProjectSearchQuery
+final case class And(left: ProjectSearchQuery, right: ProjectSearchQuery) extends ProjectSearchQuery
 
-  implicit val projectSearchFilterFormat: OFormat[ProjectSearchFilter] = {
+object ProjectSearchQuery {
+
+  implicit val projectSearchQueryFormat: OFormat[ProjectSearchQuery] = {
 
     implicit val allFormat: OFormat[All.type] = objectFormat(All)
     implicit val byNameFormat: OFormat[ByName] = Json.format
     implicit val byConfigFormat: OFormat[ByConfig] = Json.format
     implicit val byFilesFormat: OFormat[ByFiles] = Json.format
-    implicit val orFormat: OFormat[Or] = getComplexFilterFormat(Or, Or.unapply)
-    implicit val andFormat: OFormat[And] = getComplexFilterFormat(And, And.unapply)
+    implicit val orFormat: OFormat[Or] = getComplexQueryFormat(Or, Or.unapply)
+    implicit val andFormat: OFormat[And] = getComplexQueryFormat(And, And.unapply)
 
     adtFormat("type")(
       adtCase[All.type]("all"),
@@ -33,14 +36,14 @@ object ProjectSearchFilter {
       adtCase[And]("and")
     )
   }
-  private def getComplexFilterFormat[T](
-    apply: (ProjectSearchFilter, ProjectSearchFilter) => T,
-    unapply: T => Option[(ProjectSearchFilter, ProjectSearchFilter)]
+  private def getComplexQueryFormat[T](
+    apply: (ProjectSearchQuery, ProjectSearchQuery) => T,
+    unapply: T => Option[(ProjectSearchQuery, ProjectSearchQuery)]
   ): OFormat[T] = OFormat(
-    ((__ \ "left").lazyRead(projectSearchFilterFormat) ~
-      (__ \ "right").lazyRead(projectSearchFilterFormat))(apply),
-    ((__ \ "left").lazyWrite(projectSearchFilterFormat) ~
-      (__ \ "right").lazyWrite(projectSearchFilterFormat))(unlift(unapply))
+    ((__ \ "left").lazyRead(projectSearchQueryFormat) ~
+      (__ \ "right").lazyRead(projectSearchQueryFormat))(apply),
+    ((__ \ "left").lazyWrite(projectSearchQueryFormat) ~
+      (__ \ "right").lazyWrite(projectSearchQueryFormat))(unlift(unapply))
   )
 }
 
@@ -81,14 +84,16 @@ object ContentSearchMode {
   }
 }
 
-final case class ProjectSearchRequest(filter: ProjectSearchFilter)
+final case class ProjectSearchRequest(filter: ProjectSearchQuery)
 object ProjectSearchRequest {
-  implicit lazy val projectSearchAdditionRequestFormat: OFormat[ProjectSearchRequest] =
+  implicit lazy val projectSearchRequestFormat: OFormat[ProjectSearchRequest] =
     Json.format[ProjectSearchRequest]
 }
 
-final case class ProjectSearchResponse(data: Seq[Project])
+final case class ProjectSearchResponse(id: ProjectSearchFilterId, data: Seq[Project])
 object ProjectSearchResponse {
   implicit lazy val projectSearchResponseFormat: OFormat[ProjectSearchResponse] =
     Json.format[ProjectSearchResponse]
 }
+
+final case class ProjectSearchFilter(id: ProjectSearchFilterId, query: ProjectSearchQuery, lastUsedAt: Instant)

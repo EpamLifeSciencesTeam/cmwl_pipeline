@@ -1,19 +1,15 @@
 package cromwell.pipeline.datastorage
 
 import cromwell.pipeline.database.{ MongoEngine, PipelineDatabaseEngine }
-import cromwell.pipeline.datastorage.dao.entry.{ AliasesSupport, ProjectEntry, RunEntry, UserEntry }
+import cromwell.pipeline.datastorage.dao.entry._
 import cromwell.pipeline.datastorage.dao.mongo.DocumentRepository
-import cromwell.pipeline.datastorage.dao.repository.{
-  ProjectConfigurationRepository,
-  ProjectRepository,
-  RunRepository,
-  UserRepository
-}
-import cromwell.pipeline.datastorage.dto.{ CustomsWithEnumSupport, PipelineVersion }
+import cromwell.pipeline.datastorage.dao.repository._
+import cromwell.pipeline.datastorage.dto.{ MyPostgresProfile, PipelineVersion, ProjectSearchQuery }
 import cromwell.pipeline.model.validator.{ Enable, Wrapped }
-import cromwell.pipeline.model.wrapper.{ Name, RunId, UserEmail, UserId }
+import cromwell.pipeline.model.wrapper._
 import cromwell.pipeline.utils.ApplicationConfig
 import org.mongodb.scala.{ Document, MongoCollection }
+import play.api.libs.json.{ JsValue, Json }
 import slick.jdbc.JdbcProfile
 import slick.lifted.{ Isomorphism, Rep, StringColumnExtensionMethods }
 
@@ -36,6 +32,8 @@ class DatastorageModule(applicationConfig: ApplicationConfig)(implicit execution
     RunRepository(pipelineDatabaseEngine, databaseLayer)
   lazy val configurationRepository: ProjectConfigurationRepository =
     ProjectConfigurationRepository(documentRepository)
+  lazy val projectSearchFilterRepository: ProjectSearchFilterRepository =
+    ProjectSearchFilterRepository(pipelineDatabaseEngine, databaseLayer)
 }
 
 trait Profile {
@@ -46,6 +44,13 @@ trait Profile {
 
     implicit def uuidIso: Isomorphism[UserId, String] = iso[UserId, String](_.unwrap, UserId(_, Enable.Unsafe))
     implicit def runidIso: Isomorphism[RunId, String] = iso[RunId, String](_.unwrap, RunId(_, Enable.Unsafe))
+    implicit def filteridIso: Isomorphism[ProjectSearchFilterId, String] =
+      iso[ProjectSearchFilterId, String](_.unwrap, ProjectSearchFilterId(_, Enable.Unsafe))
+    implicit def searchQueryIso: Isomorphism[ProjectSearchQuery, JsValue] =
+      iso[ProjectSearchQuery, JsValue](
+        query => Json.toJson(query),
+        json => json.as[ProjectSearchQuery]
+      )
     implicit def emailIso: Isomorphism[UserEmail, String] =
       iso[UserEmail, String](_.unwrap, UserEmail(_, Enable.Unsafe))
     implicit def nameIso: Isomorphism[Name, String] = iso[Name, String](_.unwrap, Name(_, Enable.Unsafe))
@@ -65,5 +70,6 @@ class DatabaseLayer(override val profile: JdbcProfile)
     with AliasesSupport
     with UserEntry
     with ProjectEntry
-    with CustomsWithEnumSupport
+    with MyPostgresProfile
     with RunEntry
+    with ProjectSearchFilterEntry

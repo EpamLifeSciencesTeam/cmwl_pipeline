@@ -111,4 +111,14 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="create_project_search_filter_table" author="nikolai_isaev">
+        <createTable tableName="project_search_filter">
+            <column name="filter_id" type="${uuid.type}"/>
+            <column name="query" type="${json.type}"/>
+            <column name="last_used_at" type="${timestamp.type}"/>
+        </createTable>
+        <addPrimaryKey constraintName="filter_pk" tableName="project_search_filter"
+                       columnNames="filter_id"/>
+    </changeSet>
+
 </databaseChangeLog>
