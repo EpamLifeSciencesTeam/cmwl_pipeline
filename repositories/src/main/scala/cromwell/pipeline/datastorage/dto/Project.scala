@@ -128,6 +128,11 @@ object PipelineVersion {
   implicit val pipelineVersionFormat: Format[PipelineVersion] =
     implicitly[Format[String]].inmap(PipelineVersion.apply, _.name)
 }
+final case class GLFileCommitInfo(id: Commit, message: PipelineVersion)
+object GLFileCommitInfo {
+  implicit val versionFromCommitFormat: OFormat[GLFileCommitInfo] =
+    Json.format[GLFileCommitInfo]
+}
 
 final case class Commit(id: String)
 object Commit {

@@ -118,36 +118,11 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)(impl
   override def getProjectVersions(project: Project): AsyncResult[List[PipelineVersion]] =
     getGitLabProjectVersions(project).map(_.map(_.map(_.name))) // nice
 
-  override def getFileVersions(project: Project, path: Path): AsyncResult[List[PipelineVersion]] = {
-    val projectVersionsF = getGitLabProjectVersions(project)
-    val fileCommitsF = getFileCommits(project, path)
-    for {
-      projectVersions <- projectVersionsF
-      fileCommits <- fileCommitsF
-    } yield {
-      (projectVersions, fileCommits) match {
-        case (Right(tagsProject), Right(tagsFiles)) =>
-          Right(for {
-            tagProject <- tagsProject
-            tagFile <- tagsFiles
-            if tagFile.id == tagProject.commit.id
-          } yield tagProject.name)
-        case (_, Left(exception)) => Left(FileException(exception.getMessage))
-        case (Left(exception), _) => Left(FileException(exception.getMessage))
-      }
-    }
-  }
+  override def getFileVersions(project: Project, path: Path): AsyncResult[List[PipelineVersion]] =
+    getFileCommitsInfo(project, path).map(_.map(_.map(_.message)))
 
-  override def getFileCommits(project: Project, path: Path): AsyncResult[List[Commit]] = {
-    val urlEncoder = URLEncoderUtils.encode(path.toString)
-    val commitsUrl: String =
-      s"${config.url}projects/${project.repositoryId.value}/repository/files/$urlEncoder"
-    httpClient.get[List[FileCommit]](url = commitsUrl, headers = config.token).map {
-      case Response(_, SuccessResponseBody(commitsSeq), _) => Right(commitsSeq.map(fc => Commit(fc.commitId)))
-      case Response(_, FailureResponseBody(error), _) =>
-        Left(FileException(s"Could not take the file commits. ResponseBody: $error"))
-    }
-  }
+  override def getFileCommits(project: Project, path: Path): AsyncResult[List[Commit]] =
+    getFileCommitsInfo(project, path).map(_.map(_.map(_.id)))
 
   private def getGitLabProjectVersions(project: Project): AsyncResult[List[GitLabVersion]] = {
     val versionsListUrl: String = s"${config.url}projects/${project.repositoryId.value}/repository/tags"
@@ -159,6 +134,18 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)(impl
           Left(ProjectException(s"Could not take versions. ResponseBody: $error"))
       }
       .recover { case e: Throwable => Left(HttpException("recover " + e.getMessage)) }
+  }
+
+  private def getFileCommitsInfo(project: Project, path: Path): AsyncResult[List[GLFileCommitInfo]] = {
+    val urlEncoder = URLEncoderUtils.encode(path.toString)
+    val pathParam = Map("path" -> urlEncoder)
+    val commitsUrl: String =
+      s"${config.url}projects/${project.repositoryId.value}/repository/commits"
+    httpClient.get[List[GLFileCommitInfo]](url = commitsUrl, params = pathParam, headers = config.token).map {
+      case Response(_, SuccessResponseBody(commitsSeq), _) => Right(commitsSeq)
+      case Response(_, FailureResponseBody(error), _) =>
+        Left(FileException(s"Could not take the file commit info. ResponseBody: $error"))
+    }
   }
 
   private def handleCreateTag(repositoryId: RepositoryId, version: PipelineVersion): AsyncResult[PipelineVersion] =
