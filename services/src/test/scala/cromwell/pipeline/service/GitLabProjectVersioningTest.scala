@@ -424,32 +424,26 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
     }
 
     "getFileVersions" should {
-      val dummyCommitJson = List(dummyFileCommit, dummyExistingFileCommit)
-      val dummyVersionsJson = dummyGitLabVersion
       val path: Path = Paths.get("tmp/foo.txt")
       val urlEncoder = URLEncoderUtils.encode(path.toString)
-      def projectVersionRequest(project: Project): Future[Response[Seq[GitLabVersion]]] =
-        mockHttpClient.get[Seq[GitLabVersion]](
-          url = exact(s"${gitLabConfig.url}projects/${project.repositoryId.value}/repository/tags"),
-          params = any[Map[String, String]],
-          headers = exact(gitLabConfig.token)
-        )(ec = any[ExecutionContext], f = any[Reads[Seq[GitLabVersion]]])
+      val fileCommitInfo = GLFileCommitInfo(dummyGitLabVersion.commit, dummyGitLabVersion.name)
 
-      def fileCommitsRequest(project: Project): Future[Response[List[FileCommit]]] =
-        mockHttpClient.get[List[FileCommit]](
-          url = exact(s"${gitLabConfig.url}projects/${project.repositoryId.value}/repository/files/$urlEncoder"),
-          params = any[Map[String, String]],
+      def getFileVersions(project: Project): Future[Response[Seq[GLFileCommitInfo]]] =
+        mockHttpClient.get[Seq[GLFileCommitInfo]](
+          url = exact(s"${gitLabConfig.url}projects/${project.repositoryId.value}/repository/commits"),
+          params = exact(Map("path" -> urlEncoder)),
           headers = exact(gitLabConfig.token)
-        )(ec = any[ExecutionContext], f = any[Reads[List[FileCommit]]])
+        )(ec = any[ExecutionContext], f = any[Reads[Seq[GLFileCommitInfo]]])
 
       "return list of Project versions with 200 response" taggedAs Service in {
-        when(projectVersionRequest(projectWithRepo)).thenReturn {
+        when(getFileVersions(projectWithRepo)).thenReturn {
           Future.successful {
-            Response[Seq[GitLabVersion]](HttpStatusCodes.OK, SuccessResponseBody(Seq(dummyVersionsJson)), Map())
+            Response[Seq[GLFileCommitInfo]](
+              HttpStatusCodes.OK,
+              SuccessResponseBody(List(fileCommitInfo)),
+              Map()
+            )
           }
-        }
-        when(fileCommitsRequest(projectWithRepo)).thenReturn {
-          Future.successful(Response[List[FileCommit]](HttpStatusCodes.OK, SuccessResponseBody(dummyCommitJson), Map()))
         }
         gitLabProjectVersioning.getFileVersions(projectWithRepo, path).map {
           _ shouldBe Right(Seq(dummyGitLabVersion.name))
@@ -457,54 +451,57 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
       }
 
       "throw new VersioningException" taggedAs Service in {
-        val errorText = ""
-        when(projectVersionRequest(projectWithRepo)).thenReturn {
+        val activeProject: Project = TestProjectUtils.getDummyProject()
+        when(getFileVersions(activeProject)).thenReturn {
           Future.successful {
-            Response[Seq[GitLabVersion]](HttpStatusCodes.BadRequest, FailureResponseBody(errorText), Map())
+            Response[Seq[GLFileCommitInfo]](
+              HttpStatusCodes.BadRequest,
+              FailureResponseBody("Response status: 400"),
+              EmptyHeaders
+            )
           }
         }
-        when(fileCommitsRequest(projectWithRepo)).thenReturn {
-          Future.successful {
-            Response[List[FileCommit]](HttpStatusCodes.BadRequest, FailureResponseBody("Response status: 400"), Map())
-          }
-        }
-        gitLabProjectVersioning.getFileCommits(projectWithRepo, path).map {
+        gitLabProjectVersioning.getFileVersions(activeProject, path).map {
           _ shouldBe Left {
-            VersioningException.FileException("Could not take the file commits. ResponseBody: Response status: 400")
+            VersioningException.FileException("Could not take the file commit info. ResponseBody: Response status: 400")
           }
         }
       }
     }
 
     "getFileCommits" should {
-      val dummyCommitList = List(dummyFileCommit)
       val path: Path = Paths.get("tmp/foo.txt")
       val urlEncoder = URLEncoderUtils.encode(path.toString)
-      def getFileCommits(project: Project): Future[Response[List[FileCommit]]] =
-        mockHttpClient.get[List[FileCommit]](
-          url = exact(s"${gitLabConfig.url}projects/${project.repositoryId.value}/repository/files/$urlEncoder"),
-          params = any[Map[String, String]],
+      val fileCommitInfo = GLFileCommitInfo(dummyGitLabVersion.commit, dummyGitLabVersion.name)
+      def getFileCommits(project: Project): Future[Response[List[GLFileCommitInfo]]] =
+        mockHttpClient.get[List[GLFileCommitInfo]](
+          url = exact(s"${gitLabConfig.url}projects/${project.repositoryId.value}/repository/commits"),
+          params = exact(Map("path" -> urlEncoder)),
           headers = exact(gitLabConfig.token)
-        )(ec = any[ExecutionContext], f = any[Reads[List[FileCommit]]])
+        )(ec = any[ExecutionContext], f = any[Reads[List[GLFileCommitInfo]]])
 
       "return list of file commits with 200 response" taggedAs Service in {
         when(getFileCommits(projectWithRepo)).thenReturn {
-          Future.successful(Response(HttpStatusCodes.OK, SuccessResponseBody(dummyCommitList), Map()))
+          Future.successful(Response(HttpStatusCodes.OK, SuccessResponseBody(List(fileCommitInfo)), Map()))
         }
         gitLabProjectVersioning.getFileCommits(projectWithRepo, path).map {
-          _ shouldBe Right(Seq(dummyCommit))
+          _ shouldBe Right(Seq(dummyGitLabVersion.commit))
         }
       }
 
       "throw new VersioningException with 400 response" taggedAs Service in {
         when(getFileCommits(projectWithRepo)).thenReturn {
           Future.successful {
-            Response[List[FileCommit]](HttpStatusCodes.BadRequest, FailureResponseBody("Response status: 400"), Map())
+            Response[List[GLFileCommitInfo]](
+              HttpStatusCodes.BadRequest,
+              FailureResponseBody("Response status: 400"),
+              Map()
+            )
           }
         }
         gitLabProjectVersioning.getFileCommits(projectWithRepo, path).map {
           _ shouldBe Left(
-            VersioningException.FileException("Could not take the file commits. ResponseBody: Response status: 400")
+            VersioningException.FileException("Could not take the file commit info. ResponseBody: Response status: 400")
           )
         }
       }
