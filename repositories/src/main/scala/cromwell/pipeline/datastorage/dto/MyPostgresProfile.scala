@@ -6,11 +6,11 @@ import slick.jdbc.JdbcType
 
 trait MyPostgresProfile extends ExPostgresProfile with PgEnumSupport with PgPlayJsonSupport {
 
-  def pgjson = "jsonb"
+  def pgjson: String = "jsonb"
 
   override protected def computeCapabilities: Set[Capability] =
     super.computeCapabilities + slick.jdbc.JdbcCapabilities.insertOrUpdate
-  override val api = MyAPI
+  override val api: MyPostgresProfile.this.MyAPI.type = MyAPI
   object MyAPI extends API with JsonImplicits {
     implicit val visibilityTypeMapper: JdbcType[Visibility] =
       createEnumJdbcType[Visibility]("visibility_type", Visibility.toString, Visibility.fromString, quoteName = false)

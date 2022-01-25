@@ -13,6 +13,7 @@ ThisBuild / useCoursier := false
 
 lazy val formatAll = taskKey[Unit]("Format all the source code which includes src, test, and build files")
 lazy val checkFormat = taskKey[Unit]("Check all the source code which includes src, test, and build files")
+lazy val checkScalastyle = taskKey[Unit]("checkScalastyle")
 
 lazy val commonSettings = Seq(
   formatAll := {
@@ -23,14 +24,20 @@ lazy val commonSettings = Seq(
     (scalafmtCheck in Compile).value
     (scalafmtCheck in Test).value
   },
-  compile in Compile := (compile in Compile).dependsOn(checkFormat).value,
-  test in Test := (test in Test).dependsOn(checkFormat).value,
+  checkScalastyle := {
+    (scalastyle in Compile).inputTaskValue
+    (scalastyle in Test).inputTaskValue
+  },
+  compile in Compile := (compile in Compile).dependsOn(checkFormat, checkScalastyle).value,
+  test in Test := (test in Test).dependsOn(checkFormat, checkScalastyle).value,
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports"),
   coverageEnabled in Test := true,
   coverageMinimum := 50,
   coverageFailOnMinimum := true,
   coverageExcludedPackages :=
-    "cromwell\\.pipeline; cromwell\\.pipeline\\.database.*"
+    "cromwell\\.pipeline; cromwell\\.pipeline\\.database.*",
+  scalastyleFailOnError := true,
+  scalastyleFailOnWarning := true
 )
 
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")
@@ -90,7 +97,7 @@ lazy val utils =
   (project in file("utils"))
     .configs(IntegrationTest)
     .settings(
-      libraryDependencies ++= (jsonDependencies ++ testContainers ++ coreTestDependencies ++ dbDependencies ++ akkaDependencies) :+ configHokon :+ cats :+ playFunctional :+ pegdown,
+      libraryDependencies ++= jsonDependencies ++ testContainers ++ coreTestDependencies ++ dbDependencies ++ akkaDependencies :+ configHokon :+ cats :+ playFunctional :+ pegdown,
       commonSettings
     )
     .dependsOn(model)
@@ -99,14 +106,18 @@ lazy val repositories =
   (project in file("repositories"))
     .settings(
       Seq(parallelExecution in Test := false),
-      libraryDependencies ++= allTestDependencies ++ jsonDependencies ++ mongoDependencies :+ cats :+ slick :+ slickPg :+ slickPgCore :+ slickPgPlayJson :+ configHokon :+ playJson :+ catsKernel :+ playFunctional
+      libraryDependencies ++= allTestDependencies ++ jsonDependencies ++ mongoDependencies :+ cats :+ slick :+ slickPg :+ slickPgCore :+ slickPgPlayJson :+ configHokon :+ playJson :+ catsKernel :+ playFunctional,
+      commonSettings
     )
     .configs(IntegrationTest)
     .dependsOn(datasource % "compile->compile;test->test", model, utils % "compile->compile;test->test")
 
 lazy val services =
   (project in file("services"))
-    .settings(libraryDependencies ++= jsonDependencies ++ mongoDependencies :+ cats :+ playJson :+ akkaActor)
+    .settings(
+      libraryDependencies ++= jsonDependencies ++ mongoDependencies :+ cats :+ playJson :+ akkaActor,
+      commonSettings
+    )
     .dependsOn(
       repositories % "compile->compile;test->test",
       utils % "compile->compile;test->test",
@@ -118,7 +129,8 @@ lazy val services =
 lazy val controllers =
   (project in file("controllers"))
     .settings(
-      libraryDependencies ++= akkaDependencies ++ jsonDependencies :+ cats :+ akkaHttpCore :+ playJson
+      libraryDependencies ++= akkaDependencies ++ jsonDependencies :+ cats :+ akkaHttpCore :+ playJson,
+      commonSettings
     )
     .dependsOn(services % "compile->compile;test->test", utils, model, repositories % "test->test")
 
@@ -133,4 +145,5 @@ lazy val womtool = (project in file("womtool"))
   .dependsOn(repositories)
 
 lazy val model =
-  (project in file("model")).settings(libraryDependencies ++= jsonDependencies ++ dbDependencies :+ cats)
+  (project in file("model"))
+    .settings(libraryDependencies ++= jsonDependencies ++ dbDependencies :+ cats, commonSettings)

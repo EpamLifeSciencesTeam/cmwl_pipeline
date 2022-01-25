@@ -15,15 +15,18 @@ trait ProjectSearchFilterEntry { this: Profile with MyPostgresProfile with Alias
     def filterId: Rep[ProjectSearchFilterId] = column[ProjectSearchFilterId]("filter_id", O.PrimaryKey)
     def query: Rep[ProjectSearchQuery] = column[ProjectSearchQuery]("query")
     def lastUsedAt: Rep[Instant] = column[Instant]("last_used_at")
+    // scalastyle:off method.name
     override def * : ProvenShape[ProjectSearchFilter] =
       (filterId, query, lastUsedAt) <> ((ProjectSearchFilter.apply _).tupled, ProjectSearchFilter.unapply)
+    // scalastyle:on method.name
   }
 
   val projectFilters = TableQuery[ProjectSearchFilterTable]
-
+  // scalastyle:off public.methods.have.type
   def getFilterById = Compiled { filterId: Rep[ProjectSearchFilterId] =>
     projectFilters.filter(_.filterId === filterId).take(1)
   }
+  // scalastyle:on public.methods.have.type
 
   def addFilter(projectSearchFilter: ProjectSearchFilter): ActionResult[ProjectSearchFilterId] =
     projectFilters.returning(projectFilters.map(_.filterId)) += projectSearchFilter

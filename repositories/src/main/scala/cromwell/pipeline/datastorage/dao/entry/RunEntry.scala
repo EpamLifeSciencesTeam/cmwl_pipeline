@@ -12,9 +12,11 @@ trait RunEntry { this: Profile with UserEntry with ProjectEntry with MyPostgresP
   import api._
 
   class RunTable(tag: Tag) extends Table[Run](tag, "run") {
+    // scalastyle:off method.name
     def * : ProvenShape[Run] =
       (runId, projectId, projectVersion, status, timeStart, timeEnd, userId, results, cmwlWorkflowId) <>
         ((Run.apply _).tupled, Run.unapply)
+    // scalastyle:on method.name
 
     def runId: Rep[RunId] = column[RunId]("run_id", O.PrimaryKey)
     def projectVersion: Rep[String] = column[String]("project_version")

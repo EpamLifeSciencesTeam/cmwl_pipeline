@@ -8,7 +8,7 @@ import play.api.libs.json.JsonNaming.SnakeCase
 import play.api.libs.json._
 import java.nio.file.{ Path, Paths }
 import slick.lifted.MappedTo
-
+// scalastyle:off number.of.types
 final case class Project(
   projectId: ProjectId,
   ownerId: UserId,
@@ -196,7 +196,7 @@ object Visibility {
     case Public   => "public"
   }
 
-  def values = Seq(Private, Internal, Public)
+  def values: Seq[Visibility] = Seq(Private, Internal, Public)
 }
 
 final case class ValidateFileContentRequest(content: ProjectFileContent)

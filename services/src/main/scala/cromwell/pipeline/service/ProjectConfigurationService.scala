@@ -48,6 +48,7 @@ object ProjectConfigurationService {
         extends ProjectConfigurationServiceException(message)
   }
 
+  // scalastyle:off method.length
   def apply(
     repository: ProjectConfigurationRepository,
     projectService: ProjectService,
@@ -151,4 +152,5 @@ object ProjectConfigurationService {
           case e: ProjectService.Exceptions.InternalError => Future.failed(InternalError(e.getMessage))
         }
     }
+  // scalastyle:on method.length
 }
