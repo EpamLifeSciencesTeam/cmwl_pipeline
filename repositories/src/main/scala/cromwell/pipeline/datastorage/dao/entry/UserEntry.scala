@@ -20,13 +20,16 @@ trait UserEntry {
     def lastName: Rep[Name] = column[Name]("last_name")
     def profilePicture: Rep[ProfilePicture] = column[ProfilePicture]("profile_picture")
     def active: Rep[Boolean] = column[Boolean]("active")
+    // scalastyle:off method.name
     def * : ProvenShape[UserWithCredentials] =
       (userId, email, passwordHash, passwordSalt, firstName, lastName, profilePicture.?, active) <>
         ((UserWithCredentials.apply _).tupled, UserWithCredentials.unapply)
+    // scalastyle:on method.name
   }
 
   val users = TableQuery[UserTable]
 
+  // scalastyle:off public.methods.have.type
   def getUserByIdAction = Compiled { userId: Rep[UserId] =>
     users.filter(_.userId === userId).take(1)
   }
@@ -37,6 +40,7 @@ trait UserEntry {
 
   def getUsersByEmailAction(emailPattern: String) =
     users.filter(_.email.like(emailPattern)).result
+  // scalastyle:on public.methods.have.type
 
   def addUserAction(user: UserWithCredentials): ActionResult[UserId] = users.returning(users.map(_.userId)) += user
 

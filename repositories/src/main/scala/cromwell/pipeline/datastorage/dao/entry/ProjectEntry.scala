@@ -18,15 +18,18 @@ trait ProjectEntry { this: Profile with UserEntry with MyPostgresProfile with Al
     def repositoryId: Rep[RepositoryId] = column[RepositoryId]("repository_id")
     def visibility: Rep[Visibility] = column[Visibility]("visibility")
     def version: Rep[PipelineVersion] = column[PipelineVersion]("version")
+    // scalastyle:off method.name
     def * : ProvenShape[Project] =
       (projectId, ownerId, name, active, repositoryId, version, visibility) <>
         ((Project.apply _).tupled, Project.unapply)
+    // scalastyle:on method.name
 
     def user: ForeignKeyQuery[UserTable, UserWithCredentials] = foreignKey("fk_project_user", ownerId, users)(_.userId)
   }
 
   val projects = TableQuery[ProjectTable]
 
+  // scalastyle:off public.methods.have.type
   def getProjectsByOwnerIdAction = Compiled { userId: Rep[UserId] =>
     projects.filter(_.ownerId === userId)
   }
@@ -38,6 +41,7 @@ trait ProjectEntry { this: Profile with UserEntry with MyPostgresProfile with Al
   def getProjectsByNameAction = Compiled { name: Rep[String] =>
     projects.filter(_.name === name)
   }
+  // scalastyle:on public.methods.have.type
 
   def addProjectAction(project: Project): ActionResult[ProjectId] =
     projects.returning(projects.map(_.projectId)) += project

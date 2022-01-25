@@ -12,7 +12,6 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class DocumentRepository(collection: MongoCollection[Document])(implicit ec: ExecutionContext) {
 
-  //noinspection ScalaStyle
   private[mongo] def checkAcknowledgement(updateResult: UpdateResult): Future[Unit] =
     if (updateResult.wasAcknowledged) Future.unit
     else Future.failed(new IllegalStateException(updateFailedMsg))

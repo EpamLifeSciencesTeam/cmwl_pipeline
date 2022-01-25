@@ -43,7 +43,7 @@ object Status {
     case Created   => "created"
   }
 
-  def values = Seq(Submitted, Done, Created)
+  def values: Seq[Status] = Seq(Submitted, Done, Created)
 }
 
 final case class RunCreateRequest(
