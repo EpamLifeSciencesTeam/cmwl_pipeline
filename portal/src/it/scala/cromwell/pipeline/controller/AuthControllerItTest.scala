@@ -13,10 +13,9 @@ import cromwell.pipeline.datastorage.dto.UserWithCredentials
 import cromwell.pipeline.service.AuthService
 import cromwell.pipeline.utils.TestContainersUtils
 import org.scalatest.compatible.Assertion
-import org.scalatest.concurrent.ScalaFutures._
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.{ Matchers, AsyncWordSpec }
 
-class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTest with ForAllTestContainer {
+class AuthControllerItTest extends AsyncWordSpec with Matchers with ScalatestRouteTest with ForAllTestContainer {
 
   override val container: PostgreSQLContainer = TestContainersUtils.getPostgreSQLContainer()
   private implicit lazy val config: Config = TestContainersUtils.getConfigForPgContainer(container)
@@ -36,10 +35,10 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
 
       "return token headers if user exists" in {
         val dummyUser: UserWithCredentials = TestUserUtils.getDummyUserWithCredentials()
-        whenReady(userRepository.addUser(dummyUser)) { _ =>
-          val signInRequestStr =
-            s"""{"email":"${dummyUser.email}","password":"${userPassword}"}"""
-          val httpEntity = HttpEntity(`application/json`, signInRequestStr)
+        val signInRequestStr =
+          s"""{"email":"${dummyUser.email}","password":"${userPassword}"}"""
+        val httpEntity = HttpEntity(`application/json`, signInRequestStr)
+        userRepository.addUser(dummyUser).map { _ =>
           Post("/auth/signIn", httpEntity) ~> authController.route ~> check {
             status shouldBe StatusCodes.OK
             checkAuthTokens
@@ -49,10 +48,10 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
 
       "return status Forbidden if user is inactive" in {
         val dummyUser: UserWithCredentials = TestUserUtils.getDummyUserWithCredentials(active = false)
-        whenReady(userRepository.addUser(dummyUser)) { _ =>
-          val signInRequestStr =
-            s"""{"email":"${dummyUser.email}","password":"${userPassword}"}"""
-          val httpEntity = HttpEntity(`application/json`, signInRequestStr)
+        val signInRequestStr =
+          s"""{"email":"${dummyUser.email}","password":"${userPassword}"}"""
+        val httpEntity = HttpEntity(`application/json`, signInRequestStr)
+        userRepository.addUser(dummyUser).map { _ =>
           Post("/auth/signIn", httpEntity) ~> authController.route ~> check {
             status shouldBe StatusCodes.Forbidden
             responseAs[String] shouldEqual "User is not active"
@@ -63,10 +62,12 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
       "return status Unauthorized if password is incorrect" in {
         val dummyUser: UserWithCredentials = TestUserUtils.getDummyUserWithCredentials(active = false)
         val incorrectPassword = dummyUser.email + "x"
-        whenReady(userRepository.addUser(dummyUser)) { _ =>
-          val signInRequestStr =
-            s"""{"email":"${dummyUser.email}","password":"${incorrectPassword}"}"""
-          val httpEntity = HttpEntity(`application/json`, signInRequestStr)
+
+        val signInRequestStr =
+          s"""{"email":"${dummyUser.email}","password":"${incorrectPassword}"}"""
+        val httpEntity = HttpEntity(`application/json`, signInRequestStr)
+
+        userRepository.addUser(dummyUser).map { _ =>
           Post("/auth/signIn", httpEntity) ~> authController.route ~> check {
             status shouldBe StatusCodes.Unauthorized
             responseAs[String] shouldEqual AuthService.authorizationFailure
@@ -93,10 +94,10 @@ class AuthControllerItTest extends WordSpec with Matchers with ScalatestRouteTes
 
       "return updated token headers if refresh token was valid and active" in {
         val dummyUser: UserWithCredentials = TestUserUtils.getDummyUserWithCredentials()
-        whenReady(userRepository.addUser(dummyUser)) { _ =>
-          val signInRequestStr =
-            s"""{"email":"${dummyUser.email}","password":"${userPassword}"}"""
-          val httpEntity = HttpEntity(`application/json`, signInRequestStr)
+        val signInRequestStr =
+          s"""{"email":"${dummyUser.email}","password":"${userPassword}"}"""
+        val httpEntity = HttpEntity(`application/json`, signInRequestStr)
+       userRepository.addUser(dummyUser).map { _ =>
           Post("/auth/signIn", httpEntity) ~> authController.route ~> check {
             header(RefreshTokenHeader).map { refreshTokenHeader =>
               Get(s"/auth/refresh?refreshToken=${refreshTokenHeader.value}") ~> authController.route ~> check {
