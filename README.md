@@ -127,6 +127,9 @@ Run the next commands
 - If you want to run IntelliJ, just comment out Pipeline in docker-compose and provide correct env variables to IntelliJ 
 run configuration.
 - Other elements could be removed from docker-compose in a similar fashion
+- If you are experiencing a problem with logging in into gitlab(password issue), you should uncomment line 58 in 
+docker-compose.yml file, delete all volumes and docker images + containers, and run `docker-compose up` again.
+After everything is up and running, try logging in with `root` as login name and `initial_root_password`.
 
 ## File upload process in Cromwell Pipeline
 ### Step 1: WDL file validation

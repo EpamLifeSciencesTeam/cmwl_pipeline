@@ -86,11 +86,23 @@ class ProjectFileController(wdlService: ProjectFileService)(
     }
   }
 
+  private def deleteFile(projectId: ProjectId)(implicit accessToken: AccessTokenContent): Route = delete {
+    path(Path) { projectFilePath =>
+      parameter('version.as[PipelineVersion].optional) { version =>
+        onComplete(wdlService.deleteFile(projectId, projectFilePath, version, accessToken.userId)) {
+          case Success(_) => complete(StatusCodes.OK)
+          case Failure(e) => complete(StatusCodes.BadRequest, e.getMessage)
+        }
+      }
+    }
+  }
+
   val route: AccessTokenContent => Route = implicit accessToken =>
     validateFile ~
       pathPrefix("projects" / ProjectId / "files") { projectId =>
         getFile(projectId) ~
         getFiles(projectId) ~
-        uploadFile(projectId)
+        uploadFile(projectId) ~
+        deleteFile(projectId)
       }
 }

@@ -2,6 +2,7 @@ package cromwell.pipeline.controller
 
 /**
  * A class to provide REST operations using PlayJson
+ *
  * @get,
  * @post,
  * @put methods have Response generic type, which is
@@ -15,12 +16,11 @@ package cromwell.pipeline.controller
  * 2) secondly it is filtered if not valid in @validateResponse method
  * as a result if you have both success statusCode and it is validated successfully, you will get [[cromwell.pipeline.service.SuccessResponseBody]],
  * otherwise [[cromwell.pipeline.service.FailureResponseBody]]
- *
- *
  * @version 1.0
  */
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.HttpMethods.{ DELETE, GET, POST, PUT }
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
@@ -45,7 +45,7 @@ class AkkaHttpClient(implicit actorSystem: ActorSystem) extends HttpClient {
     f: Reads[B]
   ): Future[Response[B]] = {
     val futureResponse: Future[HttpResponse] = Http().singleRequest(
-      HttpRequest(method = HttpMethods.GET, uri = Uri(url).withQuery(Query(params))).withHeaders(parseHeaders(headers))
+      HttpRequest(method = GET, uri = Uri(url).withQuery(Query(params))).withHeaders(parseHeaders(headers))
     )
     responsify(futureResponse)
   }
@@ -55,28 +55,24 @@ class AkkaHttpClient(implicit actorSystem: ActorSystem) extends HttpClient {
     params: Map[String, String] = Map(),
     headers: Map[String, String] = Map(),
     payload: P
-  )(implicit ec: ExecutionContext, bf: Reads[B], pf: Writes[P]): Future[Response[B]] = {
-    val futureResponse: Future[HttpResponse] = Http().singleRequest(
-      HttpRequest(method = HttpMethods.POST, uri = Uri(url).withQuery(Query(params)))
-        .withEntity(HttpEntity(ContentTypes.`application/json`, Json.stringify(Json.toJson(payload))))
-        .withHeaders(parseHeaders(headers))
-    )
-    responsify[B](futureResponse)
-  }
+  )(implicit ec: ExecutionContext, bf: Reads[B], pf: Writes[P]): Future[Response[B]] =
+    handleRequest(POST)(url, params, headers, payload)
 
   override def put[B, P](
     url: String,
     params: Map[String, String] = Map(),
     headers: Map[String, String] = Map(),
     payload: P
-  )(implicit ec: ExecutionContext, bf: Reads[B], pf: Writes[P]): Future[Response[B]] = {
-    val futureResponse: Future[HttpResponse] = Http().singleRequest(
-      HttpRequest(method = HttpMethods.PUT, uri = Uri(url).withQuery(Query(params)))
-        .withEntity(HttpEntity(ContentTypes.`application/json`, Json.stringify(Json.toJson(payload))))
-        .withHeaders(parseHeaders(headers))
-    )
-    responsify(futureResponse)
-  }
+  )(implicit ec: ExecutionContext, bf: Reads[B], pf: Writes[P]): Future[Response[B]] =
+    handleRequest(PUT)(url, params, headers, payload)
+
+  override def delete[B, P](
+    url: String,
+    params: Map[String, String],
+    headers: Map[String, String],
+    payload: P
+  )(implicit ec: ExecutionContext, bf: Reads[B], pf: Writes[P]): Future[Response[B]] =
+    handleRequest(DELETE)(url, params, headers, payload)
 
   /**
    * Filters unsuccessful responses
@@ -129,6 +125,20 @@ class AkkaHttpClient(implicit actorSystem: ActorSystem) extends HttpClient {
         parseHeaders(response)
       )
     }
+
+  private def handleRequest[B, P](method: HttpMethod)(
+    url: String,
+    params: Map[String, String],
+    headers: Map[String, String],
+    payload: P
+  )(implicit ec: ExecutionContext, bf: Reads[B], pf: Writes[P]): Future[Response[B]] = {
+    val futureResponse: Future[HttpResponse] = Http().singleRequest(
+      HttpRequest(method = method, uri = Uri(url).withQuery(Query(params)))
+        .withEntity(HttpEntity(ContentTypes.`application/json`, Json.stringify(Json.toJson(payload))))
+        .withHeaders(parseHeaders(headers))
+    )
+    responsify(futureResponse)
+  }
 
   private def parseHeaders(response: HttpResponse): Map[String, Seq[String]] =
     response.headers.foldLeft(Map[String, List[String]]()) {

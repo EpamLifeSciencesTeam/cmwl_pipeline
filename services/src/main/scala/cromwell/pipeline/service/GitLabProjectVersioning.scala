@@ -2,10 +2,11 @@ package cromwell.pipeline.service
 
 import cats.data.EitherT
 import cats.implicits.toTraverseOps
-import cromwell.pipeline.datastorage.dto.File.UpdateFileRequest
+import cromwell.pipeline.datastorage.dto.File.{ DeleteFileRequest, UpdateFileRequest }
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.service.VersioningException._
-import cromwell.pipeline.utils.{ GitLabConfig, HttpStatusCodes, URLEncoderUtils }
+import cromwell.pipeline.utils.HttpStatusCodes.{ Accepted, NoContent, OK }
+import cromwell.pipeline.utils.{ GitLabConfig, URLEncoderUtils }
 
 import java.nio.file.{ Path, Paths }
 import scala.concurrent.{ ExecutionContext, Future }
@@ -48,12 +49,12 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)(impl
       case Right(newVersion) =>
         val payload = UpdateFileRequest(projectFile.content, newVersion.name, config.defaultBranch)
         httpClient
-          .put[UpdateFiledResponse, UpdateFileRequest](fileUrl, payload = payload, headers = config.token)
+          .put[UpdateFileResponse, UpdateFileRequest](fileUrl, payload = payload, headers = config.token)
           .flatMap {
             case Response(_, SuccessResponseBody(_), _) => handleCreateTag(repositoryId, newVersion)
             case _ =>
               httpClient
-                .post[UpdateFiledResponse, UpdateFileRequest](fileUrl, payload = payload, headers = config.token)
+                .post[UpdateFileResponse, UpdateFileRequest](fileUrl, payload = payload, headers = config.token)
                 .flatMap {
                   case Response(_, SuccessResponseBody(_), _)    => handleCreateTag(repositoryId, newVersion)
                   case Response(_, FailureResponseBody(body), _) => Future.successful(Left(HttpException(body)))
@@ -80,18 +81,36 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)(impl
           config.token
         )
         .map {
-          case Response(HttpStatusCodes.OK, SuccessResponseBody(gitLabFile), _) =>
+          case Response(OK, SuccessResponseBody(gitLabFile), _) =>
             val content = decodeBase64(gitLabFile.content)
             Right(ProjectFile(path, ProjectFileContent(content)))
-          case Response(HttpStatusCodes.OK, FailureResponseBody(error), _) =>
-            Left(
-              HttpException(
-                s"Could not take Project File. Response status: ${HttpStatusCodes.OK}. ResponseBody: $error"
-              )
-            )
+          case Response(OK, FailureResponseBody(error), _) =>
+            Left(HttpException(s"Could not take Project File. Response status: ${OK}. ResponseBody: $error"))
           case Response(responseStatus, _, _) => Left(HttpException(s"Exception. Response status: $responseStatus"))
         }
         .recover { case e: Throwable => Left(HttpException(e.getMessage)) }
+    }
+  }
+
+  override def deleteFile(
+    project: Project,
+    path: Path,
+    version: Option[PipelineVersion]
+  ): AsyncResult[PipelineVersion] = {
+    val filePath: String = URLEncoderUtils.encode(path.toString)
+    val repositoryId: RepositoryId = project.repositoryId
+    val fileUrl = s"${config.url}projects/${repositoryId.value}/repository/files/$filePath"
+    val name = project.name
+
+    val payload = DeleteFileRequest(s"Deleting file $filePath from repository: $name", config.defaultBranch)
+
+    httpClient.delete[EmptyPayload, DeleteFileRequest](fileUrl, payload = payload, headers = config.token).flatMap {
+      case Response(statusCode, _, _) if Seq(OK, Accepted, NoContent).contains(statusCode) =>
+        getUpdatedProjectVersion(project, version).flatMap {
+          case l @ Left(_)       => Future.successful(l)
+          case Right(newVersion) => handleCreateTag(repositoryId, newVersion)
+        }
+      case _ => Future.successful(Left(RepositoryException(s"Failed to delete file: $filePath from project: $name")))
     }
   }
 

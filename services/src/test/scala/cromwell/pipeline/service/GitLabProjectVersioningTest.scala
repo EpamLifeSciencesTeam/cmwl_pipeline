@@ -2,7 +2,7 @@ package cromwell.pipeline.service
 
 import akka.http.scaladsl.model.StatusCodes
 import cromwell.pipeline.datastorage.dao.utils.TestProjectUtils
-import cromwell.pipeline.datastorage.dto.File.UpdateFileRequest
+import cromwell.pipeline.datastorage.dto.File.{ DeleteFileRequest, UpdateFileRequest }
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.utils._
 import org.mockito.Matchers.{ any, eq => exact }
@@ -39,10 +39,110 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
   import ProjectContext._
   import ProjectFileContext._
 
+  def configureGetVersions(
+    versions: List[GitLabVersion],
+    tagUrl: String = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId.value}/repository/tags"
+  ): Unit =
+    when {
+      mockHttpClient.get[List[GitLabVersion]](
+        url = exact(tagUrl),
+        params = any[Map[String, String]],
+        headers = exact(gitLabConfig.token)
+      )(any[ExecutionContext], any[Reads[List[GitLabVersion]]])
+    }.thenReturn(Future.successful(Response(StatusCodes.OK.intValue, SuccessResponseBody(versions), EmptyHeaders)))
+
+  def configurePutFile(url: String, payload: UpdateFileRequest, response: Response[UpdateFileResponse]): Unit =
+    when {
+      mockHttpClient.put[UpdateFileResponse, UpdateFileRequest](
+        url = url,
+        headers = gitLabConfig.token,
+        payload = payload
+      )
+    }.thenReturn(Future.successful(response))
+
+  def configurePostFile(url: String, payload: UpdateFileRequest, response: Response[UpdateFileResponse]): Unit =
+    when {
+      mockHttpClient.put[UpdateFileResponse, UpdateFileRequest](
+        url = url,
+        headers = gitLabConfig.token,
+        payload = payload
+      )
+    }.thenReturn(Future.successful(response))
+
+  def configureCreateTag(
+    version: PipelineVersion,
+    response: SuccessResponseMessage,
+    tagUrl: String = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId.value}/repository/tags"
+  ): Unit =
+    when {
+      mockHttpClient.post[SuccessResponseMessage, EmptyPayload](
+        url = tagUrl,
+        params = Map("tag_name" -> version.name, "ref" -> gitLabConfig.defaultBranch),
+        headers = gitLabConfig.token,
+        payload = EmptyPayload()
+      )
+    }.thenReturn(Future.successful(Response(StatusCodes.OK.intValue, SuccessResponseBody(response), EmptyHeaders)))
+
   "GitLabProjectVersioning" when {
 
-    "createRepository" should {
+    "deleteFile" should {
 
+      val path = URLEncoderUtils.encode(existFile.path.toString)
+      val url = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId.value}/repository/files/$path"
+      val gitlabVersion = TestProjectUtils.getDummyGitLabVersion(dummyPipelineVersion)
+      val payload = DeleteFileRequest(
+        s"Deleting file ${existFile.path} from repository: ${projectWithRepo.name}",
+        gitLabConfig.defaultBranch
+      )
+      val errorMsg = s"Failed to delete file: ${existFile.path} from project: ${projectWithRepo.name}"
+
+      "delete file and return new version on success" taggedAs Service in {
+        when(
+          mockHttpClient.delete[EmptyPayload, DeleteFileRequest](
+            url,
+            headers = gitLabConfig.token,
+            payload = payload
+          )
+        ).thenReturn(
+          Future.successful(
+            Response(
+              StatusCodes.OK.intValue,
+              SuccessResponseBody[EmptyPayload](EmptyPayload()),
+              EmptyHeaders
+            )
+          )
+        )
+
+        configureGetVersions(List(gitlabVersion))
+        configureCreateTag(dummyPipelineVersionHigher, SuccessResponseMessage("File was deleted"))
+
+        gitLabProjectVersioning.deleteFile(projectWithRepo, existFile.path, Some(dummyPipelineVersionHigher)).flatMap {
+          _ shouldBe Right(dummyPipelineVersionHigher)
+        }
+      }
+
+      "Return wrapped exception if failed to delete" taggedAs Service in {
+        when(
+          mockHttpClient.delete[EmptyPayload, DeleteFileRequest](
+            url,
+            headers = gitLabConfig.token,
+            payload = payload
+          )
+        ).thenReturn(Future.successful {
+          Response[EmptyPayload](
+            HttpStatusCodes.BadRequest,
+            FailureResponseBody(errorMsg),
+            EmptyHeaders
+          )
+        })
+
+        gitLabProjectVersioning.deleteFile(projectWithRepo, existFile.path, Some(dummyPipelineVersionHigher)).map {
+          _ shouldBe Left(VersioningException.RepositoryException(errorMsg))
+        }
+      }
+    }
+
+    "createRepository" should {
       def postNewProject(postProject: PostProject): Future[Response[GitLabRepositoryResponse]] =
         mockHttpClient.post[GitLabRepositoryResponse, PostProject](
           url = gitLabConfig.url + "projects",
@@ -100,59 +200,22 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
       val gitlabVersion = TestProjectUtils.getDummyGitLabVersion(dummyPipelineVersion)
       val gitlabVersionHigher = TestProjectUtils.getDummyGitLabVersion(dummyPipelineVersionHigher)
 
-      def configureGetVersions(versions: List[GitLabVersion]): Unit =
-        when {
-          mockHttpClient.get[List[GitLabVersion]](
-            url = exact(tagUrl),
-            params = any[Map[String, String]],
-            headers = exact(gitLabConfig.token)
-          )(any[ExecutionContext], any[Reads[List[GitLabVersion]]])
-        }.thenReturn(Future.successful(Response(StatusCodes.OK.intValue, SuccessResponseBody(versions), EmptyHeaders)))
-
-      def configurePutFile(url: String, payload: UpdateFileRequest, response: Response[UpdateFiledResponse]): Unit =
-        when {
-          mockHttpClient.put[UpdateFiledResponse, UpdateFileRequest](
-            url = url,
-            headers = gitLabConfig.token,
-            payload = payload
-          )
-        }.thenReturn(Future.successful(response))
-
-      def configurePostFile(url: String, payload: UpdateFileRequest, response: Response[UpdateFiledResponse]): Unit =
-        when {
-          mockHttpClient.put[UpdateFiledResponse, UpdateFileRequest](
-            url = url,
-            headers = gitLabConfig.token,
-            payload = payload
-          )
-        }.thenReturn(Future.successful(response))
-
-      def configureCreateTag(version: PipelineVersion, response: SuccessResponseMessage): Unit =
-        when {
-          mockHttpClient.post[SuccessResponseMessage, EmptyPayload](
-            url = tagUrl,
-            params = Map("tag_name" -> version.name, "ref" -> gitLabConfig.defaultBranch),
-            headers = gitLabConfig.token,
-            payload = EmptyPayload()
-          )
-        }.thenReturn(Future.successful(Response(StatusCodes.OK.intValue, SuccessResponseBody(response), EmptyHeaders)))
-
       "succeed when file is new" taggedAs Service in {
         val payload = UpdateFileRequest(newFile.content, dummyPipelineVersionHigher.name, gitLabConfig.defaultBranch)
         val path = URLEncoderUtils.encode(newFile.path.toString)
         val url = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId.value}/repository/files/$path"
 
         val putResponse =
-          Response[UpdateFiledResponse](
+          Response[UpdateFileResponse](
             StatusCodes.BadRequest.intValue,
             FailureResponseBody("File does not exist"),
             EmptyHeaders
           )
 
         val postResponse =
-          Response[UpdateFiledResponse](
+          Response[UpdateFileResponse](
             StatusCodes.OK.intValue,
-            SuccessResponseBody(UpdateFiledResponse(newFile.path.toString, "master")),
+            SuccessResponseBody(UpdateFileResponse(newFile.path.toString, "master")),
             EmptyHeaders
           )
 
@@ -171,9 +234,9 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
         val path = URLEncoderUtils.encode(existFile.path.toString)
         val url = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId.value}/repository/files/$path"
 
-        val putResponse = Response[UpdateFiledResponse](
+        val putResponse = Response[UpdateFileResponse](
           StatusCodes.OK.intValue,
-          SuccessResponseBody(UpdateFiledResponse(newFile.path.toString, "master")),
+          SuccessResponseBody(UpdateFileResponse(newFile.path.toString, "master")),
           EmptyHeaders
         )
 
@@ -192,9 +255,9 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
         val path = URLEncoderUtils.encode(existFile.path.toString)
         val url = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId.value}/repository/files/$path"
 
-        val putResponse = Response[UpdateFiledResponse](
+        val putResponse = Response[UpdateFileResponse](
           StatusCodes.OK.intValue,
-          SuccessResponseBody(UpdateFiledResponse(existFile.path.toString, "master")),
+          SuccessResponseBody(UpdateFileResponse(existFile.path.toString, "master")),
           EmptyHeaders
         )
 
@@ -473,6 +536,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
       val path: Path = Paths.get("tmp/foo.txt")
       val urlEncoder = URLEncoderUtils.encode(path.toString)
       val fileCommitInfo = GLFileCommitInfo(dummyGitLabVersion.commit, dummyGitLabVersion.name)
+
       def getFileCommits(project: Project): Future[Response[List[GLFileCommitInfo]]] =
         mockHttpClient.get[List[GLFileCommitInfo]](
           url = exact(s"${gitLabConfig.url}projects/${project.repositoryId.value}/repository/commits"),
@@ -554,7 +618,6 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
 //          )
 //      }
 //    }
-
   }
 
   object ProjectContext {

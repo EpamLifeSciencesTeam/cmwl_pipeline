@@ -246,12 +246,12 @@ object SuccessResponseMessage {
  * @param filePath where the file was stored
  * @param branch where the file was stored
  */
-final case class UpdateFiledResponse(filePath: String, branch: String)
+final case class UpdateFileResponse(filePath: String, branch: String)
 
-object UpdateFiledResponse {
+object UpdateFileResponse {
   implicit val config = JsonConfiguration(SnakeCase)
-  implicit lazy val updateFiledResponseFormat: OFormat[UpdateFiledResponse] =
-    Json.format[UpdateFiledResponse]
+  implicit lazy val updateFiledResponseFormat: OFormat[UpdateFileResponse] =
+    Json.format[UpdateFileResponse]
 }
 
 /**

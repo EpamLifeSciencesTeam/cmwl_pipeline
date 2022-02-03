@@ -31,6 +31,12 @@ class ProjectVersioningTestImpl(
   ): AsyncResult[PipelineVersion] =
     returnValOrExc(pipelineVersions.head)
 
+  override def deleteFile(
+    project: Project,
+    path: Path,
+    version: Option[PipelineVersion]
+  ): AsyncResult[PipelineVersion] = returnValOrExc(pipelineVersions.head)
+
   override def getFile(project: Project, path: Path, version: Option[PipelineVersion]): AsyncResult[ProjectFile] =
     returnValOrExc(projectFiles.find(_.path == path).get)
 
@@ -52,7 +58,6 @@ class ProjectVersioningTestImpl(
       case WithException(exc)                      => Future.failed(exc)
       case _                                       => Future.successful(Right(valToReturn))
     }
-
 }
 
 object ProjectVersioningTestImpl {

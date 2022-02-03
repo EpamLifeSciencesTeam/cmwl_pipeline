@@ -53,6 +53,17 @@ class ProjectFileServiceTestImpl(projectFileBundles: Map[ProjectId, Seq[ProjectF
       case WithException(exc) => Future.failed(exc)
       case _                  => Future.successful(projectFileBundles.getOrElse(projectId, List.empty).toList)
     }
+
+  override def deleteFile(
+    projectId: ProjectId,
+    path: Path,
+    version: Option[PipelineVersion],
+    userId: UserId
+  ): Future[Either[VersioningException, Unit]] =
+    testMode match {
+      case WithException(exc) => Future.failed(exc)
+      case _                  => Future.successful(Right(()))
+    }
 }
 
 object ProjectFileServiceTestImpl {

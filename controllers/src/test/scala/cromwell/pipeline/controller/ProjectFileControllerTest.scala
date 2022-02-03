@@ -35,6 +35,11 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
     val pathEncoded = URLEncoderUtils.encode(pathString)
 
     val projectId = TestProjectUtils.getDummyProjectId
+    val dummyProject = TestProjectUtils.getDummyProject(
+      projectId,
+      accessToken.userId,
+      versionString
+    )
     val projectFileContent = ProjectFileContent("task hello {}")
     val projectFile = ProjectFile(path, projectFileContent)
 
@@ -91,7 +96,7 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
       val request = getMultiPartRequest()
       val requestWithoutVersion = getMultiPartRequest(None)
 
-      val projectFile = ProjectFile(path, projectFileContent)
+      val projectFile: ProjectFile = ProjectFile(path, projectFileContent)
 
       "return OK response for valid request with a valid file" taggedAs Controller in {
         when(projectFileService.validateFile(projectFileContent)).thenReturn(Future.successful(Right(())))
@@ -154,6 +159,33 @@ class ProjectFileControllerTest extends AsyncWordSpec with Matchers with Scalate
         Post(s"/projects/${projectId.value}/files", request) ~> projectFileController.route(accessToken) ~> check {
           status shouldBe StatusCodes.UnprocessableEntity
           entityAs[String] shouldBe "File have not uploaded due to Bad request"
+        }
+      }
+    }
+
+    "delete file" should {
+      "delete file with status code OK" in {
+        when(projectFileService.deleteFile(dummyProject.projectId, path, versionOption, accessToken.userId))
+          .thenReturn(Future.successful(Right(())))
+        Delete(s"/projects/${projectId.value}/files/$pathEncoded?version=$versionString") ~>
+        projectFileController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.OK
+        }
+      }
+
+      "Return bad request status if file is not found" in {
+        val exceptionMsg = s"Failed to delete file: $pathEncoded from project: ${dummyProject.name}"
+
+        when(projectFileService.deleteFile(dummyProject.projectId, path, versionOption, accessToken.userId)).thenReturn(
+          Future.failed(
+            VersioningException.RepositoryException(exceptionMsg)
+          )
+        )
+
+        Delete(s"/projects/${dummyProject.projectId.value}/files/$pathEncoded?version=$versionString") ~>
+        projectFileController.route(accessToken) ~> check {
+          status shouldBe StatusCodes.BadRequest
+          entityAs[String] shouldBe exceptionMsg
         }
       }
     }
