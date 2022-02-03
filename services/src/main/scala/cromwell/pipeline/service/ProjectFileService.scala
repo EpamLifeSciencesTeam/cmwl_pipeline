@@ -31,6 +31,12 @@ trait ProjectFileService {
     userId: UserId
   ): Future[List[ProjectFile]]
 
+  def deleteFile(
+    projectId: ProjectId,
+    path: Path,
+    version: Option[PipelineVersion] = None,
+    userId: UserId
+  ): Future[Either[VersioningException, Unit]]
 }
 
 object ProjectFileService {
@@ -89,5 +95,18 @@ object ProjectFileService {
         }
       }
 
+    override def deleteFile(
+      projectId: ProjectId,
+      path: Path,
+      version: Option[PipelineVersion],
+      userId: UserId
+    ): Future[Either[VersioningException, Unit]] =
+      projectService.getUserProjectById(projectId, userId).flatMap { project =>
+        projectVersioning.deleteFile(project, path, version).flatMap {
+          case Left(versioningException) => Future.failed(versioningException)
+          case Right(newVersion) =>
+            projectService.updateProjectVersion(projectId, newVersion, userId).map(_ => Right(()))
+        }
+      }
   }
 }

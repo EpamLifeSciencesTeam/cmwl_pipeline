@@ -84,6 +84,27 @@ class ProjectFileServiceTest extends AsyncWordSpec with Matchers {
       }
     }
 
+    "delete file" should {
+      "return success for request" taggedAs Service in {
+        projectFileService.deleteFile(projectId, projectFilePath, optionVersion, userId).map(_ shouldBe Right(()))
+      }
+
+      "return error message if was unable to delete file" taggedAs Service in {
+        val exceptionMsg = s"Failed to delete file: $projectFilePath from project: ${project.name}"
+
+        val repositoryException = VersioningException.RepositoryException(exceptionMsg)
+
+        val projectFileService = createProjectFileService(
+          projectVersioning = ProjectVersioningTestImpl.withException(repositoryException)
+        )
+
+        projectFileService
+          .deleteFile(projectId, projectFilePath, optionVersion, userId)
+          .failed
+          .map(_ shouldBe repositoryException)
+      }
+    }
+
     "get file" should {
       "return file with full request" taggedAs Service in {
         projectFileService.getFile(projectId, projectFilePath, optionVersion, userId).map(_ shouldBe projectFile)

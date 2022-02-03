@@ -4,7 +4,8 @@ package cromwell.pipeline.service
  * This trait force implementations to provide REST operations using PlayJson, based on Reads & Writes
  * @get,
  * @post,
- * @put methods have Response generic type, which is
+ * @put
+ * @delete methods have Response generic type, which is
  * @ResponseBoby type of its Response
  *
  * Both ResponseBody (B) and Payload (P) are parametrized
@@ -32,6 +33,11 @@ trait HttpClient {
     pf: Writes[P]
   ): Future[Response[B]]
   def put[B, P](url: String, params: Map[String, String] = Map(), headers: Map[String, String] = Map(), payload: P)(
+    implicit ec: ExecutionContext,
+    bf: Reads[B],
+    pf: Writes[P]
+  ): Future[Response[B]]
+  def delete[B, P](url: String, params: Map[String, String] = Map(), headers: Map[String, String] = Map(), payload: P)(
     implicit ec: ExecutionContext,
     bf: Reads[B],
     pf: Writes[P]

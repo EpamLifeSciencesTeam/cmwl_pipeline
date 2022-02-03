@@ -3,6 +3,7 @@ package cromwell.pipeline.utils
 object HttpStatusCodes {
   val OK = 200
   val Created = 201
+  val Accepted = 202
   val NoContent = 204
   val NotModified = 304
   val BadRequest = 400
