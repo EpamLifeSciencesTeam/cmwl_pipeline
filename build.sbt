@@ -30,7 +30,7 @@ lazy val commonSettings = Seq(
   },
   compile in Compile := (compile in Compile).dependsOn(checkFormat, checkScalastyle).value,
   test in Test := (test in Test).dependsOn(checkFormat, checkScalastyle).value,
-  testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports"),
+  testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-o", "-h", "target/test-reports"),
   coverageEnabled in Test := true,
   coverageMinimum := 50,
   coverageFailOnMinimum := true,
