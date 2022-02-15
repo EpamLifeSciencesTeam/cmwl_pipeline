@@ -2,12 +2,12 @@ package cromwell.pipeline.datastorage.dto
 
 import cats.data.Validated
 import cats.implicits._
-import cromwell.pipeline.model.wrapper.{ UserId, VersionValue }
+import cromwell.pipeline.model.wrapper.{ ProjectId, RepositoryId, UserId, VersionValue }
 import play.api.libs.functional.syntax._
 import play.api.libs.json.JsonNaming.SnakeCase
 import play.api.libs.json._
+
 import java.nio.file.{ Path, Paths }
-import slick.lifted.MappedTo
 // scalastyle:off number.of.types
 final case class Project(
   projectId: ProjectId,
@@ -18,6 +18,7 @@ final case class Project(
   version: PipelineVersion,
   visibility: Visibility = Private
 )
+
 object Project {
   implicit lazy val projectFormat: OFormat[Project] = Json.format[Project]
 }
@@ -41,23 +42,10 @@ final case class LocalProject(
     )
 }
 
-final case class PostProject(name: String)
+final case class PostProject(name: ProjectId)
 
 object PostProject {
   implicit lazy val postProject: OFormat[PostProject] = Json.format[PostProject]
-}
-
-final case class ProjectId(value: String) extends MappedTo[String]
-
-object ProjectId {
-  implicit lazy val projectIdFormat: Format[ProjectId] = implicitly[Format[String]].inmap(ProjectId.apply, _.value)
-}
-
-final case class RepositoryId(value: Int) extends MappedTo[Int]
-
-object RepositoryId {
-  implicit lazy val repositoryIdFormat: Format[RepositoryId] =
-    implicitly[Format[Int]].inmap(RepositoryId.apply, _.value)
 }
 
 final case class ProjectAdditionRequest(name: String)

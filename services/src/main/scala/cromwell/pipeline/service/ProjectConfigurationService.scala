@@ -2,7 +2,8 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.ProjectConfigurationRepository
 import cromwell.pipeline.datastorage.dto._
-import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.model.validator.Enable
+import cromwell.pipeline.model.wrapper.{ ProjectConfigurationId, ProjectId, UserId }
 import cromwell.pipeline.service.ProjectConfigurationService.Exceptions.{
   AccessDenied,
   InternalError,
@@ -14,6 +15,7 @@ import cromwell.pipeline.service.exceptions.ServiceException
 import cromwell.pipeline.womtool.WomToolAPI
 
 import java.nio.file.Path
+import java.util.UUID
 import scala.concurrent.{ ExecutionContext, Future }
 
 trait ProjectConfigurationService {
@@ -126,7 +128,7 @@ object ProjectConfigurationService {
                 configurationVersion.map(
                   version =>
                     ProjectConfiguration(
-                      ProjectConfigurationId.randomId,
+                      ProjectConfigurationId(UUID.randomUUID().toString, Enable.Unsafe),
                       projectId,
                       active = true,
                       WdlParams(file.path, nodes),
@@ -143,7 +145,7 @@ object ProjectConfigurationService {
         Future.failed(InternalError(s"Failed to $action due to unexpected internal error"))
 
       private def notFoundProjectError(projectId: ProjectId) =
-        Future.failed(NotFound(s"There is no configuration with project_id: ${projectId.value}"))
+        Future.failed(NotFound(s"There is no configuration with project_id: $projectId"))
 
       private def serviceErrorMapper(exc: ProjectServiceException): Future[Nothing] =
         exc match {

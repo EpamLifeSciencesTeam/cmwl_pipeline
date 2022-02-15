@@ -2,7 +2,7 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.RunRepository
 import cromwell.pipeline.datastorage.dto._
-import cromwell.pipeline.model.wrapper.{ RunId, UserId }
+import cromwell.pipeline.model.wrapper.{ ProjectId, RunId, UserId }
 import cromwell.pipeline.service.ProjectService.Exceptions.ProjectServiceException
 import cromwell.pipeline.service.RunService.Exceptions._
 import cromwell.pipeline.service.exceptions.ServiceException

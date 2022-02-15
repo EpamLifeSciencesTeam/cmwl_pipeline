@@ -2,8 +2,6 @@ package cromwell.pipeline.model.wrapper
 
 import cats.data.{ NonEmptyChain, Validated }
 import cromwell.pipeline.model.validator.Wrapped
-import play.api.libs.json.Format
-import cats.implicits.catsStdShowForString
 import slick.lifted.MappedTo
 
 final class Password private (override val unwrap: String) extends AnyVal with Wrapped[String] with MappedTo[String] {
@@ -14,7 +12,6 @@ object Password extends Wrapped.Companion {
   type Type = String
   type Wrapper = Password
   type Error = String
-  implicit lazy val passwordFormat: Format[Password] = wrapperFormat
   override protected def create(value: String): Password = new Password(value)
   override protected def validate(value: String): ValidationResult[String] = Validated.cond(
     value.matches("(?=^.{10,}$)(?=.*\\d)((?=.*\\W+)|(?=.*[_]))(?![.\\n])(?=.*[A-Z])(?=.*[a-z]).*$"),

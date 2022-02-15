@@ -1,10 +1,12 @@
 package cromwell.pipeline.service.impls
 
 import cromwell.pipeline.datastorage.dto._
-import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.model.validator.Enable
+import cromwell.pipeline.model.wrapper.{ ProjectConfigurationId, ProjectId, UserId }
 import cromwell.pipeline.service.ProjectConfigurationService
 
 import java.nio.file.Path
+import java.util.UUID
 import scala.concurrent.Future
 
 class ProjectConfigurationServiceTestImpl(projectConfigurations: Seq[ProjectConfiguration], testMode: TestMode)
@@ -43,7 +45,7 @@ class ProjectConfigurationServiceTestImpl(projectConfigurations: Seq[ProjectConf
       case WithException(exc) => Future.failed(exc)
       case _ =>
         val config = ProjectConfiguration(
-          id = ProjectConfigurationId.randomId,
+          id = ProjectConfigurationId(UUID.randomUUID().toString, Enable.Unsafe),
           projectId = projectId,
           active = true,
           wdlParams = WdlParams(projectFilePath, Nil),

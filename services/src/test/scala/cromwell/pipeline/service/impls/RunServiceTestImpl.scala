@@ -1,7 +1,7 @@
 package cromwell.pipeline.service.impls
 
-import cromwell.pipeline.datastorage.dto.{ ProjectId, Run, RunCreateRequest, RunUpdateRequest }
-import cromwell.pipeline.model.wrapper.{ RunId, UserId }
+import cromwell.pipeline.datastorage.dto.{ Run, RunCreateRequest, RunUpdateRequest }
+import cromwell.pipeline.model.wrapper.{ ProjectId, RunId, UserId }
 import cromwell.pipeline.service.RunService
 
 import scala.concurrent.Future

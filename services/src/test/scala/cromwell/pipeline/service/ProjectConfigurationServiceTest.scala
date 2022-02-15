@@ -4,13 +4,15 @@ import cromwell.pipeline.datastorage.dao.repository.ProjectConfigurationReposito
 import cromwell.pipeline.datastorage.dao.repository.impls.ProjectConfigurationRepositoryTestImpl
 import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto._
-import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.model.validator.Enable
+import cromwell.pipeline.model.wrapper.{ ProjectConfigurationId, ProjectId, UserId }
 import cromwell.pipeline.service.ProjectConfigurationService.Exceptions._
 import cromwell.pipeline.service.impls.{ ProjectServiceTestImpl, ProjectVersioningTestImpl, WomToolTestImpl }
 import cromwell.pipeline.womtool.WomToolAPI
 import org.scalatest.{ AsyncWordSpec, Matchers }
 
 import java.nio.file.{ Path, Paths }
+import java.util.UUID
 
 class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers {
 
@@ -18,7 +20,7 @@ class ProjectConfigurationServiceTest extends AsyncWordSpec with Matchers {
   private val projectId: ProjectId = dummyProject.projectId
   private val userId: UserId = dummyProject.ownerId
   private val strangerId: UserId = TestUserUtils.getDummyUserId
-  private val projectConfigurationId = ProjectConfigurationId.randomId
+  private val projectConfigurationId = ProjectConfigurationId(UUID.randomUUID().toString, Enable.Unsafe)
   private val correctWdl = "task hello {}"
   private val projectFilePath: Path = Paths.get("test.txt")
   private val projectFileContent: ProjectFileContent = ProjectFileContent(correctWdl)

@@ -3,6 +3,7 @@ package cromwell.pipeline.service
 import cromwell.pipeline.datastorage.dao.repository.impls.ProjectRepositoryTestImpl
 import cromwell.pipeline.datastorage.dao.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto._
+import cromwell.pipeline.model.wrapper.ProjectId
 import cromwell.pipeline.service.ProjectService.Exceptions.{ AccessDenied, InternalError, NotFound }
 import cromwell.pipeline.service.impls.ProjectVersioningTestImpl
 import org.scalatest.{ AsyncWordSpec, Matchers }
@@ -106,7 +107,7 @@ class ProjectServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
       }
 
       "return none if project not found" taggedAs Service in {
-        val projectId = ProjectId("projectId")
+        val projectId = ProjectId.random
 
         projectService.getUserProjectById(projectId, userId).failed.map { _ shouldBe NotFound() }
       }

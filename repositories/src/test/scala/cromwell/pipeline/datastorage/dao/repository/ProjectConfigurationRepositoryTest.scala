@@ -1,15 +1,17 @@
 package cromwell.pipeline.datastorage.dao.repository
 
-import java.nio.file.Paths
-
 import cromwell.pipeline.datastorage.dao.mongo.DocumentCodecInstances.projectConfigurationDocumentCodec
 import cromwell.pipeline.datastorage.dao.mongo.DocumentRepository
 import cromwell.pipeline.datastorage.dao.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto._
+import cromwell.pipeline.model.validator.Enable
+import cromwell.pipeline.model.wrapper.{ ProjectConfigurationId, ProjectId }
 import org.mockito.Mockito.when
 import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
 
+import java.nio.file.Paths
+import java.util.UUID
 import scala.concurrent.Future
 
 class ProjectConfigurationRepositoryTest extends AsyncWordSpec with Matchers with MockitoSugar {
@@ -19,7 +21,7 @@ class ProjectConfigurationRepositoryTest extends AsyncWordSpec with Matchers wit
   private val wdlParams: WdlParams =
     WdlParams(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello")))))
   private val projectId: ProjectId = TestProjectUtils.getDummyProjectId
-  private val projectConfigurationId = ProjectConfigurationId.randomId
+  private val projectConfigurationId = ProjectConfigurationId(UUID.randomUUID().toString, Enable.Unsafe)
   private val configuration: ProjectConfiguration =
     ProjectConfiguration(
       projectConfigurationId,

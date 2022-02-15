@@ -2,11 +2,10 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.repository.ProjectRepository
 import cromwell.pipeline.datastorage.dto._
-import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.model.wrapper.{ ProjectId, UserId }
 import cromwell.pipeline.service.ProjectService.Exceptions._
 import cromwell.pipeline.service.exceptions.ServiceException
 
-import java.util.UUID
 import scala.concurrent.{ ExecutionContext, Future }
 
 trait ProjectService {
@@ -74,7 +73,7 @@ object ProjectService {
       def addProject(request: ProjectAdditionRequest, userId: UserId): Future[Project] = {
         val localProject =
           LocalProject(
-            projectId = ProjectId(UUID.randomUUID().toString),
+            projectId = ProjectId.random,
             ownerId = userId,
             name = request.name,
             active = true

@@ -2,7 +2,6 @@ package cromwell.pipeline.model.wrapper
 
 import cats.data.{ NonEmptyChain, Validated }
 import cromwell.pipeline.model.validator.Wrapped
-import play.api.libs.json.Format
 
 final class ProjectSearchFilterId private (override val unwrap: String) extends AnyVal with Wrapped[String]
 
@@ -11,7 +10,6 @@ object ProjectSearchFilterId extends Wrapped.Companion {
   type Wrapper = ProjectSearchFilterId
   type Error = String
   val pattern: String = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-  implicit lazy val projectSearchIdFormat: Format[ProjectSearchFilterId] = wrapperFormat
   override protected def create(value: String): ProjectSearchFilterId = new ProjectSearchFilterId(value)
   override protected def validate(value: String): ValidationResult[String] = Validated.cond(
     value.matches(pattern),

@@ -6,9 +6,10 @@ import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
 import cromwell.pipeline.controller.utils.FieldUnmarshallers._
 import cromwell.pipeline.controller.utils.FromStringUnmarshallers._
-import cromwell.pipeline.controller.utils.PathMatchers.{ Path, ProjectId }
+import cromwell.pipeline.controller.utils.PathMatchers.{ Path, ProjectId => ProjectIdPM }
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
+import cromwell.pipeline.model.wrapper.ProjectId
 import cromwell.pipeline.service.ProjectFileService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
@@ -99,7 +100,7 @@ class ProjectFileController(wdlService: ProjectFileService)(
 
   val route: AccessTokenContent => Route = implicit accessToken =>
     validateFile ~
-      pathPrefix("projects" / ProjectId / "files") { projectId =>
+      pathPrefix("projects" / ProjectIdPM / "files") { projectId =>
         getFile(projectId) ~
         getFiles(projectId) ~
         uploadFile(projectId) ~

@@ -4,9 +4,10 @@ import akka.http.scaladsl.model.{ StatusCode, StatusCodes }
 import akka.http.scaladsl.server.Directives.{ entity, _ }
 import akka.http.scaladsl.server.{ ExceptionHandler, Route }
 import cromwell.pipeline.controller.RunController.runServiceExceptionHandler
-import cromwell.pipeline.controller.utils.PathMatchers.{ ProjectId, RunId }
+import cromwell.pipeline.controller.utils.PathMatchers.{ RunId, ProjectId => ProjectIdPM }
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
+import cromwell.pipeline.model.wrapper.ProjectId
 import cromwell.pipeline.service.RunService
 import cromwell.pipeline.service.RunService.Exceptions.RunServiceException
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
@@ -46,7 +47,7 @@ class RunController(runService: RunService) {
 
   val route: AccessTokenContent => Route = implicit accessToken =>
     handleExceptions(runServiceExceptionHandler) {
-      pathPrefix("projects" / ProjectId / "runs") { projectId =>
+      pathPrefix("projects" / ProjectIdPM / "runs") { projectId =>
         getRun(projectId) ~
         getRunsByProject(projectId) ~
         deleteRun(projectId) ~

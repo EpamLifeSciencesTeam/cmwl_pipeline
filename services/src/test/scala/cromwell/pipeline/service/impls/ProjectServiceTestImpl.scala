@@ -2,7 +2,7 @@ package cromwell.pipeline.service.impls
 
 import cromwell.pipeline.datastorage.dao.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto._
-import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.model.wrapper.{ ProjectId, UserId }
 import cromwell.pipeline.service.ProjectService
 
 import scala.concurrent.Future

@@ -1,7 +1,8 @@
 package cromwell.pipeline.datastorage.dao.utils
 
 import cromwell.pipeline.datastorage.dto._
-import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.model.validator.Enable
+import cromwell.pipeline.model.wrapper.{ ProjectConfigurationId, ProjectId, RepositoryId, UserId }
 
 import java.nio.file.Paths
 import java.util.UUID
@@ -12,8 +13,8 @@ object TestProjectUtils {
   private val defaultRange: Int = 100
   private def randomInt(range: Int = defaultRange): Int = Random.nextInt(range)
   private def randomUuidStr: String = UUID.randomUUID().toString
-  def getDummyProjectId: ProjectId = ProjectId(randomUuidStr)
-  def getDummyRepositoryId: RepositoryId = RepositoryId(randomInt())
+  def getDummyProjectId: ProjectId = ProjectId(randomUuidStr, Enable.Unsafe)
+  def getDummyRepositoryId: RepositoryId = RepositoryId(randomInt(), Enable.Unsafe)
   def getDummyProject(
     projectId: ProjectId = getDummyProjectId,
     ownerId: UserId = TestUserUtils.getDummyUserId,
@@ -25,7 +26,7 @@ object TestProjectUtils {
   ): Project = Project(projectId, ownerId, name, active, repository, version, visibility)
   def getDummyProjectConfiguration(
     projectId: ProjectId = getDummyProjectId,
-    projectConfigurationId: ProjectConfigurationId = ProjectConfigurationId.randomId,
+    projectConfigurationId: ProjectConfigurationId = ProjectConfigurationId(UUID.randomUUID().toString, Enable.Unsafe),
     wdlParams: WdlParams =
       WdlParams(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("String")))))
   ): ProjectConfiguration = {

@@ -1,6 +1,6 @@
 package cromwell.pipeline.datastorage.dto
 
-import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.model.wrapper.{ ProjectId, UserId }
 
 final case class CromwellInput(
   projectId: ProjectId,

@@ -2,7 +2,8 @@ package cromwell.pipeline.datastorage.dao.repository
 
 import cromwell.pipeline.datastorage.dao.mongo.DocumentCodecInstances.projectConfigurationDocumentCodec
 import cromwell.pipeline.datastorage.dao.mongo.DocumentRepository
-import cromwell.pipeline.datastorage.dto.{ ProjectConfiguration, ProjectConfigurationId, ProjectId }
+import cromwell.pipeline.datastorage.dto.ProjectConfiguration
+import cromwell.pipeline.model.wrapper.{ ProjectConfigurationId, ProjectId }
 
 import scala.concurrent.{ ExecutionContext, Future }
 

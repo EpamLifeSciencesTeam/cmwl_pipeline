@@ -1,9 +1,7 @@
 package cromwell.pipeline.model.wrapper
 
 import cats.data.{ NonEmptyChain, Validated }
-import cats.implicits.catsStdShowForString
 import cromwell.pipeline.model.validator.Wrapped
-import play.api.libs.json.Format
 
 final class VersionValue private (override val unwrap: Int) extends AnyVal with Wrapped[Int]
 
@@ -12,7 +10,6 @@ object VersionValue extends Wrapped.Companion {
   type Wrapper = VersionValue
   type Error = String
   val pattern = "^[0-9]+$"
-  implicit val versionNumberFormat: Format[VersionValue] = wrapperFormat
   def increment(value: VersionValue): VersionValue = create(value.unwrap + 1)
   def resetValue: VersionValue = create(0)
   def fromString(value: String): ValidationResult[Wrapper] =
