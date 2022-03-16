@@ -60,7 +60,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
         when(projectService.getUserProjectById(dummyProject.projectId, accessToken.userId))
           .thenReturn(Future.successful(dummyProject))
 
-        Get(s"/projects/${dummyProject.projectId.value}") ~> projectController.route(accessToken) ~> check {
+        Get(s"/projects/${dummyProject.projectId}") ~> projectController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
           responseAs[Project] shouldEqual dummyProject
         }
@@ -72,7 +72,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
         when(projectService.getUserProjectById(dummyProject.projectId, accessToken.userId))
           .thenReturn(Future.failed(error))
 
-        Get(s"/projects/${dummyProject.projectId.value}") ~> projectController.route(accessToken) ~> check {
+        Get(s"/projects/${dummyProject.projectId}") ~> projectController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
         }
       }
@@ -131,7 +131,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
           projectService.deactivateProjectById(dummyProject.projectId, accessToken.userId)
         ).thenReturn(Future.successful(deactivatedProject))
 
-        Delete(s"/projects/${dummyProject.projectId.value}") ~> projectController.route(accessToken) ~> check {
+        Delete(s"/projects/${dummyProject.projectId}") ~> projectController.route(accessToken) ~> check {
           responseAs[Project] shouldBe deactivatedProject
         }
       }
@@ -142,7 +142,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
         when(projectService.deactivateProjectById(projectId, strangerAccessToken.userId))
           .thenReturn(Future.failed(InternalError()))
 
-        Delete(s"/projects/${projectId.value}") ~> projectController.route(strangerAccessToken) ~> check {
+        Delete(s"/projects/${projectId}") ~> projectController.route(strangerAccessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
         }
       }
@@ -155,7 +155,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
         when(projectService.updateProjectName(dummyProject.projectId, request, accessToken.userId))
           .thenReturn(Future.successful(dummyProject.projectId))
 
-        Put(s"/projects/${dummyProject.projectId.value}", request) ~> projectController.route(accessToken) ~> check {
+        Put(s"/projects/${dummyProject.projectId}", request) ~> projectController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
         }
       }
@@ -166,7 +166,7 @@ class ProjectControllerTest extends AsyncWordSpec with Matchers with ScalatestRo
         when(projectService.updateProjectName(dummyProject.projectId, request, strangerAccessToken.userId))
           .thenReturn(Future.failed(InternalError()))
 
-        Put(s"/projects/${dummyProject.projectId.value}", request) ~> projectController.route(strangerAccessToken) ~> check {
+        Put(s"/projects/${dummyProject.projectId}", request) ~> projectController.route(strangerAccessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
         }
       }

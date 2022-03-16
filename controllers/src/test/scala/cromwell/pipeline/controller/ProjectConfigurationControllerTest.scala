@@ -5,6 +5,8 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
+import cromwell.pipeline.model.validator.Enable
+import cromwell.pipeline.model.wrapper.ProjectConfigurationId
 import cromwell.pipeline.service.ProjectConfigurationService.Exceptions.{ InternalError, NotFound, ValidationError }
 import cromwell.pipeline.service.{ ProjectConfigurationService, VersioningException }
 import cromwell.pipeline.utils.URLEncoderUtils
@@ -14,6 +16,7 @@ import org.scalatest.{ AsyncWordSpec, Matchers }
 import org.scalatestplus.mockito.MockitoSugar
 
 import java.nio.file.Paths
+import java.util.UUID
 import scala.concurrent.Future
 
 class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers with ScalatestRouteTest with MockitoSugar {
@@ -24,7 +27,7 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
     val accessToken = AccessTokenContent(TestUserUtils.getDummyUserId)
     val projectId = TestProjectUtils.getDummyProjectId
     val configuration = ProjectConfiguration(
-      ProjectConfigurationId.randomId,
+      ProjectConfigurationId(UUID.randomUUID().toString, Enable.Unsafe),
       projectId,
       active = true,
       WdlParams(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello"))))),
@@ -46,10 +49,9 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
 
       "return success for update configuration" in {
         when(configurationService.addConfiguration(configuration, accessToken.userId)).thenReturn(Future.unit)
-        Put(s"/projects/${projectId.value}/configurations", configurationAdditionRequest) ~> configurationController
-          .route(
-            accessToken
-          ) ~> check {
+        Put(s"/projects/$projectId/configurations", configurationAdditionRequest) ~> configurationController.route(
+          accessToken
+        ) ~> check {
           status shouldBe StatusCodes.NoContent
         }
       }
@@ -57,10 +59,9 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
       "return InternalServerError when failure update configuration" in {
         val error = InternalError("Something went wrong")
         when(configurationService.addConfiguration(configuration, accessToken.userId)).thenReturn(Future.failed(error))
-        Put(s"/projects/${projectId.value}/configurations", configurationAdditionRequest) ~> configurationController
-          .route(
-            accessToken
-          ) ~> check {
+        Put(s"/projects/$projectId/configurations", configurationAdditionRequest) ~> configurationController.route(
+          accessToken
+        ) ~> check {
           status shouldBe StatusCodes.InternalServerError
           entityAs[String] shouldBe "Something went wrong"
         }
@@ -69,10 +70,9 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
       "return NotFound when failure find project to update configuration" in {
         when(configurationService.addConfiguration(configuration, accessToken.userId))
           .thenReturn(Future.failed(NotFound()))
-        Put(s"/projects/${projectId.value}/configurations", configurationAdditionRequest) ~> configurationController
-          .route(
-            accessToken
-          ) ~> check {
+        Put(s"/projects/$projectId/configurations", configurationAdditionRequest) ~> configurationController.route(
+          accessToken
+        ) ~> check {
           status shouldBe StatusCodes.NotFound
         }
       }
@@ -82,7 +82,7 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
       "return configuration by existing project id" in {
         when(configurationService.getLastByProjectId(projectId, accessToken.userId))
           .thenReturn(Future.successful(configuration))
-        Get(s"/projects/${projectId.value}/configurations") ~> configurationController.route(accessToken) ~> check {
+        Get(s"/projects/$projectId/configurations") ~> configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
           entityAs[ProjectConfiguration] shouldBe configuration
         }
@@ -90,10 +90,10 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
 
       "return Configuration not found message" in {
         when(configurationService.getLastByProjectId(projectId, accessToken.userId))
-          .thenReturn(Future.failed(NotFound(s"There is no configuration with project_id: ${projectId.value}")))
-        Get(s"/projects/${projectId.value}/configurations") ~> configurationController.route(accessToken) ~> check {
+          .thenReturn(Future.failed(NotFound(s"There is no configuration with project_id: $projectId")))
+        Get(s"/projects/$projectId/configurations") ~> configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NotFound
-          entityAs[String] shouldBe s"There is no configuration with project_id: ${projectId.value}"
+          entityAs[String] shouldBe s"There is no configuration with project_id: $projectId"
         }
       }
     }
@@ -103,7 +103,7 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
 
       "return success for deactivate configuration" in {
         when(configurationService.deactivateLastByProjectId(projectId, accessToken.userId)).thenReturn(Future.unit)
-        Delete(s"/projects/${projectId.value}/configurations") ~> configurationController.route(accessToken) ~> check {
+        Delete(s"/projects/$projectId/configurations") ~> configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NoContent
         }
       }
@@ -111,7 +111,7 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
       "return InternalServerError when failure deactivate configuration" in {
         when(configurationService.deactivateLastByProjectId(projectId, accessToken.userId))
           .thenReturn(Future.failed(error))
-        Delete(s"/projects/${projectId.value}/configurations") ~> configurationController.route(accessToken) ~> check {
+        Delete(s"/projects/$projectId/configurations") ~> configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
           entityAs[String] shouldBe "Something went wrong"
         }
@@ -120,7 +120,7 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
       "return NotFound when failure find project to deactivate configuration" in {
         when(configurationService.deactivateLastByProjectId(projectId, accessToken.userId))
           .thenReturn(Future.failed(NotFound()))
-        Delete(s"/projects/${projectId.value}/configurations") ~> configurationController.route(accessToken) ~> check {
+        Delete(s"/projects/$projectId/configurations") ~> configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NotFound
         }
       }
@@ -131,7 +131,7 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
       "return configuration for file" in {
         when(configurationService.buildConfiguration(projectId, path, versionOption, accessToken.userId))
           .thenReturn(Future.successful(configuration))
-        Get(s"/projects/${projectId.value}/configurations/files/$pathString?version=$versionString") ~>
+        Get(s"/projects/$projectId/configurations/files/$pathString?version=$versionString") ~>
         configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
           entityAs[ProjectConfiguration] shouldBe configuration
@@ -141,7 +141,7 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
       "return failed for Bad request" in {
         when(configurationService.buildConfiguration(projectId, path, versionOption, accessToken.userId))
           .thenReturn(Future.failed(VersioningException.HttpException("Bad request")))
-        Get(s"/projects/${projectId.value}/configurations/files/$pathString?version=$versionString") ~>
+        Get(s"/projects/$projectId/configurations/files/$pathString?version=$versionString") ~>
         configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
           entityAs[String] shouldBe "Bad request"
@@ -151,7 +151,7 @@ class ProjectConfigurationControllerTest extends AsyncWordSpec with Matchers wit
       "return failed for invalid file" in {
         when(configurationService.buildConfiguration(projectId, path, versionOption, accessToken.userId))
           .thenReturn(Future.failed(ValidationError(List("invalid some field").mkString(","))))
-        Get(s"/projects/${projectId.value}/configurations/files/$pathString?version=$versionString") ~>
+        Get(s"/projects/$projectId/configurations/files/$pathString?version=$versionString") ~>
         configurationController.route(accessToken) ~> check {
           status shouldBe StatusCodes.UnprocessableEntity
           entityAs[String] shouldBe "invalid some field"

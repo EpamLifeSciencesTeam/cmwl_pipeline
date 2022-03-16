@@ -1,6 +1,6 @@
 package cromwell.pipeline.datastorage.dto
 
-import cromwell.pipeline.model.wrapper.{ RunId, UserId }
+import cromwell.pipeline.model.wrapper.{ ProjectId, RunId, UserId }
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 

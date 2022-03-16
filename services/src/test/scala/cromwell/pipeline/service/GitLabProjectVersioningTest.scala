@@ -41,7 +41,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
 
   def configureGetVersions(
     versions: List[GitLabVersion],
-    tagUrl: String = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId.value}/repository/tags"
+    tagUrl: String = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId}/repository/tags"
   ): Unit =
     when {
       mockHttpClient.get[List[GitLabVersion]](
@@ -72,7 +72,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
   def configureCreateTag(
     version: PipelineVersion,
     response: SuccessResponseMessage,
-    tagUrl: String = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId.value}/repository/tags"
+    tagUrl: String = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId}/repository/tags"
   ): Unit =
     when {
       mockHttpClient.post[SuccessResponseMessage, EmptyPayload](
@@ -88,7 +88,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
     "deleteFile" should {
 
       val path = URLEncoderUtils.encode(existFile.path.toString)
-      val url = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId.value}/repository/files/$path"
+      val url = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId}/repository/files/$path"
       val gitlabVersion = TestProjectUtils.getDummyGitLabVersion(dummyPipelineVersion)
       val payload = DeleteFileRequest(
         s"Deleting file ${existFile.path} from repository: ${projectWithRepo.name}",
@@ -196,14 +196,14 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
 
     "updateFile" should {
       val successCreateMessage = "File was created"
-      val tagUrl = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId.value}/repository/tags"
+      val tagUrl = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId}/repository/tags"
       val gitlabVersion = TestProjectUtils.getDummyGitLabVersion(dummyPipelineVersion)
       val gitlabVersionHigher = TestProjectUtils.getDummyGitLabVersion(dummyPipelineVersionHigher)
 
       "succeed when file is new" taggedAs Service in {
         val payload = UpdateFileRequest(newFile.content, dummyPipelineVersionHigher.name, gitLabConfig.defaultBranch)
         val path = URLEncoderUtils.encode(newFile.path.toString)
-        val url = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId.value}/repository/files/$path"
+        val url = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId}/repository/files/$path"
 
         val putResponse =
           Response[UpdateFileResponse](
@@ -232,7 +232,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
       "succeed when file already exists" taggedAs Service in {
         val payload = UpdateFileRequest(existFile.content, dummyPipelineVersionHigher.name, gitLabConfig.defaultBranch)
         val path = URLEncoderUtils.encode(existFile.path.toString)
-        val url = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId.value}/repository/files/$path"
+        val url = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId}/repository/files/$path"
 
         val putResponse = Response[UpdateFileResponse](
           StatusCodes.OK.intValue,
@@ -253,7 +253,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
         val updatedVersion = dummyPipelineVersion.increaseRevision
         val payload = UpdateFileRequest(existFile.content, updatedVersion.name, gitLabConfig.defaultBranch)
         val path = URLEncoderUtils.encode(existFile.path.toString)
-        val url = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId.value}/repository/files/$path"
+        val url = s"${gitLabConfig.url}projects/${projectWithRepo.repositoryId}/repository/files/$path"
 
         val putResponse = Response[UpdateFileResponse](
           StatusCodes.OK.intValue,
@@ -304,7 +304,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
         val encodedPathStr = URLEncoderUtils.encode(path.toString)
         when {
           mockHttpClient.get[GitLabFileContent](
-            s"${gitLabConfig.url}projects/${activeProject.repositoryId.value}/repository/files/$encodedPathStr",
+            s"${gitLabConfig.url}projects/${activeProject.repositoryId}/repository/files/$encodedPathStr",
             Map("ref" -> dummyPipelineVersion.name),
             gitLabConfig.token
           )
@@ -328,7 +328,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
         val encodedPathStr = URLEncoderUtils.encode(path.toString)
         when {
           mockHttpClient.get[GitLabFileContent](
-            s"${gitLabConfig.url}projects/${activeProject.repositoryId.value}/repository/files/$encodedPathStr",
+            s"${gitLabConfig.url}projects/${activeProject.repositoryId}/repository/files/$encodedPathStr",
             Map("ref" -> dummyPipelineVersion.name),
             gitLabConfig.token
           )
@@ -356,7 +356,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
           case None          => Map()
         }
         mockHttpClient.get[List[FileTree]](
-          url = exact(s"${gitLabConfig.url}projects/${project.repositoryId.value}/repository/tree"),
+          url = exact(s"${gitLabConfig.url}projects/${project.repositoryId}/repository/tree"),
           params = exact(versionId),
           headers = exact(gitLabConfig.token)
         )(ec = any[ExecutionContext], f = any[Reads[List[FileTree]]])
@@ -368,14 +368,14 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
         version: Option[PipelineVersion]
       ): Future[Response[GitLabFileContent]] =
         mockHttpClient.get[GitLabFileContent](
-          exact(s"${gitLabConfig.url}projects/${project.repositoryId.value}/repository/files/$filePath"),
+          exact(s"${gitLabConfig.url}projects/${project.repositoryId}/repository/files/$filePath"),
           exact(Map("ref" -> version.map(_.name).getOrElse(project.version.name))),
           exact(gitLabConfig.token)
         )(ec = any[ExecutionContext], f = any[Reads[GitLabFileContent]])
 
       def getGitLabProjectVersions(project: Project): Future[Response[List[GitLabVersion]]] =
         mockHttpClient.get[List[GitLabVersion]](
-          exact(s"${gitLabConfig.url}projects/${project.repositoryId.value}/repository/tags"),
+          exact(s"${gitLabConfig.url}projects/${project.repositoryId}/repository/tags"),
           any[Map[String, String]],
           exact(gitLabConfig.token)
         )(ec = any[ExecutionContext], f = any[Reads[List[GitLabVersion]]])
@@ -428,7 +428,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
         }
         when {
           mockHttpClient.get[GitLabFileContent](
-            s"${gitLabConfig.url}projects/${activeProject.repositoryId.value}/repository/files/$encodedPathStr",
+            s"${gitLabConfig.url}projects/${activeProject.repositoryId}/repository/files/$encodedPathStr",
             Map("ref" -> dummyPipelineVersion.name),
             gitLabConfig.token
           )
@@ -447,7 +447,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
     "getProjectVersions" should {
       def getProjectVersions(project: Project): Future[Response[Seq[GitLabVersion]]] =
         mockHttpClient.get[Seq[GitLabVersion]](
-          url = exact(gitLabConfig.url + "projects/" + project.repositoryId.value + "/repository/tags"),
+          url = exact(gitLabConfig.url + "projects/" + project.repositoryId + "/repository/tags"),
           headers = any[Map[String, String]],
           params = any[Map[String, String]]
         )(any[ExecutionContext], any[Reads[Seq[GitLabVersion]]])
@@ -493,7 +493,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
 
       def getFileVersions(project: Project): Future[Response[Seq[GLFileCommitInfo]]] =
         mockHttpClient.get[Seq[GLFileCommitInfo]](
-          url = exact(s"${gitLabConfig.url}projects/${project.repositoryId.value}/repository/commits"),
+          url = exact(s"${gitLabConfig.url}projects/${project.repositoryId}/repository/commits"),
           params = exact(Map("path" -> urlEncoder)),
           headers = exact(gitLabConfig.token)
         )(ec = any[ExecutionContext], f = any[Reads[Seq[GLFileCommitInfo]]])
@@ -539,7 +539,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
 
       def getFileCommits(project: Project): Future[Response[List[GLFileCommitInfo]]] =
         mockHttpClient.get[List[GLFileCommitInfo]](
-          url = exact(s"${gitLabConfig.url}projects/${project.repositoryId.value}/repository/commits"),
+          url = exact(s"${gitLabConfig.url}projects/${project.repositoryId}/repository/commits"),
           params = exact(Map("path" -> urlEncoder)),
           headers = exact(gitLabConfig.token)
         )(ec = any[ExecutionContext], f = any[Reads[List[GLFileCommitInfo]]])
@@ -631,7 +631,7 @@ class GitLabProjectVersioningTest extends AsyncWordSpec with Matchers with Mocki
     lazy val inactiveProject: Project = activeProject.copy(active = false)
     lazy val projectWithRepo: Project = activeLocalProject.toProject(gitLabRepositoryResponse.id, defaultVersion)
 
-    lazy val postProject: PostProject = PostProject(name = activeProject.projectId.value)
+    lazy val postProject: PostProject = PostProject(name = activeProject.projectId)
 
     lazy val dummyPipelineVersion: PipelineVersion = TestProjectUtils.getDummyPipeLineVersion()
     lazy val dummyPipelineVersionHigher: PipelineVersion = dummyPipelineVersion.increaseMinor

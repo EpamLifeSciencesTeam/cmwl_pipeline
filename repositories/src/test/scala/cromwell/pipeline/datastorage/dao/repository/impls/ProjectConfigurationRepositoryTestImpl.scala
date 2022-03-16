@@ -1,7 +1,8 @@
 package cromwell.pipeline.datastorage.dao.repository.impls
 
 import cromwell.pipeline.datastorage.dao.repository.ProjectConfigurationRepository
-import cromwell.pipeline.datastorage.dto.{ ProjectConfiguration, ProjectConfigurationId, ProjectId }
+import cromwell.pipeline.datastorage.dto.ProjectConfiguration
+import cromwell.pipeline.model.wrapper.{ ProjectConfigurationId, ProjectId }
 
 import scala.collection.mutable
 import scala.concurrent.Future

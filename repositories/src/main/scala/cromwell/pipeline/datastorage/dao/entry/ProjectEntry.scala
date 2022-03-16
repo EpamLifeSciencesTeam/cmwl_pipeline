@@ -2,8 +2,7 @@ package cromwell.pipeline.datastorage.dao.entry
 
 import cromwell.pipeline.datastorage.Profile
 import cromwell.pipeline.datastorage.dto._
-import cromwell.pipeline.model.wrapper.UserId
-import slick.lifted.MappedToBase.mappedToIsomorphism
+import cromwell.pipeline.model.wrapper.{ ProjectId, RepositoryId, UserId }
 import slick.lifted.{ ForeignKeyQuery, ProvenShape }
 
 trait ProjectEntry { this: Profile with UserEntry with MyPostgresProfile with AliasesSupport =>

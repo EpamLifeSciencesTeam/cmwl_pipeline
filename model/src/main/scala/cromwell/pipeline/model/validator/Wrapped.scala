@@ -20,6 +20,7 @@ trait Wrapped[T] extends Any {
   override def hashCode: Int = this.getClass.hashCode + unwrap.hashCode()
   override def toString: String = unwrap.toString
 }
+
 object Wrapped {
   trait Companion {
     type Type

@@ -3,7 +3,8 @@ package cromwell.pipeline.service
 import cats.data.EitherT
 import cats.implicits._
 import cromwell.pipeline.datastorage.dto._
-import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.model.wrapper.{ ProjectId, UserId }
+
 import scala.concurrent.{ ExecutionContext, Future }
 
 trait AggregationService {

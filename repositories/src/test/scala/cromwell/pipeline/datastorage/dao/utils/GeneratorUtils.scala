@@ -20,10 +20,10 @@ object GeneratorUtils {
   private def listOfN[T](gen: Gen[T], maxLength: Int = defaultListMaxLength): Gen[List[T]] =
     Gen.chooseNum(0, maxLength).flatMap(length => Gen.listOfN(length, gen))
 
-  private lazy val projectIdGen: Gen[ProjectId] = Gen.uuid.map(id => ProjectId(id.toString))
+  private lazy val projectIdGen: Gen[ProjectId] = Gen.uuid.map(id => ProjectId(id.toString, Enable.Unsafe))
 
   private lazy val projectConfigurationIdGen: Gen[ProjectConfigurationId] =
-    Gen.uuid.map(id => ProjectConfigurationId(id.toString))
+    Gen.uuid.map(id => ProjectConfigurationId(id.toString, Enable.Unsafe))
 
   private lazy val emailGen: Gen[UserEmail] = for {
     name <- stringGen()

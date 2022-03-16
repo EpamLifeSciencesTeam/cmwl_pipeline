@@ -2,6 +2,8 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.utils.{ TestProjectUtils, TestRunUtils, TestUserUtils }
 import cromwell.pipeline.datastorage.dto._
+import cromwell.pipeline.model.validator.Enable
+import cromwell.pipeline.model.wrapper.ProjectConfigurationId
 import cromwell.pipeline.service.ProjectService.Exceptions.NotFound
 import cromwell.pipeline.service.impls.{
   ProjectConfigurationServiceTestImpl,
@@ -11,6 +13,7 @@ import cromwell.pipeline.service.impls.{
 import org.scalatest.{ AsyncWordSpec, Matchers }
 
 import java.nio.file.Paths
+import java.util.UUID
 
 class AggregationServiceTest extends AsyncWordSpec with Matchers {
 
@@ -23,7 +26,7 @@ class AggregationServiceTest extends AsyncWordSpec with Matchers {
       val path = Paths.get("test.wdl")
       val run = TestRunUtils.getDummyRun(runId = runId, projectId = projectId, userId = userId)
       val version = PipelineVersion(run.projectVersion)
-      val configurationId = ProjectConfigurationId.randomId
+      val configurationId = ProjectConfigurationId(UUID.randomUUID().toString, Enable.Unsafe)
       val projectConfigurations =
         ProjectConfiguration(
           configurationId,
@@ -75,12 +78,12 @@ class AggregationServiceTest extends AsyncWordSpec with Matchers {
       "should return exception if configuration not found" taggedAs Service in {
 
         val emptyProjectConfigurationService = ProjectConfigurationServiceTestImpl.withException(
-          NotFound(s"Configurations for projectId ${projectId.value} not found")
+          NotFound(s"Configurations for projectId $projectId not found")
         )
         val aggregatorService = createAggregationService(projectConfigurationService = emptyProjectConfigurationService)
 
         aggregatorService.aggregate(run).failed.map {
-          _ should have.message(s"Configurations for projectId ${projectId.value} not found")
+          _ should have.message(s"Configurations for projectId $projectId not found")
         }
       }
 

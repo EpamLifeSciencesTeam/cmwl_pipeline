@@ -44,6 +44,12 @@ trait Profile {
 
     implicit def uuidIso: Isomorphism[UserId, String] = iso[UserId, String](_.unwrap, UserId(_, Enable.Unsafe))
     implicit def runidIso: Isomorphism[RunId, String] = iso[RunId, String](_.unwrap, RunId(_, Enable.Unsafe))
+    implicit def projectidIso: Isomorphism[ProjectId, String] =
+      iso[ProjectId, String](_.unwrap, ProjectId(_, Enable.Unsafe))
+    implicit def projectConfigurationIdIso: Isomorphism[ProjectConfigurationId, String] =
+      iso[ProjectConfigurationId, String](_.unwrap, ProjectConfigurationId(_, Enable.Unsafe))
+    implicit def repositoryId: Isomorphism[RepositoryId, Int] =
+      iso[RepositoryId, Int](_.unwrap, RepositoryId(_, Enable.Unsafe))
     implicit def filteridIso: Isomorphism[ProjectSearchFilterId, String] =
       iso[ProjectSearchFilterId, String](_.unwrap, ProjectSearchFilterId(_, Enable.Unsafe))
     implicit def searchQueryIso: Isomorphism[ProjectSearchQuery, JsValue] =

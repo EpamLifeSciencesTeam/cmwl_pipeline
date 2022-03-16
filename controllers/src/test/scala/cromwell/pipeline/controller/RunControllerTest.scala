@@ -40,7 +40,7 @@ class RunControllerTest
         when(runService.getRunByIdAndUser(runId, projectId, accessToken.userId))
           .thenReturn(Future.successful(runRespOption))
 
-        Get(s"/projects/${projectId.value}/runs/$runId") ~> runController.route(accessToken) ~> check {
+        Get(s"/projects/$projectId/runs/$runId") ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
           responseAs[Option[Run]] shouldEqual runRespOption
         }
@@ -53,7 +53,7 @@ class RunControllerTest
         when(runService.getRunByIdAndUser(runId, projectId, accessToken.userId))
           .thenReturn(Future.failed(new RuntimeException("something went wrong")))
 
-        Get(s"/projects/${projectId.value}/runs/$runId") ~> runController.route(accessToken) ~> check {
+        Get(s"/projects/$projectId/runs/$runId") ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
         }
       }
@@ -62,7 +62,7 @@ class RunControllerTest
         val projectId = TestRunUtils.getDummyProjectId
         val invalidRunId = "123"
 
-        Get(s"/projects/${projectId.value}/runs/$invalidRunId") ~> Route.seal(runController.route(accessToken)) ~> check {
+        Get(s"/projects/$projectId/runs/$invalidRunId") ~> Route.seal(runController.route(accessToken)) ~> check {
           status shouldBe StatusCodes.NotFound
         }
       }
@@ -78,7 +78,7 @@ class RunControllerTest
 
         when(runService.getRunsByProject(projectId, accessToken.userId)).thenReturn(Future.successful(runRespSeq))
 
-        Get(s"/projects/${projectId.value}/runs") ~> runController.route(accessToken) ~> check {
+        Get(s"/projects/$projectId/runs") ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
           responseAs[Seq[Run]] shouldEqual runRespSeq
         }
@@ -90,7 +90,7 @@ class RunControllerTest
         when(runService.getRunsByProject(projectId, accessToken.userId))
           .thenReturn(Future.failed(new RuntimeException("something went wrong")))
 
-        Get(s"/projects/${projectId.value}/runs") ~> runController.route(accessToken) ~> check {
+        Get(s"/projects/$projectId/runs") ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
         }
       }
@@ -104,7 +104,7 @@ class RunControllerTest
 
         when(runService.deleteRunById(runId, projectId, accessToken.userId)).thenReturn(Future.successful(1))
 
-        Delete(s"/projects/${projectId.value}/runs/$runId") ~> runController.route(accessToken) ~> check {
+        Delete(s"/projects/$projectId/runs/$runId") ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
         }
       }
@@ -114,7 +114,7 @@ class RunControllerTest
         when(runService.deleteRunById(runId, projectId, accessToken.userId))
           .thenReturn(Future.failed(new RuntimeException("something went wrong")))
 
-        Delete(s"/projects/${projectId.value}/runs/$runId") ~> runController.route(accessToken) ~> check {
+        Delete(s"/projects/$projectId/runs/$runId") ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
         }
       }
@@ -124,7 +124,7 @@ class RunControllerTest
         when(runService.deleteRunById(runId, projectId, accessToken.userId))
           .thenReturn(Future.failed(new RuntimeException("Something wrong.")))
 
-        Delete(s"/projects/${projectId.value}/runs/$runId") ~> runController.route(accessToken) ~> check {
+        Delete(s"/projects/$projectId/runs/$runId") ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
         }
       }
@@ -144,7 +144,7 @@ class RunControllerTest
         )
         when(runService.updateRun(runId, request, projectId, accessToken.userId)).thenReturn(Future.successful(1))
 
-        Put(s"/projects/${projectId.value}/runs/$runId", request) ~> runController.route(accessToken) ~> check {
+        Put(s"/projects/$projectId/runs/$runId", request) ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NoContent
         }
       }
@@ -162,7 +162,7 @@ class RunControllerTest
         )
         when(runService.updateRun(runId, request, projectId, accessToken.userId)).thenReturn(Future.successful(1))
 
-        Put(s"/projects/${projectId.value}/runs/$runId", request) ~> runController.route(accessToken) ~> check {
+        Put(s"/projects/$projectId/runs/$runId", request) ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.NoContent
         }
       }
@@ -182,7 +182,7 @@ class RunControllerTest
         when(runService.updateRun(runId, request, projectId, accessToken.userId))
           .thenReturn(Future.failed(new RuntimeException("something went wrong")))
 
-        Put(s"/projects/${projectId.value}/runs/$runId", request) ~> runController.route(accessToken) ~> check {
+        Put(s"/projects/$projectId/runs/$runId", request) ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
         }
       }
@@ -200,7 +200,7 @@ class RunControllerTest
         )
 
         when(runService.addRun(request, projectId, accessToken.userId)).thenReturn(Future.successful(runId))
-        Post(s"/projects/${projectId.value}/runs", request) ~> runController.route(accessToken) ~> check {
+        Post(s"/projects/$projectId/runs", request) ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.OK
           responseAs[RunId] shouldEqual runId
         }
@@ -216,7 +216,7 @@ class RunControllerTest
         when(runService.addRun(request, projectId, accessToken.userId))
           .thenReturn(Future.failed(new RuntimeException("something went wrong")))
 
-        Post(s"/projects/${projectId.value}/runs", request) ~> runController.route(accessToken) ~> check {
+        Post(s"/projects/$projectId/runs", request) ~> runController.route(accessToken) ~> check {
           status shouldBe StatusCodes.InternalServerError
         }
       }

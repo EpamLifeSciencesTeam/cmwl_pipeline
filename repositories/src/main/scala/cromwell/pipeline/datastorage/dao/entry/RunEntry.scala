@@ -4,7 +4,7 @@ import java.time.Instant
 
 import cromwell.pipeline.datastorage.Profile
 import cromwell.pipeline.datastorage.dto._
-import cromwell.pipeline.model.wrapper.{ RunId, UserId }
+import cromwell.pipeline.model.wrapper.{ ProjectId, RunId, UserId }
 import slick.lifted.{ ForeignKeyQuery, ProvenShape }
 
 trait RunEntry { this: Profile with UserEntry with ProjectEntry with MyPostgresProfile with AliasesSupport =>

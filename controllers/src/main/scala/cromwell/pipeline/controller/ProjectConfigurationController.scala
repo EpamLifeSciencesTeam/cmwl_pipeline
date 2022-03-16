@@ -6,9 +6,10 @@ import akka.http.scaladsl.server.{ ExceptionHandler, Route }
 import cromwell.pipeline.controller.ProjectConfigurationController._
 import cromwell.pipeline.controller.utils.FromStringUnmarshallers._
 import cromwell.pipeline.controller.utils.FromUnitMarshaller._
-import cromwell.pipeline.controller.utils.PathMatchers.{ Path, ProjectId }
+import cromwell.pipeline.controller.utils.PathMatchers.{ Path, ProjectId => ProjectIdPM }
 import cromwell.pipeline.datastorage.dto._
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
+import cromwell.pipeline.model.wrapper.ProjectId
 import cromwell.pipeline.service.ProjectConfigurationService
 import cromwell.pipeline.service.ProjectConfigurationService.Exceptions._
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
@@ -61,7 +62,7 @@ class ProjectConfigurationController(projectConfigurationService: ProjectConfigu
 
   val route: AccessTokenContent => Route = implicit accessToken =>
     handleExceptions(projectConfigurationServiceExceptionHandler) {
-      pathPrefix("projects" / ProjectId / "configurations") { projectId =>
+      pathPrefix("projects" / ProjectIdPM / "configurations") { projectId =>
         buildConfiguration(projectId) ~
         addConfiguration(projectId) ~
         getConfiguration(projectId) ~

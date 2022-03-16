@@ -2,8 +2,8 @@ package cromwell.pipeline.datastorage.dao.repository
 
 import cromwell.pipeline.database.PipelineDatabaseEngine
 import cromwell.pipeline.datastorage.dao.entry.ProjectEntry
-import cromwell.pipeline.datastorage.dto.{ Project, ProjectId }
-import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.datastorage.dto.Project
+import cromwell.pipeline.model.wrapper.{ ProjectId, UserId }
 
 import scala.concurrent.Future
 

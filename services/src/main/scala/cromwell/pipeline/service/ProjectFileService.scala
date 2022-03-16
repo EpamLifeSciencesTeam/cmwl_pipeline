@@ -1,7 +1,7 @@
 package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dto._
-import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.model.wrapper.{ ProjectId, UserId }
 import cromwell.pipeline.womtool.WomToolAPI
 
 import java.nio.file.Path

@@ -2,7 +2,8 @@ package cromwell.pipeline.service
 
 import cromwell.pipeline.datastorage.dao.utils.TestProjectUtils
 import cromwell.pipeline.datastorage.dto._
-import cromwell.pipeline.model.wrapper.UserId
+import cromwell.pipeline.model.validator.Enable
+import cromwell.pipeline.model.wrapper.{ ProjectConfigurationId, ProjectId, UserId }
 import cromwell.pipeline.service.ProjectSearchEngine.Exceptions.InternalError
 import cromwell.pipeline.service.impls.{
   ProjectConfigurationServiceTestImpl,
@@ -12,6 +13,7 @@ import cromwell.pipeline.service.impls.{
 import org.scalatest.{ AsyncWordSpec, Matchers }
 
 import java.nio.file.Paths
+import java.util.UUID
 
 class ProjectSearchEngineTest extends AsyncWordSpec with Matchers {
 
@@ -32,7 +34,7 @@ class ProjectSearchEngineTest extends AsyncWordSpec with Matchers {
 
   private val wdlParams: WdlParams =
     WdlParams(Paths.get("/home/file"), List(FileParameter("nodeName", StringTyped(Some("hello")))))
-  private val projectConfigurationId = ProjectConfigurationId.randomId
+  private val projectConfigurationId = ProjectConfigurationId(UUID.randomUUID().toString, Enable.Unsafe)
 
   private val activeConfiguration1: ProjectConfiguration =
     ProjectConfiguration(

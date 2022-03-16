@@ -2,14 +2,13 @@ package cromwell.pipeline.datastorage.dao.utils
 
 import java.time.Instant
 import java.util.UUID
-
-import cromwell.pipeline.datastorage.dto.{ Created, ProjectId, Run, Status }
-import cromwell.pipeline.model.wrapper.{ RunId, UserId }
+import cromwell.pipeline.datastorage.dto.{ Created, Run, Status }
+import cromwell.pipeline.model.wrapper.{ ProjectId, RunId, UserId }
 
 object TestRunUtils {
 
   private def randomUuidStr: String = UUID.randomUUID().toString
-  def getDummyProjectId: ProjectId = ProjectId(randomUuidStr)
+  def getDummyProjectId: ProjectId = ProjectId.random
   def getDummyRunId: RunId = RunId.random
   def getDummyTimeStart: Instant = Instant.now()
   def getDummyTimeEnd(isEmpty: Boolean): Option[Instant] =

@@ -4,6 +4,7 @@ import cats.data.EitherT
 import cats.implicits.toTraverseOps
 import cromwell.pipeline.datastorage.dto.File.{ DeleteFileRequest, UpdateFileRequest }
 import cromwell.pipeline.datastorage.dto._
+import cromwell.pipeline.model.wrapper.RepositoryId
 import cromwell.pipeline.service.VersioningException._
 import cromwell.pipeline.utils.HttpStatusCodes.{ Accepted, NoContent, OK }
 import cromwell.pipeline.utils.{ GitLabConfig, URLEncoderUtils }
@@ -19,7 +20,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)(impl
       Future.failed(RepositoryException("Could not create a repository for deleted project."))
     } else {
       val createRepoUrl: String = s"${config.url}projects"
-      val postProject = PostProject(name = localProject.projectId.value)
+      val postProject = PostProject(name = localProject.projectId)
       httpClient
         .post[GitLabRepositoryResponse, PostProject](url = createRepoUrl, headers = config.token, payload = postProject)
         .map {
@@ -42,7 +43,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)(impl
   ): AsyncResult[PipelineVersion] = {
     val path = URLEncoderUtils.encode(projectFile.path.toString)
     val repositoryId: RepositoryId = project.repositoryId
-    val fileUrl = s"${config.url}projects/${repositoryId.value}/repository/files/$path"
+    val fileUrl = s"${config.url}projects/${repositoryId}/repository/files/$path"
 
     getUpdatedProjectVersion(project, version).flatMap {
       case l @ Left(_) => Future.successful(l)
@@ -171,7 +172,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)(impl
     createTag(repositoryId, version).map(_.map(_ => version))
 
   private def createTag(repositoryId: RepositoryId, version: PipelineVersion): AsyncResult[SuccessResponseMessage] = {
-    val tagUrl = s"${config.url}projects/${repositoryId.value}/repository/tags"
+    val tagUrl = s"${config.url}projects/${repositoryId}/repository/tags"
     httpClient
       .post[SuccessResponseMessage, EmptyPayload](
         tagUrl,
@@ -193,7 +194,7 @@ class GitLabProjectVersioning(httpClient: HttpClient, config: GitLabConfig)(impl
       case None          => Map()
     }
     val filesTreeUrl: String =
-      s"${config.url}projects/${project.repositoryId.value}/repository/tree"
+      s"${config.url}projects/${project.repositoryId}/repository/tree"
 
     httpClient
       .get[List[FileTree]](url = filesTreeUrl, params = versionId, headers = config.token)
